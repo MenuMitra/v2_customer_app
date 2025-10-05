@@ -25,16 +25,16 @@ const SOCIAL_LINKS = [
   },
   {
     platform: 'google',
-    url: 'https://google.com/MenuMitra',
+    url: 'https://www.google.com/search?q=MenuMitra',
     icon: 'ri-google-fill',
-    color: '#304856ff'
+    color: '#4285F4'
   }
 ];
 
 const MenuMitra = () => {
   const renderLogo = () => (
     <div className="d-flex flex-column align-items-center mb-4">
-      <a href="/" className="text-decoration-none d-flex align-items-center">
+      <a href="https://menumitra.com" target="_blank" rel="noopener noreferrer" className="text-decoration-none d-flex align-items-center">
         <img 
           src={logo2} 
           alt="MenuMitra Logo" 
@@ -78,12 +78,13 @@ const MenuMitra = () => {
 
   const renderFooter = () => (
     <div className="text-center">
-      <p className="text-muted mb-0 small">version 2.0 13 Aug 2025</p>
+      <p className="text-muted mb-0 small">version 2.0</p>
+      <p className="text-muted mb-0 small">13 Aug 2025</p>
     </div>
   );
 
   return (
-    <div className="border-top pt-4 pb-4 bg-light">
+    <div className="border-top py-3 px-3 bg-light rounded-4">
       {renderLogo()}
       {renderSocialLinks()}
       {renderFooter()}

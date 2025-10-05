@@ -1,17 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useToast } from "../components/Toast/useToast";
 
-const CustomerFeedbackModal = ({ show, onClose }) => {
+const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
+  const toast = useToast();
   const [form, setForm] = useState({
     order_number: "",
     customer_name: "",
     mobile: "",
     feedback_description: "",
     feedback_rating: "",
+    app_source: "customer_app",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+
+  // Update form when orderNo prop changes
+  useEffect(() => {
+    if (orderNo) {
+      setForm(prev => ({ ...prev, order_number: orderNo }));
+    }
+  }, [orderNo]);
 
   if (!show) return null;
 
@@ -68,17 +76,15 @@ const CustomerFeedbackModal = ({ show, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
 
     // Add order number validation
-    if (form.order_number && form.order_number.length < 6) {
-      setError("Order number must be at least 6 digits.");
-      return;
-    }
+    // if (form.order_number && form.order_number.length < 6) {
+    //   setError("Order number must be at least 6 digits.");
+    //   return;
+    // }
 
     if (!form.feedback_description.trim() || !form.feedback_rating) {
-      setError("Feedback and rating are required.");
+      toast.error("Feedback and rating are required.", "Validation");
       return;
     }
     setLoading(true);
@@ -87,10 +93,21 @@ const CustomerFeedbackModal = ({ show, onClose }) => {
         ...form,
         feedback_rating: Number(form.feedback_rating),
       });
-      setSuccess("Thank you for your feedback!");
-      setTimeout(() => onClose(), 1500);
+      toast.success("Thank you for your feedback!", "Success");
+      setTimeout(() => {
+        if (response?.status === 201) {
+          setForm((prev) => ({
+            ...prev,
+            customer_name: "",
+            mobile: "",
+            feedback_description: "",
+            feedback_rating: "",
+          }));
+        }
+        onClose();
+      }, 1500);
     } catch (err) {
-      setError("Failed to submit feedback. Please try again.");
+      toast.error("Failed to submit feedback. Please try again.", "Error");
     } finally {
       setLoading(false);
     }
@@ -102,7 +119,11 @@ const CustomerFeedbackModal = ({ show, onClose }) => {
     <div
       className="modal show d-block"
       tabIndex="-1"
-      style={{ background: "rgba(0,0,0,0.3)" }}
+      style={{
+        background: "rgba(17, 25, 40, 0.35)",
+        backdropFilter: "blur(10px) saturate(160%)",
+        WebkitBackdropFilter: "blur(10px) saturate(160%)",
+      }}
     >
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
@@ -131,10 +152,7 @@ const CustomerFeedbackModal = ({ show, onClose }) => {
           </div>
           <form onSubmit={handleSubmit}>
             <div className="modal-body">
-              {error && <div className="alert alert-danger py-2">{error}</div>}
-              {success && (
-                <div className="alert alert-success py-2">{success}</div>
-              )}
+
               <div className="mb-2">
                 <label className="form-label">Customer Name</label>
                 <input

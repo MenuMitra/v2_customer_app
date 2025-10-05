@@ -1,17 +1,14 @@
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import HorizontalMenuCard from "../components/HorizontalMenuCard";
-import OffcanvasSearchFilter from "../components/Shared/OffcanvasSearchFilter";
 import { useAuth } from "../contexts/AuthContext"; // Assuming you have AuthContext
-import { useCart } from "../contexts/CartContext"; // Add this import
-import { useModal } from "../contexts/ModalContext"; // Add this import
 import { debounce } from "lodash"; // Make sure to install lodash
 import { useOutlet } from "../contexts/OutletContext";
 import QuickFilters from "../components/QuickFilters";
-import axios from "axios";
 import apiService from "../api/apiService";
 import { useQuery } from "@tanstack/react-query";
+import AuthPrompt from "../components/Auth/AuthPrompt";
 
 function Search() {
   // Add this at the start of the component, with other useEffects
@@ -23,14 +20,9 @@ function Search() {
   }, []);
 
   const [error, setError] = useState(null);
-  const [showFilter, setShowFilter] = useState(false);
-  const [activeFilters, setActiveFilters] = useState(null);
-  const [recentSearches, setRecentSearches] = useState([]);
   const [searchInputValue, setSearchInputValue] = useState("");
-  const [originalSearchResults, setOriginalSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchResults, setSearchResults] = useState([]); // Keep this state
-  const [filteredResults, setFilteredResults] = useState([]); // Add this state ONCE
 
   const searchInputRef = useRef(null);
 
@@ -38,100 +30,9 @@ function Search() {
   const { userId } = useAuth(); // Get user_id from auth context
 
   // Get cart context
-  const { addToCart, cartItems, updateQuantity, removeFromCart } = useCart();
-
-  // Get modal context
-  const { openModal } = useModal();
 
   const { outletId } = useOutlet();
 
-  const MAX_QUANTITY = 20;
-
-  // Add new state for quick filters
-  const [quickFilters, setQuickFilters] = useState({
-    type: null,
-    price: null,
-    spicy: null,
-  });
-
-  // Load recent searches from localStorage on component mount
-  useEffect(() => {
-    const savedSearches = localStorage.getItem("recentSearches");
-    if (savedSearches) {
-      setRecentSearches(JSON.parse(savedSearches));
-    }
-  }, []);
-
-  // Function to update recent searches
-  const updateRecentSearches = (searchTerm) => {
-    if (!searchTerm || searchTerm.trim().length === 0) return;
-
-    setRecentSearches((prev) => {
-      // Remove the search term if it already exists
-      const filtered = prev.filter((term) => term !== searchTerm);
-      // Add the new search term at the beginning
-      const updated = [searchTerm, ...filtered].slice(0, 3);
-      // Save to localStorage
-      localStorage.setItem("recentSearches", JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-  // Function to clear all recent searches
-  const clearRecentSearches = () => {
-    setRecentSearches([]);
-    localStorage.removeItem("recentSearches");
-  };
-
-  // Function to remove a single search term
-  const removeSearchTerm = (termToRemove) => {
-    setRecentSearches((prev) => {
-      const updated = prev.filter((term) => term !== termToRemove);
-      localStorage.setItem("recentSearches", JSON.stringify(updated));
-      return updated;
-    });
-  };
-
-  // Modified debounced function for recent searches
-  const debouncedUpdateRecentSearches = useCallback(
-    debounce((searchTerm, results) => {
-      // Only update if we have results and a valid search term
-      if (results && results.length > 0 && searchTerm && searchTerm.trim()) {
-        setRecentSearches((prev) => {
-          // Check if the search term is a substring of any existing term
-          const isSubstring = prev.some(
-            (term) =>
-              term.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              searchTerm.toLowerCase().includes(term.toLowerCase())
-          );
-
-          // If it's a substring and shorter than existing term, don't add it
-          if (
-            isSubstring &&
-            prev.some((term) => term.length > searchTerm.length)
-          ) {
-            return prev;
-          }
-
-          // Remove similar terms (case insensitive)
-          const filtered = prev.filter((term) => {
-            const termLower = term.toLowerCase();
-            const searchTermLower = searchTerm.toLowerCase();
-            return (
-              !termLower.includes(searchTermLower) &&
-              !searchTermLower.includes(termLower)
-            );
-          });
-
-          // Add the new search term at the beginning
-          const updated = [searchTerm, ...filtered].slice(0, 3);
-          localStorage.setItem("recentSearches", JSON.stringify(updated));
-          return updated;
-        });
-      }
-    }, 1000), // Increased delay to 1 second
-    []
-  );
 
   // Tanstack Query: only run when refetch() is called
   const {
@@ -149,7 +50,6 @@ function Search() {
         keyword: searchInputValue.trim(),
       }),
     enabled: false,
-    // staleTime: 5 * 60 * 1000,
     keepPreviousData: true,
   });
 
@@ -157,7 +57,6 @@ function Search() {
   useEffect(() => {
     if (searchData?.detail?.menu_list) {
       setSearchResults(searchData.detail.menu_list);
-      setFilteredResults([]); // Reset filtered results when new search happens
     }
   }, [searchData]);
 
@@ -172,12 +71,9 @@ function Search() {
   };
 
   // Debounced version of handleSearch
-  const debouncedHandleSearch = useCallback(
-    debounce(() => {
-      handleSearch();
-    }, 400),
-    [searchInputValue, outletId, userId]
-  );
+  const debouncedHandleSearch = debounce(() => {
+    handleSearch();
+  }, 400);
 
   // Input change handler (triggers search if 4+ chars)
   const handleSearchChange = (event) => {
@@ -187,61 +83,6 @@ function Search() {
     }
     if (event.target.value.trim().length >= 4) {
       debouncedHandleSearch();
-    }
-  };
-
-  // Modified handleRecentSearchClick
-  const handleRecentSearchClick = (searchTerm) => {
-    setSearchInputValue(searchTerm); // Update the input value state
-
-    // Update the search input value
-    const searchInput = document.querySelector('input[type="search"]');
-    if (searchInput) {
-      searchInput.value = searchTerm;
-    }
-
-    handleSearch(searchTerm);
-  };
-
-  // Cleanup both debounce functions on unmount
-  useEffect(() => {
-    return () => {
-      debouncedUpdateRecentSearches.cancel();
-    };
-  }, [debouncedUpdateRecentSearches]);
-
-  // Modified handleAddToCart function to match Home.jsx implementation
-  const handleAddToCart = (menu) => {
-    // Format the menu data for modal
-    const menuItem = {
-      menuId: menu.menu_id,
-      menu_cat_id: menu.menu_cat_id,
-      menuName: menu.menu_name,
-      portions: menu.portions.map((portion) => ({
-        portion_id: portion.portion_id,
-        portion_name: portion.portion_name,
-        price: portion.price,
-      })),
-      image: menu.image,
-      menuFoodType: menu.menu_food_type,
-    };
-
-    openModal("addToCart", menuItem); // Update modal ID to match the new system
-  };
-
-  // Add helper function to check if item exists in cart
-  const getCartItem = (menuId, portionId) => {
-    return cartItems.find(
-      (item) => item.menuId === menuId && item.portionId === portionId
-    );
-  };
-
-  // Add quantity change handler
-  const handleQuantityChange = (menuId, portionId, newQuantity) => {
-    if (newQuantity === 0) {
-      removeFromCart(menuId, portionId);
-    } else if (newQuantity <= MAX_QUANTITY) {
-      updateQuantity(menuId, portionId, newQuantity);
     }
   };
 
@@ -264,87 +105,9 @@ function Search() {
     }
   };
 
-  // Add this helper function
-  const hasSearchResults = () => {
-    return searchResults && searchResults.length > 0;
-  };
-
-  // Modify the toggle filter function
-  const toggleFilter = () => {
-    if (hasSearchResults()) {
-      setShowFilter(!showFilter);
-    }
-  };
-
-  // Modified handleApplyFilter to filter locally
-  const handleApplyFilter = (filters) => {
-    setError(null);
-
-    try {
-      let filteredResults = [...originalSearchResults]; // Start with original results
-
-      // Apply price range filter
-      if (filters.priceRange.min || filters.priceRange.max) {
-        const minPrice = filters.priceRange.min
-          ? parseFloat(filters.priceRange.min)
-          : 0;
-        const maxPrice = filters.priceRange.max
-          ? parseFloat(filters.priceRange.max)
-          : Infinity;
-
-        filteredResults = filteredResults.filter((menu) => {
-          const menuPrice = menu.portions?.[0]?.price || 0;
-          return menuPrice >= minPrice && menuPrice <= maxPrice;
-        });
-      }
-
-      // Apply food type filter
-      const selectedFoodTypes = Object.entries(filters.foodType)
-        .filter(([_, isSelected]) => isSelected)
-        .map(([type]) => type);
-
-      if (selectedFoodTypes.length > 0) {
-        filteredResults = filteredResults.filter((menu) =>
-          selectedFoodTypes.includes(menu.menu_food_type)
-        );
-      }
-
-      // Apply other filters
-      if (filters.others.discount) {
-        filteredResults = filteredResults.filter((menu) => menu.offer > 0);
-      }
-
-      if (filters.others.voucher) {
-        filteredResults = filteredResults.filter((menu) => menu.has_voucher); // Assuming this property exists
-      }
-
-      if (filters.others.freeShipping) {
-        filteredResults = filteredResults.filter((menu) => menu.free_shipping); // Assuming this property exists
-      }
-
-      if (filters.others.sameDayDelivery) {
-        filteredResults = filteredResults.filter(
-          (menu) => menu.same_day_delivery
-        ); // Assuming this property exists
-      }
-
-      // setSearchResults(filteredResults); // This line is removed
-    } catch (err) {
-      setError(err.message);
-      // setSearchResults(originalSearchResults); // This line is removed
-    } finally {
-    }
-  };
-
-  const getFoodTypeFilter = (foodType) => {
-    if (foodType.veg && !foodType.nonveg) return "veg";
-    if (!foodType.veg && foodType.nonveg) return "nonveg";
-    return "all";
-  };
-
   // Handle quick filter changes
   const handleQuickFilterChange = (filtered) => {
-    setFilteredResults(filtered);
+    setSearchResults(filtered);
   };
 
   // Focus the search input on mount
@@ -354,9 +117,8 @@ function Search() {
     }
   }, []);
 
-  // Use filteredResults if available, otherwise use searchResults
-  const displayResults =
-    filteredResults.length > 0 ? filteredResults : searchResults;
+  // Use searchResults for display
+  const displayResults = searchResults;
 
   return (
     <>
@@ -389,6 +151,33 @@ function Search() {
                     results="0"
                     data-search-input
                   />
+                  {searchInputValue && (
+                    <div className="input-group-text px-4">
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 border-0"
+                        onClick={() => {
+                          setSearchInputValue("");
+                          setSearchResults([]);
+                          if (searchInputRef.current) {
+                            searchInputRef.current.focus();
+                          }
+                        }}
+                        style={{
+                          color: "#6c757d",
+                          fontSize: "16px",
+                          lineHeight: 1,
+                          padding: "0",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                        }}
+                        title="Clear search"
+                      >
+                        <i className="fas fa-times"></i>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -403,7 +192,8 @@ function Search() {
                   <span className="visually-hidden">Loading...</span>
                 </div>
               </div>
-            ) : error || searchError ? (
+            ) : (error || searchError) &&
+              searchError?.response?.status !== 404 ? (
               <div className="text-center py-4">
                 <div className="empty-search-state">
                   <i
@@ -424,34 +214,35 @@ function Search() {
                 </div>
               </div>
             ) : !hasSearched || searchInputValue.trim() === "" ? (
-              <div className="text-center py-4">
-                <div className="empty-search-state">
-                  <p className="mt-3 text-muted">Search the menu</p>
-                </div>
-              </div>
-            ) : displayResults.length === 0 ? (
-              <div className="text-center py-4">
-                <div className="empty-search-state">
-                  <i
-                    className="fas fa-exclamation-circle"
-                    style={{
-                      fontSize: "64px",
-                      color: "#dc3545",
-                      opacity: "0.5",
-                      marginBottom: "1rem",
-                    }}
-                  ></i>
-                  <p className="mt-3 text-muted">No menu found</p>
-                </div>
-              </div>
+              <AuthPrompt
+                iconClassName="fa-solid fa-magnifying-glass"
+                title="Search Menu"
+                subtitle="Type 4 or more characters to search"
+                buttonLabel="Start Searching"
+                onLogin={() => {
+                  if (searchInputRef.current) searchInputRef.current.focus();
+                }}
+                containerClassName="w-100"
+                minHeight="calc(100vh - 300px)"
+              />
+            ) : displayResults.length === 0 ||
+              searchError?.response?.status === 404 ? (
+              <AuthPrompt
+                iconClassName="fa-solid fa-magnifying-glass"
+                title="No menu found"
+                subtitle="Try different keywords or filters"
+                buttonLabel="Clear Search"
+                onLogin={() => {
+                  setSearchInputValue("");
+                  setSearchResults([]);
+                  if (searchInputRef.current) searchInputRef.current.focus();
+                }}
+                containerClassName="w-100"
+                minHeight="calc(100vh - 300px)"
+              />
             ) : (
               <div className="item-list style-2">
                 <div className="saprater" />
-                {/* <div className="title-bar">
-                  <span className="title mb-0 font-18">
-                    Search Results ({searchResults.length})
-                  </span>
-                </div> */}
                 <ul>
                   {displayResults.map((menu) => (
                     <li key={menu.menu_id}>
@@ -520,24 +311,6 @@ function Search() {
           </div>
         </div>
       </div>
-
-      {/* {hasSearchResults() && (
-        <div
-          className={`offcanvas offcanvas-start be-0 ${
-            showFilter ? "show" : ""
-          }`}
-          tabIndex="-1"
-          id="offcanvasLeft"
-          aria-modal="true"
-          role="dialog"
-        >
-          <OffcanvasSearchFilter
-            onClose={() => setShowFilter(false)}
-            onApplyFilter={handleApplyFilter}
-          />
-        </div>
-      )} */}
-
       <Footer />
     </>
   );
@@ -554,6 +327,7 @@ const styles = `
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    margin-top: 10rem;
   }
   
   .empty-search-state i {

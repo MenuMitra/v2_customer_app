@@ -2,18 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import defaultAvatar from "../assets/images/avatar/avatar-default.png";
+import { useToast } from "../components/Toast/useToast";
 
 const API_BASE_URL = 'https://ghanish.in/v2';
 
 function EditProfile() {
   const navigate = useNavigate();
+  const toast = useToast();
   const [formData, setFormData] = useState({
     name: '',
     phoneNumber: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
 
   useEffect(() => {
     // Load user data from localStorage on component mount
@@ -40,18 +40,17 @@ function EditProfile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     // Basic validation
     if (!formData.name.trim()) {
-      setError('Name is required');
+      toast.error('Name is required', 'Validation');
       setIsLoading(false);
       return;
     }
 
     if (formData.phoneNumber.length !== 10) {
-      setError('Please enter a valid 10-digit mobile number');
+      toast.error('Please enter a valid 10-digit mobile number', 'Validation');
       setIsLoading(false);
       return;
     }
@@ -59,7 +58,7 @@ function EditProfile() {
     try {
       const authData = localStorage.getItem('auth');
       if (!authData) {
-        setError('Authentication data not found');
+        toast.error('Authentication data not found', 'Error');
         setIsLoading(false);
         return;
       }
@@ -92,20 +91,16 @@ function EditProfile() {
         };
         localStorage.setItem('auth', JSON.stringify(updatedAuthData));
 
-        // Show success message
-        setError('Profile updated successfully');
-        document.querySelector('.alert')?.classList.replace('alert-danger', 'alert-success');
-        
-        // Navigate with replace after showing success message briefly
+        toast.success('Profile updated successfully', 'Success');
         setTimeout(() => {
           navigate('/profile', { replace: true });
-        }, 1000);
+        }, 800);
       } else {
         throw new Error(data.detail || 'Failed to update profile');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      setError(error.message || 'Failed to update profile. Please try again.');
+      toast.error(error.message || 'Failed to update profile. Please try again.', 'Error');
     } finally {
       setIsLoading(false);
     }
@@ -117,17 +112,6 @@ function EditProfile() {
       <div className="page-content">
         <div className="container">
           <div className="edit-profile">
-            {/* <div className="profile-image">
-              <div className="media media-100 rounded-circle">
-                <img src={defaultAvatar} alt="Profile" />
-              </div>
-              <a href="javascript:void(0);">Change profile photo</a>
-            </div> */}
-            {error && (
-              <div className="alert alert-danger py-2 mb-3">
-                {error}
-              </div>
-            )}
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Name</label>

@@ -13,7 +13,7 @@ const ToastContainer = memo(function ToastContainer() {
       className={`toast-container ${position}`} 
       role="region" 
       aria-label="Notifications"
-      style={{ zIndex: 99999 }}
+      style={{ zIndex: 999999 }}
     >
       {toasts.map((toast) => (
         <Toast

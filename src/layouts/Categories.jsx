@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useOutlet } from '../contexts/OutletContext';
-import { useAuth } from '../contexts/AuthContext';
 import apiService from '../api/apiService';
 import QueryErrorBoundary from '../components/QueryErrorBoundary';
 import TestCacheButton from '../components/TestCacheButton';
@@ -13,19 +12,16 @@ function Categories() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('grid');
   const { outletId } = useOutlet();
-  const { getUserId } = useAuth();
 
   // Replace useEffect + useState with useQuery
   const { 
     data: categories = [], 
     isLoading,
-    error,
-    refetch 
+    error
   } = useQuery({
     queryKey: ['categories', outletId],
     queryFn: () => apiService.categories.getList({ outletId }),
     enabled: !!outletId,
-    // staleTime: 5 * 60 * 1000, // Match previous cache time of 5 minutes
   });
 
   const handleCategoryClick = (e, category) => {
@@ -47,62 +43,76 @@ function Categories() {
   );
 
   // Skeleton component for loading state
-  const CategorySkeleton = () => {
+  const CategorySkeleton = ({ isList = false }) => {
     const skeletonCount = 8; // Number of skeleton cards to show
     const skeletons = Array(skeletonCount).fill(null);
 
-    return skeletons.map((_, index) => (
-      <div key={`skeleton-${index}`} className="col-6 col-md-4 col-lg-3">
-        <div 
-          className="card h-100 border-0 rounded-4 shadow-sm"
-          style={{
-            background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Shimmer effect overlay */}
+    return (
+      <>
+        {skeletons.map((_, index) => (
           <div 
-            className="skeleton-shimmer"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
-              animation: 'shimmer 1.5s infinite',
-            }}
-          />
-          
-          <div className="card-body d-flex flex-column align-items-center justify-content-center p-3">
-            {/* Icon skeleton */}
-            <div className="mb-3" style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              background: '#e0e0e0',
-            }} />
-            
-            {/* Title skeleton */}
-            <div className="mb-2" style={{
-              width: '80%',
-              height: '20px',
-              borderRadius: '4px',
-              background: '#e0e0e0',
-            }} />
-            
-            {/* Count skeleton */}
-            <div style={{
-              width: '60px',
-              height: '24px',
-              borderRadius: '12px',
-              background: '#e0e0e0',
-            }} />
+            key={`skeleton-${index}`} 
+            className={`${isList ? 'col-12' : 'col-6 col-md-4 col-lg-3'} mb-3`}
+            role="status" 
+            aria-busy="true" 
+            aria-label="Loading categories"
+          >
+            <div 
+              className="card h-100 border-0 rounded-4 shadow-sm"
+              style={{
+                background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
+                position: 'relative',
+                overflow: 'hidden',
+                minHeight: isList ? '88px' : '140px',
+                marginBottom: '1rem',
+              }}
+            >
+              {/* Shimmer effect overlay */}
+              <div className="skeleton-shimmer" />
+              
+              <div className={`card-body d-flex ${isList ? 'align-items-center' : 'flex-column align-items-center text-center'} p-3 p-md-4`}>
+                {/* Icon skeleton */}
+                <div 
+                  className={isList ? 'me-3' : 'mb-3'} 
+                  style={{
+                    width: isList ? '32px' : '36px',
+                    height: isList ? '32px' : '36px',
+                    borderRadius: '50%',
+                    background: '#e0e0e0',
+                  }} 
+                  aria-hidden="true"
+                />
+                
+                <div className={isList ? 'flex-grow-1' : ''}>
+                  {/* Title skeleton */}
+                  <div 
+                    className="mb-2" 
+                    style={{
+                      width: isList ? '70%' : '80%',
+                      height: '18px',
+                      borderRadius: '4px',
+                      background: '#e0e0e0',
+                    }} 
+                    aria-hidden="true"
+                  />
+                  
+                  {/* Count skeleton */}
+                  <div 
+                    style={{
+                      width: isList ? '72px' : '88px',
+                      height: '22px',
+                      borderRadius: '12px',
+                      background: '#e0e0e0',
+                    }} 
+                    aria-hidden="true"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-    ));
+        ))}
+      </>
+    );
   };
 
   // View toggle component
@@ -230,7 +240,7 @@ function Categories() {
             {/* Categories display */}
             <div className="row">
               {isLoading ? (
-                <CategorySkeleton />
+                <CategorySkeleton isList={viewMode === 'list'} />
               ) : error ? (
                 <div className="col-12">
                   <div className="alert alert-danger" role="alert">

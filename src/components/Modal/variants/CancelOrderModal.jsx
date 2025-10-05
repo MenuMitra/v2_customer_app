@@ -83,6 +83,7 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
               {predefinedReasons.map((item, index) => (
                 <div 
                   key={index} 
+                  className="d-flex align-items-start mb-2"
                   onClick={() => setReason(item.description)}
                   style={{ 
                     cursor: 'pointer',
@@ -90,16 +91,26 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
                     opacity: 1
                   }}
                 >
-                  <p className="mb-0" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
-                    {item.title}
-                  </p>
-                  <p className="mb-0" style={{ 
-                    fontSize: '0.85rem', 
-                    color: '#666',
-                    marginTop: '2px'
-                  }}>
-                    {item.description}
-                  </p>
+                  <input
+                    type="radio"
+                    name="cancelReason"
+                    className="me-2 mt-1"
+                    checked={reason === item.description}
+                    onChange={() => setReason(item.description)}
+                    style={{ transform: 'scale(1.1)' }}
+                  />
+                  <div>
+                    <p className="mb-0" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+                      {item.title}
+                    </p>
+                    <p className="mb-0" style={{ 
+                      fontSize: '0.85rem', 
+                      color: '#666',
+                      marginTop: '2px'
+                    }}>
+                      {item.description}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>

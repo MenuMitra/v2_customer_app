@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import AuthPrompt from "../components/Auth/AuthPrompt";
 import { useCart } from "../contexts/CartContext";
 import axios from "axios";
 import { API_CONFIG } from "../constants/config";
@@ -9,7 +10,7 @@ import { useOutlet } from "../contexts/OutletContext";
 import OrderExistsModal from "../components/Modal/variants/OrderExistsModal";
 import { useAuth } from "../contexts/AuthContext";
 import LazyImage from "../components/Shared/LazyImage";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiService from "../api/apiService";
 import { useToastContext } from "../components/Toast/ToastContext";
 
@@ -72,7 +73,8 @@ const FooterSummary = React.memo(function FooterSummary({ checkoutDetails }) {
   );
 });
 
-function Checkout() {
+// Extracted authenticated content component
+function CheckoutContent() {
   // Move ALL hooks to the top
   const {
     cartItems,
@@ -83,7 +85,7 @@ function Checkout() {
     clearCart,
   } = useCart();
   const { outletId, sectionId, outletDetails } = useOutlet();
-  const { user, setShowAuthOffcanvas, getAccessToken } = useAuth();
+  const { getAccessToken } = useAuth();
   const navigate = useNavigate();
   const [existingOrderModal, setExistingOrderModal] = useState({
     isOpen: false,
@@ -94,21 +96,19 @@ function Checkout() {
   const [couponLoading, setCouponLoading] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const { addToast } = useToastContext();
+  const queryClient = useQueryClient();
 
   // Keep all your handlers and effects here
-  const handleLogin = () => {
-    setShowAuthOffcanvas(true);
-  };
 
   // Calculate subtotal
-  const subtotal = getCartTotal();
+  // const subtotal = getCartTotal();
 
   // Calculate tax (2%)
-  const taxRate = 0.02;
-  const taxAmount = subtotal * taxRate;
+  // const taxRate = 0.02;
+  // const taxAmount = subtotal * taxRate;
 
   // Calculate final total
-  const total = subtotal - taxAmount;
+  // const total = subtotal - taxAmount;
 
   const handleQuantityChange = (menuId, portionId, newQuantity) => {
     if (newQuantity === 0) {
@@ -140,8 +140,6 @@ function Checkout() {
         orderItems: getOrderItems(),
       }),
     enabled: !!outletId && cartItems.length > 0,
-    // staleTime: 30000,
-    // cacheTime: 5 * 60 * 1000,
     retry: 2,
     onError: (err) => {
       if (err.response?.status === 401) {
@@ -180,6 +178,11 @@ function Checkout() {
     onSuccess: () => {
       clearCart();
       localStorage.removeItem("cart");
+      
+      // Invalidate and refetch orders data
+      queryClient.invalidateQueries({ queryKey: ['ongoingOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
+      
       addToast({
         message: "Items added to existing order successfully!",
         type: "success",
@@ -204,11 +207,16 @@ function Checkout() {
       );
       return result;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       clearCart();
       localStorage.removeItem("cart");
+      
+      // Invalidate and refetch orders data
+      queryClient.invalidateQueries({ queryKey: ['ongoingOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
+      
       addToast({
-        message: "Order cancelled and new order created successfully!",
+        message: `Order cancelled and new order #${data.order_number} created successfully!`,
         type: "success",
       });
       navigate("/orders");
@@ -444,12 +452,12 @@ function Checkout() {
     setCouponStatus(null);
     try {
       const accessToken = getAccessToken();
-
       const response = await axios.post(
         "https://ghanish.in/v2/common/verify_coupon",
         {
           coupon_code: couponCode,
           app_source: "user_App",
+          outlet_id: String(outletId),
         },
         {
           headers: {
@@ -496,44 +504,7 @@ function Checkout() {
   // Instead of early returns, use conditional rendering in the return statement
   return (
     <>
-      <Header />
-      {!user ? (
-        // Not logged in view
-        <div className="page-content">
-          <div className="content-inner pt-0">
-            <div className="container p-b20">
-              <div
-                className="d-flex align-items-center justify-content-center"
-                style={{ minHeight: "calc(100vh - 300px)" }}
-              >
-                <div className="text-center">
-                  <div className="mb-4">
-                    <i
-                      className="fa-solid fa-user"
-                      style={{
-                        fontSize: 80,
-                        opacity: 0.5,
-                        color: "#6c757d",
-                      }}
-                    ></i>
-                  </div>
-                  <h5 className="mb-3">Please Login to Cart</h5>
-                  <p className="text-muted mb-4">
-                    Login to your account to complete your order
-                  </p>
-                  <button
-                    className="btn btn-primary px-4 py-3"
-                    style={{ borderRadius: 12, fontWeight: 500 }}
-                    onClick={handleLogin}
-                  >
-                    Login Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      ) : cartItems.length === 0 ? (
+      {cartItems.length === 0 ? (
         // Empty cart view
         <div className="page-content">
           <div className="content-inner pt-0">
@@ -839,16 +810,8 @@ function Checkout() {
                   className="rounded-4 shadow-sm p-3 mb-3"
                   style={{ border: "1px solid #e0e0e0", marginTop: 24 }}
                 >
-                  {detailsLoading ? (
-                    <div className="text-center py-3">
-                      <div
-                        className="spinner-border text-primary"
-                        role="status"
-                      >
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                    </div>
-                  ) : checkoutError ? (
+                  {/* Remove the loading spinner - show content immediately */}
+                  {checkoutError ? (
                     <div className="text-center text-danger py-3">
                       Failed to load checkout details. Please try again.
                     </div>
@@ -859,10 +822,11 @@ function Checkout() {
                           Total
                         </span>
                         <span className="fw-bold" style={{ fontSize: 18 }}>
-                          ₹{checkoutDetails?.total_bill_amount || "0.00"}
+                          ₹{checkoutDetails?.total_bill_amount || getCartTotal().toFixed(2)}
                         </span>
                       </div>
                       <hr className="my-2" style={{ borderColor: "#e0e0e0" }} />
+                      
                       {/* Regular Discount */}
                       <div
                         className="d-flex justify-content-between align-items-center mb-1"
@@ -899,26 +863,27 @@ function Checkout() {
                         <span>Subtotal</span>
                         <span>
                           ₹
-                          {(
-                            parseFloat(
-                              checkoutDetails?.total_bill_amount || 0
-                            ) -
-                            parseFloat(checkoutDetails?.discount_amount || 0) -
-                            (couponStatus?.success
-                              ? parseFloat(couponStatus.couponDetails.value)
-                              : 0)
-                          ).toFixed(2)}
+                          {checkoutDetails ? (
+                            (
+                              parseFloat(checkoutDetails.total_bill_amount || 0) -
+                              parseFloat(checkoutDetails.discount_amount || 0) -
+                              (couponStatus?.success
+                                ? parseFloat(couponStatus.couponDetails.value)
+                                : 0)
+                            ).toFixed(2)
+                          ) : (
+                            getCartTotal().toFixed(2)
+                          )}
                         </span>
                       </div>
 
-                      {/* Service Charges and GST sections remain the same */}
+                      {/* Service Charges and GST sections */}
                       <div
                         className="d-flex justify-content-between align-items-center mb-1"
                         style={{ color: "#b0b3b8" }}
                       >
                         <span>
-                          Service Charges (
-                          {checkoutDetails?.service_charges_percent || 0}%)
+                          Service Charges ({checkoutDetails?.service_charges_percent || 0}%)
                         </span>
                         <span>
                           +₹{checkoutDetails?.service_charges_amount || "0.00"}
@@ -932,21 +897,24 @@ function Checkout() {
                         <span>+₹{checkoutDetails?.gst_amount || "0.00"}</span>
                       </div>
                       <hr className="my-2" style={{ borderColor: "#e0e0e0" }} />
-                      {/* Updated Grand Total with coupon discount */}
+                      
+                      {/* Grand Total with coupon discount */}
                       <div className="d-flex justify-content-between align-items-center">
                         <span className="fw-bold" style={{ fontSize: 18 }}>
                           Grand Total
                         </span>
                         <span className="fw-bold" style={{ fontSize: 18 }}>
                           ₹
-                          {(
-                            parseFloat(
-                              checkoutDetails?.final_grand_total || 0
-                            ) -
-                            (couponStatus?.success
-                              ? parseFloat(couponStatus.couponDetails.value)
-                              : 0)
-                          ).toFixed(2)}
+                          {checkoutDetails ? (
+                            (
+                              parseFloat(checkoutDetails.final_grand_total || 0) -
+                              (couponStatus?.success
+                                ? parseFloat(couponStatus.couponDetails.value)
+                                : 0)
+                            ).toFixed(2)
+                          ) : (
+                            getCartTotal().toFixed(2)
+                          )}
                         </span>
                       </div>
                     </>
@@ -1053,7 +1021,21 @@ function Checkout() {
           cancelAndCreateNewMutation.isPending
         }
       />
+    </>
+  );
+}
 
+function Checkout() {
+  const { user } = useAuth();
+
+  return (
+    <>
+      <Header />
+      {!user ? (
+        <AuthPrompt variant="checkout" />
+      ) : (
+        <CheckoutContent />
+      )}
       <Footer />
     </>
   );

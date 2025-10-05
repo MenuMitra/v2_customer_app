@@ -544,7 +544,7 @@ function OrderDetail() {
               <div className="d-flex align-items-center justify-content-between mb-2">
                 <div>
                   <h5 className="mb-0 text-primary">
-                    #{orderDetails.order_details.order_number}
+                   Order  #{orderDetails.order_details.order_number}
                   </h5>
                 </div>
                 <span
@@ -555,7 +555,7 @@ function OrderDetail() {
                     orderDetails.order_details.order_status
                   )}
                 >
-                  {orderDetails.order_details.order_status}
+                  {orderDetails.order_details.order_status?.toUpperCase()}
                 </span>
               </div>
               <div className="d-flex align-items-center justify-content-between">
@@ -565,7 +565,7 @@ function OrderDetail() {
                 </span>
                 <span className="text-soft">
                   <i className="fa-solid fa-location-dot me-2"></i>
-                  {orderDetails.order_details.order_type}
+                  {orderDetails.order_details.order_type?.toUpperCase()}
                 </span>
               </div>
             </div>
@@ -573,16 +573,17 @@ function OrderDetail() {
 
           {/* Order Items Card */}
           <div className="card mt-3">
-            <div className="card-header border-0 pb-0">
+            <div className="card-header border-0 pb-0 border-bottom pb-3">
               <h5 className="card-title text-primary">
                 Order Items ({orderDetails.order_details.menu_count})
               </h5>
             </div>
+           
             <div className="card-body">
               {orderDetails.menu_details.map((menu, index) => (
                 <div
                   key={index}
-                  className="d-flex align-items-center justify-content-between"
+                  className="d-flex align-items-center justify-content-between py-3"
                   style={{
                     borderBottom:
                       index !== orderDetails.menu_details.length - 1
@@ -630,7 +631,7 @@ function OrderDetail() {
 
           {/* Bill Details Card */}
           <div className="card mt-3">
-            <div className="card-header border-0 d-flex justify-content-between align-items-center">
+            <div className="card-header border-0 d-flex justify-content-between align-items-center pb-0">
               <h5 className="card-title text-primary mb-0">Payment Details</h5>
               {orderDetails.order_details.payment_method && (
                 <span className="badge bg-primary-light text-primary">
@@ -649,6 +650,27 @@ function OrderDetail() {
                       {Number(
                         orderDetails.order_details.coupon_details
                           .total_bill_before_coupon
+                      ).toFixed(2)}
+                    </strong>
+                  </div>
+                )}
+
+                {/* Show Discount first */}
+                {orderDetails.order_details.discount_amount > 0 && (
+                  <div
+                    className="d-flex justify-content-between px-0"
+                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
+                  >
+                    <span>
+                      Discount
+                      {orderDetails.order_details.discount_percent > 0
+                        ? ` (${orderDetails.order_details.discount_percent}%)`
+                        : ""}
+                    </span>
+                    <strong style={{ color: "#e74c3c" }}>
+                      -₹
+                      {Number(
+                        orderDetails.order_details.discount_amount
                       ).toFixed(2)}
                     </strong>
                   </div>
@@ -689,7 +711,7 @@ function OrderDetail() {
                       }}
                     >
                       <span style={{ fontWeight: 500 }}>
-                        After Coupon Discount
+                        After Total Discount
                       </span>
                       <span style={{ fontWeight: 500 }}>
                         ₹
@@ -716,25 +738,6 @@ function OrderDetail() {
                 )}
 
                 {/* Rest of the existing bill details */}
-                {orderDetails.order_details.discount_amount > 0 && (
-                  <div
-                    className="d-flex justify-content-between px-0"
-                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                  >
-                    <span>
-                      Discount
-                      {orderDetails.order_details.discount_percent > 0
-                        ? ` (${orderDetails.order_details.discount_percent}%)`
-                        : ""}
-                    </span>
-                    <strong style={{ color: "#e74c3c" }}>
-                      -₹
-                      {Number(
-                        orderDetails.order_details.discount_amount
-                      ).toFixed(2)}
-                    </strong>
-                  </div>
-                )}
                 {orderDetails.order_details.special_discount > 0 && (
                   <div
                     className="d-flex justify-content-between px-0"
@@ -772,6 +775,7 @@ function OrderDetail() {
                         orderDetails.order_details.total_bill_amount || 0
                       ) -
                       Number(orderDetails.order_details.discount_amount || 0) -
+                      Number(orderDetails.order_details.coupon_discount || 0) -
                       Number(orderDetails.order_details.special_discount || 0) +
                       Number(orderDetails.order_details.charges || 0)
                     ).toFixed(2)}
@@ -847,7 +851,7 @@ function OrderDetail() {
           {/* Invoice and Feedback Buttons */}
           <div className="d-flex justify-content-between align-items-center mt-3">
             <div>
-              <FeedbackButton />
+              <FeedbackButton orderNo={orderDetails.order_details.order_number} />
             </div>
             {["paid", "complementary_paid", "udhari_paid"].includes(
               orderDetails.order_details.order_status?.toLowerCase()

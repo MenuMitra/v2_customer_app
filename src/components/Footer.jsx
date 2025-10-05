@@ -1,9 +1,11 @@
 import React from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useOutlet } from "../contexts/OutletContext";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 
 function Footer() {
+  const { outletCode, sectionId, tableId } = useOutlet();
   const { getCartCount } = useCart();
   const cartCount = getCartCount();
   const location = useLocation();
@@ -29,12 +31,16 @@ function Footer() {
   return (
     <div>
       <div
-        className="menubar-area style-2 footer-fixed border-top"
-        style={{ boxShadow: "0 -4px 6px -1px rgba(0,0,0,0.2)" }}
+        className="menubar-area style-2 footer-fixed border-top border-3 border-primary"
+        style={{ boxShadow: "0 -10px 6px -1px rgba(0,0,0,0.1)" }}
       >
         <div className="toolbar-inner menubar-nav">
           <NavLink
-            to="/"
+            to={
+              outletCode && sectionId && tableId
+                ? `/o${outletCode}/s${sectionId}/t${tableId}`
+                : "/"
+            }
             className={({ isActive }) =>
               `nav-link ${isActive ? "active text-primary" : ""}`
             }
@@ -105,7 +111,7 @@ function Footer() {
               }
             }}
             to="/orders"
-            className={({ isActive }) =>
+            className={() =>
               `nav-link ${isOrderRoute() ? "active text-primary" : ""}`
             }
           >
@@ -113,7 +119,7 @@ function Footer() {
           </NavLink>
           <NavLink
             to="/profile"
-            className={({ isActive }) =>
+            className={() =>
               `nav-link ${isProfileRoute() ? "active text-primary" : ""}`
             }
           >

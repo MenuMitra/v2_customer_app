@@ -408,7 +408,10 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
                       transition: "all 0.15s ease",
                     }}
                     href="javascript:void(0);"
-                    onClick={() => handleFilterClick(dropdownType, option.id)}
+                    onClick={() => {
+                      handleFilterClick(dropdownType, option.id);
+                      setOpenDropdown(null); // Close dropdown after selection
+                    }}
                   >
                     <span className="me-2" style={{ opacity: 0.9 }}>{option.icon}</span>
                     <span style={{ 
@@ -459,7 +462,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
   document.head.appendChild(styleSheet);
 
   return (
-    <div className="d-flex gap-2">
+    <div className="d-flex gap-2 justify-content-between">
       {renderFilterDropdown("Type", typeOptions, activeFilters.type)}
       {renderFilterDropdown("Price", priceOptions, activeFilters.price)}
       {renderFilterDropdown("Spicy", spicyOptions, activeFilters.spicy)}

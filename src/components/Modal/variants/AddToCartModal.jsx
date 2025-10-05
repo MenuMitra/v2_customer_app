@@ -76,6 +76,53 @@ export const AddToCartModal = () => {
     }
   }, [user, closeModal, setShowAuthOffcanvas]);
 
+  // Remove the problematic useEffect (lines 80-95) and replace with this:
+  useEffect(() => {
+    // Handle increment/decrement action from VerticalMenuCard
+    if (modalConfig.data?.action && selectedPortion) {
+      const action = modalConfig.data.action;
+      const currentQuantity = quantities[selectedPortion] || 0;
+      
+      if (action === 'increment') {
+        const newQuantity = currentQuantity + 1;
+        setQuantities((prev) => ({
+          ...prev,
+          [selectedPortion]: newQuantity,
+        }));
+        
+        // Update cart immediately
+        if (modalConfig.data) {
+          addToCart(
+            modalConfig.data,
+            selectedPortion,
+            newQuantity,
+            comments[selectedPortion] || ""
+          );
+        }
+      } else if (action === 'decrement') {
+        const newQuantity = Math.max(0, currentQuantity - 1);
+        setQuantities((prev) => ({
+          ...prev,
+          [selectedPortion]: newQuantity,
+        }));
+        
+        // Update cart immediately
+        if (modalConfig.data) {
+          addToCart(
+            modalConfig.data,
+            selectedPortion,
+            newQuantity,
+            comments[selectedPortion] || ""
+          );
+        }
+      }
+      
+      // Clear the action to prevent re-triggering
+      modalConfig.data.action = null;
+    }
+  }, [modalConfig.data?.action, selectedPortion]); // Remove quantities from dependencies
+
+  // Update the handleQuantityChange function to remove the action logic:
   const handleQuantityChange = (newQuantity) => {
     // Check if user is authenticated
     const authData = localStorage.getItem("auth");
@@ -91,7 +138,7 @@ export const AddToCartModal = () => {
       [selectedPortion]: finalQuantity,
     }));
 
-    // Only update cart immediately if item is already in cart
+    // Only update cart immediately if item is already in cart (existing behavior)
     if (isInCart && modalConfig.data) {
       addToCart(
         modalConfig.data,

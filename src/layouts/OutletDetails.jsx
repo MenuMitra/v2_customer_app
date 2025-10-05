@@ -3,33 +3,37 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useOutlet } from "../contexts/OutletContext";
 import OutletInfoBanner from "../components/OutletInfoBanner";
+import { useToast } from "../components/Toast/useToast";
+import { useQuery } from "@tanstack/react-query";
+import apiService from "../api/apiService";
 
 function OutletDetails() {
   const { outletInfo, outletId } = useOutlet();
-  const [restaurantDetails, setRestaurantDetails] = useState(() => {
-    // Always initialize from cache if available
-    const cached = localStorage.getItem(
-      `restaurant_details_${outletInfo?.outletId}`
-    );
-    return cached
-      ? JSON.parse(cached)
-      : {
-          outlet_details: {
-            name: outletInfo?.outletName,
-            address: outletInfo?.outletAddress,
-            mobile: outletInfo?.outletMobile,
-            veg_nonveg: outletInfo?.vegNonveg,
-            upi_id: "",
-            image: null,
-          },
-          count: {
-            total_menu: 0,
-            total_special_menu: 0,
-            total_offer_menu: 0,
-            total_category: 0,
-            total_tables: 0,
-          },
-        };
+  const toast = useToast();
+  const {
+    data: restaurantDetails = {
+      outlet_details: {
+        name: outletInfo?.outletName,
+        address: outletInfo?.outletAddress,
+        mobile: outletInfo?.outletMobile,
+        veg_nonveg: outletInfo?.vegNonveg,
+        upi_id: "",
+        image: null,
+      },
+      count: {
+        total_menu: 0,
+        total_special_menu: 0,
+        total_offer_menu: 0,
+        total_category: 0,
+        total_tables: 0,
+      },
+    },
+    isLoading: isDetailsLoading,
+    error: detailsError,
+  } = useQuery({
+    queryKey: ["restaurantDetails", outletId],
+    queryFn: () => apiService.customer.getRestaurantDetails({ outletId }),
+    enabled: !!outletId,
   });
   const [isProcessingUPI, setIsProcessingUPI] = useState(false);
   const [isProcessingPhonePe, setIsProcessingPhonePe] = useState(false);
@@ -68,19 +72,51 @@ function OutletDetails() {
 
   // Initial fetch and periodic refresh
   useEffect(() => {
-    if (!outletInfo?.outletId) return;
+    if (detailsError) {
+      toast.error(detailsError.message || "Failed to load outlet details", "Error");
+    }
+  }, [detailsError, toast]);
 
-    // Always fetch on mount
-    fetchRestaurantDetails();
+  if (isDetailsLoading) {
+    return (
+      <>
+        <Header />
+        <div className="container py-4">
+          <div className="card mb-4">
+            <div className="card-body">
+              <div className="d-flex align-items-center mb-4 placeholder-glow">
+                <div className="rounded-3 bg-light me-3" style={{ width: 64, height: 64 }} />
+                <div className="w-100">
+                  <div className="placeholder rounded-pill col-6 mb-2" style={{ height: 20 }} />
+                  <div className="placeholder rounded-pill col-8" style={{ height: 14 }} />
+                </div>
+              </div>
 
-    // Set up periodic refresh
-    const intervalId = setInterval(fetchRestaurantDetails, CACHE_DURATION);
+              <div className="row g-3 mb-4 placeholder-glow">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div className="col-4" key={`stats-skel-${i}`}>
+                    <div className="placeholder rounded-pill col-8 mb-2" style={{ height: 24 }} />
+                    <div className="placeholder rounded-pill col-6" style={{ height: 12 }} />
+                  </div>
+                ))}
+              </div>
 
-    return () => {
-      clearInterval(intervalId);
-      lastFetchRef.current = 0;
-    };
-  }, [outletInfo?.outletId]);
+              <div className="text-center mb-3 placeholder-glow">
+                <div className="placeholder rounded-pill col-6 mx-auto" style={{ height: 16 }} />
+              </div>
+
+              <div className="row g-2 placeholder-glow">
+                <div className="col-6"><div className="placeholder rounded-3 w-100" style={{ height: 48 }} /></div>
+                <div className="col-6"><div className="placeholder rounded-3 w-100" style={{ height: 48 }} /></div>
+                <div className="col-12"><div className="placeholder rounded-3 w-100" style={{ height: 48 }} /></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   const handleGenericUPI = () => {
     if (isProcessingUPI) return;
@@ -129,6 +165,29 @@ function OutletDetails() {
       console.clear();
     } finally {
       setIsProcessingGPay(false);
+    }
+  };
+
+  const handleCopyUPI = async () => {
+    const upi = restaurantDetails?.outlet_details?.upi_id || "";
+    if (!upi) {
+      toast.info("UPI ID not available", "Info");
+      return;
+    }
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(upi);
+      } else {
+        const tempInput = document.createElement("input");
+        tempInput.value = upi;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand("copy");
+        document.body.removeChild(tempInput);
+      }
+      toast.success("UPI ID copied to clipboard", "Copied");
+    } catch (err) {
+      toast.error("Failed to copy UPI ID", "Error");
     }
   };
 
@@ -213,18 +272,12 @@ function OutletDetails() {
                     {restaurantDetails?.outlet_details?.name}
                   </h5>
                   <div className="d-flex align-items-center">
-                    {restaurantDetails?.outlet_details?.veg_nonveg?.toLowerCase() ===
-                    "veg" ? (
-                      <VegIcon />
-                    ) : restaurantDetails?.outlet_details?.veg_nonveg?.toLowerCase() ===
-                      "nonveg" ? (
-                      <NonVegIcon />
-                    ) : (
-                      <div className="d-flex">
-                        <VegIcon />
-                        <NonVegIcon className="ms-1" />
-                      </div>
-                    )}
+                    {(() => {
+                      const foodType = restaurantDetails?.outlet_details?.veg_nonveg?.toLowerCase();
+                      if (foodType === "veg") return <VegIcon />;
+                      if (foodType === "nonveg") return <NonVegIcon />;
+                      return null;
+                    })()}
                   </div>
                 </div>
                 <p className="text-muted mb-1">
@@ -279,25 +332,35 @@ function OutletDetails() {
               <h6 className="mb-2">Quick Payment</h6>
               <div className="d-flex align-items-center justify-content-center">
                 <i className="fas fa-qrcode text-primary me-2"></i>
-                <span className="font-monospace">
+                <span className="font-monospace me-2 fs-5">
                   {restaurantDetails?.outlet_details?.upi_id}
                 </span>
+                {restaurantDetails?.outlet_details?.upi_id && (
+                  <button
+                    type="button"
+                    className="btn btn-sm px-0"
+                    onClick={handleCopyUPI}
+                    aria-label="Copy UPI ID"
+                  >
+                    <i className="fa-solid fa-copy fs-5"></i>
+                  </button>
+                )}
               </div>
             </div>
 
             <div className="row g-2">
               <div className="col-6">
                 <button
-                  className="btn w-100"
+                  className="btn w-100 h-75"
                   style={{
-                    backgroundColor: "#5F259F",
-                    color: "white",
+                    backgroundColor: "#f3e8ff",
+                    color: "#5F259F",
                   }}
                   onClick={handlePhonePe}
                   disabled={isProcessingPhonePe}
                 >
                   <div className="d-flex align-items-center justify-content-center">
-                    <i className="fas fa-mobile-alt me-2"></i>
+                    <img src="/icons/phonepe-icon.svg" alt="PhonePe" width="40" height="40" className="me-2" />
                     <span>
                       {isProcessingPhonePe ? "Opening..." : "PhonePe"}
                     </span>
@@ -306,28 +369,32 @@ function OutletDetails() {
               </div>
               <div className="col-6">
                 <button
-                  className="btn w-100"
-                  style={{
-                    backgroundColor: "#1a73e8",
-                    color: "white",
-                  }}
+                  className="btn w-100 h-75"
+                    style={{
+                      backgroundColor: "#e8f0fe",
+                      color: "#1a73e8",
+                    }}
                   onClick={handleGooglePay}
                   disabled={isProcessingGPay}
                 >
                   <div className="d-flex align-items-center justify-content-center">
-                    <i className="fab fa-google me-2"></i>
+                    <img src="/icons/google-pay-icon.svg" alt="Google Pay" width="40" height="40" className="me-2" />
                     <span>{isProcessingGPay ? "Opening..." : "GPay"}</span>
                   </div>
                 </button>
               </div>
               <div className="col-12">
                 <button
-                  className="btn btn-primary w-100"
+                  className="btn w-100 text-dark h-100"
                   onClick={handleGenericUPI}
                   disabled={isProcessingUPI}
+                  style={{
+                    backgroundColor: "#e6ffe6",
+                    // color: "#28a745",
+                  }}
                 >
                   <div className="d-flex align-items-center justify-content-center">
-                    <i className="fas fa-wallet me-2"></i>
+                    <img src="/icons/upi-payment-icon.svg" alt="UPI Payment" width="40" height="40" className="me-2" />
                     <span>
                       {isProcessingUPI ? "Opening..." : "Other UPI Apps"}
                     </span>

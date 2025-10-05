@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import CustomerFeedbackModal from "../components/CustomerFeedbackModal";
-const FeedbackButton = () => {
+
+const FeedbackButton = ({ orderNo, onOpen }) => {
   const [showFeedback, setShowFeedback] = useState(false);
 
   return (
@@ -20,7 +21,10 @@ const FeedbackButton = () => {
           cursor: "pointer",
           gap: 8,
         }}
-        onClick={() => setShowFeedback(true)}
+        onClick={() => {
+          if (typeof onOpen === 'function') onOpen();
+          setShowFeedback(true);
+        }}
       >
         <i
           className="fa-solid fa-star"
@@ -31,6 +35,7 @@ const FeedbackButton = () => {
       <CustomerFeedbackModal
         show={showFeedback}
         onClose={() => setShowFeedback(false)}
+        orderNo={orderNo}
       />
     </>
   );

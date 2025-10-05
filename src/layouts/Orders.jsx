@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import AuthPrompt from "../components/Auth/AuthPrompt";
 import OrderAccordionItem from "../components/OrderAccordionItem";
 import { useOutlet } from "../contexts/OutletContext";
 import Timer from "../components/Timer";
@@ -20,24 +21,12 @@ const NoOrders = ({ message }) => {
       style={{ minHeight: "calc(100vh - 400px)" }}
     >
       <div className="text-center">
-        <div className="mb-4">
-          <svg
-            width="80"
-            height="80"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            style={{ opacity: "0.5" }}
-            className="text-muted"
-          >
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <path d="M16 10a4 4 0 0 1-8 0" />
-          </svg>
-        </div>
+                  <div className="mb-4">
+                    <i
+                      className="fa-solid fa-clock-rotate-left"
+                      style={{ fontSize: 80, opacity: 0.5, color: "#6c757d" }}
+                    ></i>
+                  </div>
         <h5 className="mb-3">{message}</h5>
         <p className="text-muted mb-4">
           Check back later for your order history
@@ -54,9 +43,9 @@ const NoOrders = ({ message }) => {
   );
 };
 
-function Orders() {
+// Extracted authenticated content component
+function OrdersContent() {
   const { outletId } = useOutlet();
-  const { user, setShowAuthOffcanvas } = useAuth();
   const navigate = useNavigate();
 
   // Get userId from auth
@@ -70,12 +59,11 @@ function Orders() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedOrderNumber, setSelectedOrderNumber] = useState(null);
-  const [cancelOrderStatus, _setCancelOrderStatus] = useState(true);
+  const [_setCancelOrderStatus] = useState(true);
 
   // Query for ongoing orders
   const {
     data: ongoingOrdersData,
-    isLoading: isLoadingOngoing,
     error: ongoingError,
     refetch: refetchOngoingOrders
   } = useQuery({
@@ -225,69 +213,69 @@ function Orders() {
   // Remove the toggleUdhariPaidDateExpansion function since we don't need it anymore
   // const toggleUdhariPaidDateExpansion = (date) => { ... };
 
-  const fetchCompletedOrders = async () => {
-    try {
-      const auth = JSON.parse(localStorage.getItem("auth")) || {};
-      const userId = auth.userId;
-      const accessToken = auth.accessToken;
+  // const fetchCompletedOrders = async () => {
+  //   try {
+  //     const auth = JSON.parse(localStorage.getItem("auth")) || {};
+  //     const userId = auth.userId;
+  //     const accessToken = auth.accessToken;
 
-      if (!accessToken) {
-        throw new Error("Authentication token not found");
-      }
+  //     if (!accessToken) {
+  //       throw new Error("Authentication token not found");
+  //     }
 
-      const data = await apiService.customer.getOrderHistory({
-        userId: parseInt(userId),
-        outletId
-      });
+  //     const data = await apiService.customer.getOrderHistory({
+  //       userId: parseInt(userId),
+  //       outletId
+  //     });
 
-      if (data) {
-        // Merge both spellings of complementary/complimentary orders
-        const complementaryOrders = {
-          ...(data.complementary_paid || {}),
-          ...(data.complimentary_paid || {})
-        };
+  //     if (data) {
+  //       // Merge both spellings of complementary/complimentary orders
+  //       const complementaryOrders = {
+  //         ...(data.complementary_paid || {}),
+  //         ...(data.complimentary_paid || {})
+  //       };
 
-        // Transform the data to include all order types
-        const transformedData = {
-          paid: data.paid || {},
-          complimentary_paid: complementaryOrders,
-          cancelled: data.cancelled || {},
-          udhari_paid: data.udhari_paid || {},
-          udhari_pending: data.udhari_pending || {},
-        };
-        // setOrdersData(transformedData); // This line is removed as per the new_code, as TanStack Query handles background updates.
+  //       // Transform the data to include all order types
+  //       // const transformedData = {
+  //       //   paid: data.paid || {},
+  //       //   complimentary_paid: complementaryOrders,
+  //       //   cancelled: data.cancelled || {},
+  //       //   udhari_paid: data.udhari_paid || {},
+  //       //   udhari_pending: data.udhari_pending || {},
+  //       // };
+  //       // setOrdersData(transformedData); // This line is removed as per the new_code, as TanStack Query handles background updates.
 
-        // Extract udhari_pending orders and flatten them into a single array
-        const udhariPendingRaw = data.udhari_pending || {};
-        const udhariPendingList = Object.values(udhariPendingRaw).flat();
-        const mappedUdhariPending = udhariPendingList.map((order) => ({
-          id: order.order_number,
-          orderId: order.order_id,
-          orderNumber: order.order_number,
-          itemCount: order.menu_count,
-          status: order.order_status,
-          iconColor: "#FFA902",
-          iconBgClass: "bg-warning",
-          isExpanded: false,
-          parentId: "accordionExamplePending",
-          orderType: order.order_type,
-          outletName: order.outlet_name,
-          totalAmount: order.final_grand_total,
-          paymentMethod: order.payment_method || "Not selected",
-          time: order.time,
-          tableNumber: order.table_number,
-          sectionName: order.section_name,
-          datetime: order.datetime,
-        }));
-        // setUdhariPendingOrders(mappedUdhariPending); // This line is removed as per the new_code, as TanStack Query handles background updates.
-      }
-    } catch (err) {
-      console.error("Error fetching order history:", err);
-      // setError((prev) => ({ ...prev, history: err.message })); // This line is removed as per the new_code, as TanStack Query handles background updates.
-    } finally {
-      // setIsLoadingHistory(false); // This line is removed as per the new_code, as TanStack Query handles background updates.
-    }
-  };
+  //       // Extract udhari_pending orders and flatten them into a single array
+  //       // const udhariPendingRaw = data.udhari_pending || {};
+  //       // const udhariPendingList = Object.values(udhariPendingRaw).flat();
+  //       // const mappedUdhariPending = udhariPendingList.map((order) => ({
+  //       //   id: order.order_number,
+  //       //   orderId: order.order_id,
+  //       //   orderNumber: order.order_number,
+  //       //   itemCount: order.menu_count,
+  //       //   status: order.order_status,
+  //       //   iconColor: "#FFA902",
+  //       //   iconBgClass: "bg-warning",
+  //       //   isExpanded: false,
+  //       //   parentId: "accordionExamplePending",
+  //       //   orderType: order.order_type,
+  //       //   outletName: order.outlet_name,
+  //       //   totalAmount: order.final_grand_total,
+  //       //   paymentMethod: order.payment_method || "Not selected",
+  //       //   time: order.time,
+  //       //   tableNumber: order.table_number,
+  //       //   sectionName: order.section_name,
+  //       //   datetime: order.datetime,
+  //       // }));
+  //       // setUdhariPendingOrders(mappedUdhariPending); // This line is removed as per the new_code, as TanStack Query handles background updates.
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching order history:", err);
+  //     // setError((prev) => ({ ...prev, history: err.message })); // This line is removed as per the new_code, as TanStack Query handles background updates.
+  //   } finally {
+  //     // setIsLoadingHistory(false); // This line is removed as per the new_code, as TanStack Query handles background updates.
+  //   }
+  // };
 
   // Update the getOrderStatus function to handle both spellings
   const getOrderStatus = (order) => {
@@ -509,9 +497,9 @@ function Orders() {
     setSelectedOrderNumber(null);
   };
 
-  const handleLogin = () => {
-    setShowAuthOffcanvas(true);
-  };
+  // const handleLogin = () => {
+  //   setShowAuthOffcanvas(true);
+  // };
 
   // Group udhariPendingOrders by date
   // const udhariPendingGrouped = groupUdhariPaidByDate(udhariPendingOrders);
@@ -558,60 +546,8 @@ function Orders() {
   //   }));
   // };
 
-  // First check if user is not logged in
-  if (!user) {
-    return (
-      <>
-        <Header />
-        <div className="page-content">
-          <div className="content-inner pt-0">
-            <div className="container p-b20">
-              <div
-                className="d-flex align-items-center justify-content-center"
-                style={{ minHeight: "calc(100vh - 300px)" }}
-              >
-                <div className="text-center">
-                  <div className="mb-4">
-                    <svg
-                      width="80"
-                      height="80"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      style={{ opacity: "0.5" }}
-                      className="text-muted"
-                    >
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                  </div>
-                  <h5 className="mb-3">Please Login to View Orders</h5>
-                  <p className="text-muted mb-4">
-                    Login to your account to see your order history
-                  </p>
-                  <button
-                    className="btn btn-primary px-4 py-3"
-                    style={{ borderRadius: 12, fontWeight: 500 }}
-                    onClick={handleLogin}
-                  >
-                    Login Now
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
-  }
-
   return (
     <>
-      <Header />
       <div className="page-content">
         <div className="container pb">
           {/* Show ongoing orders section */}
@@ -647,7 +583,7 @@ function Orders() {
 
                         {/* Right side with dine-in status and cancel button */}
                         <div className="d-flex flex-column align-items-end">
-                          <span className="text-soft mb-2">{order.orderType}</span>
+                          <span className="text-soft mb-2">{order.orderType?.toUpperCase()}</span>
                           {order.status === "placed" && (
                             <button
                               className="btn btn-sm text-white"
@@ -1137,6 +1073,21 @@ function Orders() {
         orderId={selectedOrderId}
         orderNumber={selectedOrderNumber}
       />
+    </>
+  );
+}
+
+function Orders() {
+  const { user } = useAuth();
+
+  return (
+    <>
+      <Header />
+      {!user ? (
+        <AuthPrompt variant="orders" />
+      ) : (
+        <OrdersContent />
+      )}
       <Footer />
     </>
   );

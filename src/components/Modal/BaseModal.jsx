@@ -58,17 +58,19 @@ const BaseModal = ({
         role="document"
       >
         <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title">{title}</h5>
-            <button 
-              className="btn-close" 
-              onClick={onClose}
-              type="button"
-              aria-label="Close"
-            >
-              <i className="fa-solid fa-xmark"></i>
-            </button>
-          </div>
+          {title && (
+            <div className="modal-header">
+              <h5 className="modal-title">{title}</h5>
+              <button 
+                className="btn-close" 
+                onClick={onClose}
+                type="button"
+                aria-label="Close"
+              >
+                <i className="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          )}
           <div className="modal-body">
             {children}
           </div>

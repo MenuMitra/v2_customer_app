@@ -61,7 +61,7 @@ function Sidebar() {
   };
 
   return (
-    <div className={`sidebar style-2 right${isOpen ? " show" : ""}`}>
+    <div className={`sidebar style-2 right${isOpen ? " show" : ""} d-flex flex-column`}>
       {isAuthenticated && (
         <div className="user-info p-3 border-bottom">
           <div className="d-flex align-items-center mb-2">
@@ -260,7 +260,7 @@ function Sidebar() {
         {/* Only show FeedbackButton if user is logged in */}
         {user && (
           <li className="mt-2 mb-2 d-flex justify-content-center">
-            <FeedbackButton />
+            <FeedbackButton onOpen={closeSidebar} />
           </li>
         )}
         <li className="nav-label">Settings</li>
@@ -304,7 +304,9 @@ function Sidebar() {
     >
       Delete Cookie
     </a> */}
-      <MenuMitra />
+      <div className="mt-auto px-3 pb-3">
+        <MenuMitra />
+      </div>
       <ThemeColorOffcanvas
         show={showThemeColorOffcanvas}
         onClose={() => toggleThemeColorOffcanvas(false)}

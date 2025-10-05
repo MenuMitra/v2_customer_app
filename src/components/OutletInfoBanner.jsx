@@ -49,7 +49,7 @@ function OutletInfoBanner() {
   }, [outletCode, outletName, fetchOutletDetailsByCode]);
 
   return (
-    <div className="container py-2">
+    <div className="container py-2 shadow-lg">
       <div className="d-flex align-items-center">
         {/* Left side - Store Icon and Name */}
         <div className="d-flex align-items-center flex-grow-1">

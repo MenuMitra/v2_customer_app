@@ -3,19 +3,18 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { useModal } from "../contexts/ModalContext";
 import { useCart } from "../contexts/CartContext";
-import { useTheme } from "../contexts/ThemeContext";
 import MenuMitra from "../components/MenuMitra";
-import defaultAvatar from "../assets/images/avatar/avatar-default.png";
+import { useOutlet } from "../contexts/OutletContext";
 
 function Profile() {
   const { handleLogout, user, isAuthenticated, setShowAuthOffcanvas } =
     useAuth();
   const { clearCart } = useCart();
-  const { isDarkMode } = useTheme();
+  // const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  const { openModal } = useModal();
+  // const { openModal } = useModal();
+  const { outletCode, sectionId, tableId } = useOutlet();
 
   const iconStyle = {
     // color: "#000",
@@ -27,7 +26,12 @@ function Profile() {
     e.preventDefault();
     clearCart();
     handleLogout();
-    navigate("/");
+    // Build canonical root preserving o/s/t if available
+    const code = outletCode || localStorage.getItem("outletCode");
+    const sec = sectionId || localStorage.getItem("sectionId");
+    const tbl = tableId || localStorage.getItem("tableId");
+    const target = code && sec && tbl ? `/o${code}/s${sec}/t${tbl}` : "/";
+    navigate(target, { replace: true });
   };
 
   const handleLoginClick = (e) => {
@@ -39,37 +43,22 @@ function Profile() {
     <>
       <Header />
 
-      <div className="page-content bottom-content ">
+      <div className="page-content pb-2 ">
         <div className="container profile-area">
           <div
-            className="profile"
+            className="profile rounded-4 mx-1 mt-3"
             onClick={!isAuthenticated ? handleLoginClick : undefined}
             style={!isAuthenticated ? { cursor: "pointer" } : {}}
           >
-            <div className="d-flex align-items-center mb-0">
-              {/* <div className="media media-70 me-3">
-                <img src={defaultAvatar} alt="Profile" />
-              </div> */}
-              <div className="about-profile">
-                <h5 className="sub-title mb-0">
+            <div className="d-flex align-items-center mb-0 ">
+              <div className="about-profile ">
+                <h5 className="sub-title mb-2">
                   {isAuthenticated ? `Hello, ${user?.name}` : "Hello User"}
                 </h5>
                 {!isAuthenticated && (
                   <button
-                    className="btn position-absolute"
-                    style={{
-                      top: 18,
-                      right: 24,
-                      border: "2px solid #fff",
-                      color: "#222",
-                      background: "#fff",
-                      fontWeight: 600,
-                      borderRadius: 8,
-                      padding: "6px 18px",
-                      boxShadow: "none",
-                      outline: "none",
-                      zIndex: 10,
-                    }}
+                    className="btn btn-light position-absolute top-0 end-0 m-3 fw-semibold rounded-2 px-3 py-2 border-2 border-white shadow-none"
+                    style={{ zIndex: 10 }}
                     onClick={handleLoginClick}
                   >
                     Login
@@ -77,16 +66,6 @@ function Profile() {
                 )}
               </div>
             </div>
-            {/* <div className="location-box">
-              <i className="location fa-solid fa-location-dot" />
-              <div className="flex-1">
-                <h6 className="text-white font-w400 mb-0">324002</h6>
-                <h6 className="text-white font-w400 mb-0">UK - 324002</h6>
-              </div>
-              <a href="javascript:void(0);" className="change-btn">
-                Change
-              </a>
-            </div> */}
           </div>
           <div className="profile-content border-0">
             <div className="row g-2">
@@ -162,25 +141,6 @@ function Profile() {
                   Cart
                 </Link>
               </div>
-              {/* <div className="col-6">
-                {isAuthenticated ? (
-                  <button
-                    onClick={onLogoutClick}
-                    className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
-                  >
-                    <i className="fa-solid fa-power-off me-2 text-dark" />
-                    LogOut
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleLoginClick}
-                    className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
-                  >
-                    <i className="fa-solid fa-right-to-bracket me-2 text-dark" />
-                    Login
-                  </button>
-                )}
-              </div> */}
             </div>
           </div>
           {isAuthenticated && (
@@ -203,16 +163,7 @@ function Profile() {
           <a
             href="#"
             onClick={onLogoutClick}
-            style={{
-              color: "#000",
-              fontWeight: 500,
-              fontSize: 17,
-              textDecoration: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              marginBottom: 8,
-            }}
+            className="text-dark fw-medium fs-5 text-decoration-none d-flex align-items-center gap-2 mb-5"
           >
             <i className="fa-solid fa-power-off text-dark" style={{ fontSize: 16 }} />
             <span className="text-dark">Logout</span>

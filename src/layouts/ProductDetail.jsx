@@ -1,5 +1,5 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -133,13 +133,20 @@ const FoodTypeIcon = ({ foodType }) => {
 
 function ProductDetail() {
   const { menuId, menuCatId } = useParams();
+  const { state } = useLocation();
+  const [searchParams] = useSearchParams();
   const { openModal } = useModal();
   const { cartItems, removeFromCart, updateQuantity } = useCart();
   const { outletId } = useOutlet();
   const { user, getUserId, setShowAuthOffcanvas } = useAuth();
-  const navigate = useNavigate();
   const userId = getUserId();
   const { toggleFavorite, isFavoriteLoading } = useMenuItems();
+
+  // Derive effective outlet ID from override (state or URL) or context
+  const outletIdOverride = state?.outletIdOverride ?? searchParams.get('overrideOutletId');
+  const effectiveOutletId = outletIdOverride ?? outletId;
+  const isCrossOutlet = state?.notCurrentOutlet ?? searchParams.get('notCurrentOutlet') === 'true';
+  const crossOutletName = state?.outletName ?? (isCrossOutlet ? `Outlet ${outletIdOverride}` : null);
 
   // Replace useEffect with useQuery
   const {
@@ -147,15 +154,15 @@ function ProductDetail() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["menuDetails", outletId, menuId, menuCatId, userId],
+    queryKey: ["menuDetails", effectiveOutletId, menuId, menuCatId, userId],
     queryFn: () =>
       apiService.menus.getDetails({
-        outletId,
+        outletId: effectiveOutletId,
         menuId: Number(menuId),
         menuCatId: Number(menuCatId),
         userId,
       }),
-    enabled: !!outletId && !!menuId && !!menuCatId,
+    enabled: !!effectiveOutletId && !!menuId && !!menuCatId,
   });
 
   // Check if item exists in cart with proper menuId comparison
@@ -216,6 +223,7 @@ function ProductDetail() {
           menuId: Number(menuId),
           isFavorite: menuDetails?.is_favourite === 1, // Changed from is_favorite to is_favourite
           userId: auth.userId,
+          outletId: effectiveOutletId,
         },
         {
           onSuccess: () => {
@@ -273,6 +281,17 @@ function ProductDetail() {
     <>
       <Header />
       <div className="page-content">
+        {/* Cross-outlet info (compact) */}
+        {isCrossOutlet && (
+          <div className="mx-3 mt-2">
+            <div className="d-flex align-items-center small mb-2 bg-danger text-white rounded-3 p-2">
+              <i className="fa-solid fa-circle-info me-2"></i>
+              <span>
+                This item is from <strong>{crossOutletName}</strong>. Ordering is disabled for your current outlet.
+              </span>
+            </div>
+          </div>
+        )}
         <div className="content-body bottom-content">
           {/* Comment out or remove the existing code:
 <div className="swiper-btn-center-lr my-0">
@@ -328,21 +347,25 @@ function ProductDetail() {
 */}
 
           {/* Add the new TripleSlider implementation */}
-          <TripleSlider
-            slides={
-              menuDetails.images?.length
-                ? menuDetails.images.map((image) => ({
-                    backgroundImage: image,
-                    title: menuDetails.menu_name,
-                  }))
-                : [
-                    {
-                      backgroundImage: "https://via.placeholder.com/800x800", // Updated to square placeholder
-                      title: menuDetails.menu_name,
-                    },
-                  ]
-            }
-          />
+          {menuDetails.images?.length ? (
+            <TripleSlider
+              slides={menuDetails.images.map((image) => ({
+                backgroundImage: image,
+                title: menuDetails.menu_name,
+              }))}
+            />
+          ) : (
+            <div className="dz-banner-heading">
+              <div className="overlay-black-light bg-body-secondary">
+                <div
+                  className="d-flex justify-content-center align-items-center border border-2 border-light-subtle"
+                  style={{ aspectRatio: "1/1" }}
+                >
+                  <i className="fa-solid fa-utensils font-100 opacity-50 text-muted"></i>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="account-box style-1">
             <div className="container p-b60">
@@ -362,9 +385,11 @@ function ProductDetail() {
                         onClick={handleFavoriteToggle}
                         style={{
                           pointerEvents: isFavoriteLoading ? "none" : "auto",
-                          cursor: "pointer",
+                          cursor: isFavoriteLoading ? "not-allowed" : "pointer",
                           textDecoration: "none",
+                          opacity: isFavoriteLoading ? 0.5 : 1,
                         }}
+                        title={isFavoriteLoading ? "Updating favorite..." : ""}
                       >
                         <div
                           className={`like-button ${
@@ -433,7 +458,7 @@ function ProductDetail() {
                     )}
                   </div>
                 </div>
-                {cartItem && (
+                {cartItem && !isCrossOutlet && (
                   <div className="dz-stepper border-1 rounded-stepper">
                     <div className="input-group bootstrap-touchspin bootstrap-touchspin-injected">
                       <span className="input-group-btn input-group-prepend">
@@ -508,12 +533,25 @@ function ProductDetail() {
         <div className="footer fixed p-b55">
           <div className="container">
             <button
-              onClick={handleAddToCart}
+              onClick={isCrossOutlet ? undefined : handleAddToCart}
               className="btn btn-primary text-start w-100"
-              disabled={!menuDetails.portions?.length}
+              disabled={isCrossOutlet || !menuDetails.portions?.length}
+              style={{
+                opacity: isCrossOutlet ? 0.5 : 1,
+                cursor: isCrossOutlet ? "not-allowed" : "pointer",
+              }}
+              title={
+                isCrossOutlet
+                  ? `Switch to ${crossOutletName} to order`
+                  : !menuDetails.portions?.length
+                  ? "Item unavailable"
+                  : ""
+              }
             >
-              <i className="fa-solid fa-cart-shopping me-2"></i>
-              ADD TO CART
+              <i
+                className={`fa-solid ${isCrossOutlet ? "fa-lock" : "fa-cart-shopping"} me-2`}
+              ></i>
+              Add to cart
             </button>
           </div>
         </div>

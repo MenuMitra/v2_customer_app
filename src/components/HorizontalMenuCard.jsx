@@ -16,8 +16,8 @@ const FoodTypeIcon = ({ foodType }) => {
         return (
           <div
             style={{
-              width: "14px",
-              height: "14px",
+              width: "16px",
+              height: "16px",
               borderRadius: "3px",
               border: "1px solid #4CAF50",
               backgroundColor: "white",
@@ -158,7 +158,7 @@ const HorizontalMenuCard = ({
   const { openModal } = useModal();
   const { user, setShowAuthOffcanvas, getUserId } = useAuth();
   const { outletId } = useOutlet();
-  const { cartItems, getCartItemComment } = useCart(); // Add this
+  const { getCartItemComment } = useCart(); // Add this
   const userId = getUserId();
 
   // Add useNavigate hook from react-router-dom
@@ -167,10 +167,7 @@ const HorizontalMenuCard = ({
   // Convert isFavorite to boolean if it's a number
   const isFavoriteBoolean = typeof isFavorite === 'number' ? isFavorite === 1 : Boolean(isFavorite);
 
-  // Check if this menu exists in cart
-  const cartItemsForMenu = menuItem?.menuId
-    ? cartItems.filter((item) => item.menuId === menuItem.menuId)
-    : [];
+  // Removed unused cartItemsForMenu
 
   // Get the comment for this menu item
   const menuComment = menuItem?.menuId
@@ -191,7 +188,23 @@ const HorizontalMenuCard = ({
     }
 
     if (menuItem?.menuId && menuItem?.menuCatId) {
-      navigate(`/product-detail/${menuItem.menuId}/${menuItem.menuCatId}`);
+      // Check if this is a cross-outlet favorite
+      const isCrossOutlet = menuItem.outletId && Number(menuItem.outletId) !== Number(outletId);
+      
+      // Navigate with outlet override state if cross-outlet
+      const url = isCrossOutlet 
+        ? `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}?overrideOutletId=${menuItem.outletId}&notCurrentOutlet=true`
+        : `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}`;
+      
+      navigate(url, {
+        state: isCrossOutlet
+          ? { 
+              outletIdOverride: menuItem.outletId, 
+              notCurrentOutlet: true,
+              outletName: menuItem.outletName 
+            }
+          : undefined
+      });
     }
   };
 
@@ -209,21 +222,23 @@ const HorizontalMenuCard = ({
     try {
       setIsLoading(true);
       
+      const targetOutletId = menuItem?.outletId ?? outletId;
+
       if (isFavoriteBoolean) {
         await apiService.favorites.remove({
-          outletId,
+          outletId: targetOutletId,
           userId,
           menuId: menuItem.menuId
         });
       } else {
         await apiService.favorites.add({
-          outletId,
+          outletId: targetOutletId,
           userId,
           menuId: menuItem.menuId
         });
       }
       
-      onFavoriteUpdate(menuItem.menuId, !isFavoriteBoolean);
+      onFavoriteUpdate(menuItem.menuId, !isFavoriteBoolean, targetOutletId);
     } catch (error) {
       console.error("Error updating favorite status:", error);
       openModal("ERROR", {
@@ -248,32 +263,17 @@ const HorizontalMenuCard = ({
     openModal("addToCart", menuItem);
   };
 
-  // Handle quantity changes
-  const handleQuantityChange = (increment) => {
-    if (!menuItem) return;
+  // Removed unused handleQuantityChange
 
-    // Check if user is authenticated
-    if (!user) {
-      setShowAuthOffcanvas(true);
-      return;
-    }
-
-    openModal("addToCart", menuItem);
-  };
-
-  // Generate the product URL from menuItem data with safety checks
-  const detailPageUrl =
-    menuItem?.menuId && menuItem?.menuCatId
-      ? `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}`
-      : "#";
+  // Removed unused detailPageUrl
 
   return (
     <div 
-      className="horizontal-menu-card card product-card position-relative shadow border border-1 border-light"
+      className="horizontal-menu-card card product-card position-relative shadow border border-1 border-light pb-0 my-3 pt-0"
       onClick={handleCardClick}  // Add onClick handler here
       style={{ 
         minHeight: 50, 
-        padding: "8px 0",
+        // padding: "8px 0",
         width: "100%",
         overflowX: "auto",
         whiteSpace: "nowrap",
@@ -282,37 +282,31 @@ const HorizontalMenuCard = ({
         cursor: 'pointer'  // Add cursor pointer to indicate clickable
       }}>
       <div 
-        className="d-flex align-items-center p-1" 
+        className="d-flex align-items-center p-2" 
         style={{ 
           minHeight: 70,
           minWidth: "100%",
         }}>
         {/* Left side - Image and Icons */}
         <div 
-          className="position-relative d-flex align-items-center justify-content-center"
+          className="position-relative d-flex align-items-center justify-content-center rounded-3 border border-1 border-light"
           style={{
             width: imageSize.width,
             height: imageSize.height,
-            background: "#f5f5f5",
-            borderRadius: 0,
+            background: "#f8f9fa",
             flexShrink: 0,
             overflow: "hidden",
           }}>
-          {/* Background icon */}
+          {/* Background icon (centered) */}
           <i
             className={icons.placeholder}
             style={{
-              position: "absolute",
-              left: "50%",
-              top: "50%",
-              transform: "translate(-50%, -50%)",
-              fontSize: 70,
-              opacity: 0.13,
-              color: "#888",
+              fontSize: "55px",
+              opacity: 0.5,
+              color: "#6c757d",
               zIndex: 1,
-              width: "100%",
-              height: "100%",
               pointerEvents: "none",
+              lineHeight: 1,
             }}
           ></i>
           
@@ -341,8 +335,8 @@ const HorizontalMenuCard = ({
             <span
               style={{
                 position: "absolute",
-                left: 2,
-                bottom: 2,
+                left: 5,
+                bottom: 5,
                 zIndex: 3,
               }}
             >

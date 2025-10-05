@@ -21,8 +21,16 @@ const CategorySwiper = ({
   containerStyle,
   categories: customCategories = categories,
   isLoading = false,
+  activeCategoryId,
+  onActiveCategoryChange,
 }) => {
+  const [selectedId, setSelectedId] = useState(activeCategoryId ?? "all");
+  const currentId = activeCategoryId ?? selectedId;
   const handleClick = (category) => {
+    setSelectedId(category.menuCatId);
+    if (onActiveCategoryChange) {
+      onActiveCategoryChange(category.menuCatId);
+    }
     if (onCategoryClick) {
       onCategoryClick(category);
     }
@@ -88,7 +96,7 @@ const CategorySwiper = ({
   }
 
   return (
-    <div className={`categories-box p-0 m-0 ${containerClassName || ""}`}>
+    <div className={`categories-box p-0 m-0 ${containerClassName || ""}`} style={containerStyle}>
       <div className="swiper-btn-center-lr">
         <Swiper
           spaceBetween={2}
@@ -114,7 +122,7 @@ const CategorySwiper = ({
                   align-items-center 
                   rounded-pill 
                   border 
-                  ${category.menuCatId === "all" ? "active" : ""}
+                  ${currentId === category.menuCatId ? "active" : ""}
                 `}
               >
                 <span className="category-text">
@@ -173,7 +181,7 @@ const styles = `
   .swiper-wrapper {
     transform: translate3d(0, 0, 0) !important;
     will-change: transform;
-    padding: 4px 0;
+    // padding: 4px 0;
     gap: 0;
   }
 
@@ -199,6 +207,8 @@ CategorySwiper.propTypes = {
   containerStyle: PropTypes.object,
   categories: PropTypes.array,
   isLoading: PropTypes.bool,
+  activeCategoryId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  onActiveCategoryChange: PropTypes.func,
 };
 
 export default CategorySwiper;

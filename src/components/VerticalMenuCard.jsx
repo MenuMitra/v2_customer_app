@@ -237,7 +237,11 @@ const VerticalMenuCard = ({
       return;
     }
 
-    openModal("addToCart", menuItem);
+    // Pass the action information to the modal
+    openModal("addToCart", {
+      ...menuItem,
+      action: increment ? 'increment' : 'decrement'
+    });
   };
 
   return (
@@ -261,7 +265,7 @@ const VerticalMenuCard = ({
               style={{
                 borderRadius: "12px",
                 width: "100%",
-                aspectRatio: "4/3",
+                aspectRatio: "4/4",
                 backgroundColor: "#f8f9fa",
               }}
             >

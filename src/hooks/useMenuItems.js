@@ -52,22 +52,24 @@ export const useMenuItems = () => {
 
   // Add mutation for favorite toggle
   const toggleFavoriteMutation = useMutation({
-    mutationFn: async ({ menuId, isFavorite, userId }) => {
+    mutationFn: async ({ menuId, isFavorite, userId, outletId: outletIdOverride }) => {
+      const targetOutletId = outletIdOverride ?? outletId;
       if (isFavorite) {
-        return await apiService.favorites.remove({ outletId, userId, menuId });
+        return await apiService.favorites.remove({ outletId: targetOutletId, userId, menuId });
       } else {
-        return await apiService.favorites.add({ outletId, userId, menuId });
+        return await apiService.favorites.add({ outletId: targetOutletId, userId, menuId });
       }
     },
-    onMutate: async ({ menuId, isFavorite }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['menuItems', outletId] });
+    onMutate: async ({ menuId, isFavorite, outletId: outletIdOverride }) => {
+      const targetOutletId = outletIdOverride ?? outletId;
+      // Cancel any outgoing refetches for the target outlet
+      await queryClient.cancelQueries({ queryKey: ['menuItems', targetOutletId] });
 
       // Snapshot the previous value
-      const previousData = queryClient.getQueryData(['menuItems', outletId]);
+      const previousData = queryClient.getQueryData(['menuItems', targetOutletId]);
 
-      // Optimistically update the menu item
-      queryClient.setQueryData(['menuItems', outletId], (old) => {
+      // Optimistically update the menu item (if the list for that outlet is in cache)
+      queryClient.setQueryData(['menuItems', targetOutletId], (old) => {
         if (!old) return old;
         return {
           ...old,
@@ -83,15 +85,18 @@ export const useMenuItems = () => {
         };
       });
 
-      return { previousData };
+      return { previousData, targetOutletId };
     },
     onError: (err, variables, context) => {
       // Rollback on error
-      queryClient.setQueryData(['menuItems', outletId], context.previousData);
+      if (context?.targetOutletId) {
+        queryClient.setQueryData(['menuItems', context.targetOutletId], context.previousData);
+      }
     },
-    onSettled: () => {
+    onSettled: (data, error, variables) => {
       // Refetch after error or success
-      queryClient.invalidateQueries(['menuItems', outletId]);
+      const targetOutletId = variables?.outletId ?? outletId;
+      queryClient.invalidateQueries(['menuItems', targetOutletId]);
     }
   });
 

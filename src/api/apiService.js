@@ -184,8 +184,40 @@ export const apiService = {
     }
   },
 
+  // Banner related APIs
+  banners: {
+    getList: async ({ outletId, userId }) => {
+      // Get user ID from auth data if not provided
+      if (!userId) {
+        const authData = localStorage.getItem('auth');
+        const auth = authData ? JSON.parse(authData) : null;
+        userId = auth?.user_id;
+      }
+
+      const payload = {
+        outlet_id: outletId,
+        app_source: "customer_app"
+      };
+
+      // Only add user_id if it exists
+      if (userId) {
+        payload.user_id = userId;
+      }
+
+      const response = await axiosInstance.post(`/${API_VERSION}/user/banner_listview`, payload);
+      return response?.data?.banners || [];
+    },
+  },
+
   // Customer related APIs
   customer: {
+    getRestaurantDetails: async ({ outletId }) => {
+      const response = await axiosInstance.post(`/${API_VERSION}/user/get_restaurant_details`, {
+        outlet_id: outletId,
+        app_source: "user_app"
+      });
+      return response?.data?.detail || {};
+    },
     getSavings: async ({ userId }) => {
       const response = await axiosInstance.post(`/${API_VERSION}/user/get_user_count`, {
         user_id: parseInt(userId),
@@ -245,9 +277,9 @@ const withErrorHandling = (apiCall) => {
     } catch (error) {
       // Standardize error format
       const standardError = {
-        message: error.response?.data?.message || 'An error occurred',
+        message: error.response?.data?.message || 'NOT FOUND',
         status: error.response?.status,
-        originalError: error
+        // originalError: error
       };
       throw standardError;
     }

@@ -23,7 +23,7 @@
 .horizontal-menu-card {
   flex: 0 0 auto;
   /* width: calc(100vw - 2rem); */
-  max-width: 600px;
+  /* max-width: 600px; */
   min-width: 200px;
   scroll-snap-align: start;
   cursor: grab;
@@ -44,7 +44,7 @@
 
 /* First card specific styling */
 .horizontal-menu-card:first-child {
-  margin-left: 0.5rem;
+  /* margin-left: 0.5rem; */
 }
 
 /* Last card specific styling */

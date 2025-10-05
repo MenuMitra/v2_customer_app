@@ -39,4 +39,86 @@
   100% {
     transform: translateX(100%);
   }
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  animation: shimmer 1.5s infinite;
+  pointer-events: none;
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer {
+    animation: none;
+  }
+}
+
+/* Auth Modal Styles */
+.auth-modal-content {
+  padding: 1.5rem;
+}
+
+.auth-modal-content .title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.auth-modal-content .btn-close {
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.auth-modal-content .btn-close:hover {
+  opacity: 1;
+}
+
+.auth-modal-content .btn-close:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(2, 115, 53, 0.25);
+}
+
+.auth-modal-content .digit-group input {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+}
+
+.auth-modal-content .digit-group input:focus {
+  border-color: #027335;
+  box-shadow: 0 0 0 0.2rem rgba(2, 115, 53, 0.25);
+}
+
+/* Dark mode support for auth modal */
+[data-theme="dark"] .auth-modal-content .digit-group input {
+  background-color: #2d3748;
+  border-color: #4a5568;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .auth-modal-content .digit-group input:focus {
+  border-color: #027335;
+  background-color: #2d3748;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 576px) {
+  .auth-modal-content {
+    padding: 1rem;
+  }
+  
+  .auth-modal-content .digit-group input {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
 } 
