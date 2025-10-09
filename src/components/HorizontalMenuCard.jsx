@@ -282,7 +282,7 @@ const HorizontalMenuCard = ({
         cursor: 'pointer'  // Add cursor pointer to indicate clickable
       }}>
       <div 
-        className="d-flex align-items-center p-2" 
+        className="d-flex align-items-center" 
         style={{ 
           minHeight: 70,
           minWidth: "100%",

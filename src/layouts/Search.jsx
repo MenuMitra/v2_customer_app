@@ -64,8 +64,8 @@ function Search() {
   const handleSearch = async () => {
     setHasSearched(true);
     setError(null);
-    // Only search if input is 4 or more characters
-    if (searchInputValue.trim().length < 4) return;
+    // Only search if input is 3 or more characters
+    if (searchInputValue.trim().length < 3) return;
     const { error: queryError } = await refetch();
     if (queryError) setError(queryError);
   };
@@ -75,34 +75,32 @@ function Search() {
     handleSearch();
   }, 400);
 
-  // Input change handler (triggers search if 4+ chars)
+  // Input change handler: fire immediately on 3rd char, debounce for 4+
   const handleSearchChange = (event) => {
     setSearchInputValue(event.target.value);
-    if (!event.target.value.trim()) {
+    const trimmed = event.target.value.trim();
+    if (!trimmed) {
       setHasSearched(false); // Reset search state if input is cleared
     }
-    if (event.target.value.trim().length >= 4) {
+    const len = trimmed.length;
+    if (len === 3) {
+      handleSearch();
+    } else if (len > 3) {
       debouncedHandleSearch();
     }
   };
 
-  const handleFavoriteClick = async (menuId, isFavorite) => {
-    if (!userId) {
-      // setShowAuthOffcanvas(true); // This state is not defined in the original file
-      return;
-    }
-
-    try {
-      if (isFavorite) {
-        await apiService.favorites.remove({ outletId, userId, menuId });
-      } else {
-        await apiService.favorites.add({ outletId, userId, menuId });
-      }
-      // Refetch search results to get updated is_favourite status
-      refetch();
-    } catch (error) {
-      console.error("Failed to update favorite status:", error);
-    }
+  // Optimistically update favourite icon for a menu in local search results
+  const handleFavoriteUpdate = (menuId, nextIsFavorite) => {
+    setSearchResults((prev) =>
+      Array.isArray(prev)
+        ? prev.map((item) =>
+            item?.menu_id === menuId
+              ? { ...item, is_favourite: nextIsFavorite ? 1 : 0 }
+              : item
+          )
+        : prev
+    );
   };
 
   // Handle quick filter changes
@@ -217,7 +215,7 @@ function Search() {
               <AuthPrompt
                 iconClassName="fa-solid fa-magnifying-glass"
                 title="Search Menu"
-                subtitle="Type 4 or more characters to search"
+                subtitle="Type 3 or more characters to search"
                 buttonLabel="Start Searching"
                 onLogin={() => {
                   if (searchInputRef.current) searchInputRef.current.focus();
@@ -292,12 +290,7 @@ function Search() {
                           spicyIndex: menu.spicy_index, // Add this line
                           categoryName: menu.category_name, // Add this line
                         }}
-                        onFavoriteClick={() =>
-                          handleFavoriteClick(
-                            menu.menu_id,
-                            menu.is_favourite === 1
-                          )
-                        }
+                        onFavoriteUpdate={handleFavoriteUpdate}
                         isFavorite={menu.is_favourite === 1}
                         rating={menu.rating}
                         categoryName={menu.category_name}
