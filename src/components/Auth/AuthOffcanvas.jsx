@@ -204,6 +204,7 @@ const handleInputFocus = (e) => {
     try {
       const { data } = await api.post("/common/login", {
         mobile: phoneNumber,
+        version: "2.1.1",
         app_type: "customer",
       });
 
