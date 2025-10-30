@@ -146,14 +146,17 @@ function Profile() {
           {isAuthenticated && (
             <div className="account-section mt-4">
               <h5 className="mb-3">Account</h5>
-              <ul>
-                <li className="text-dark">
-                  <Link to="/edit-profile">
-                    <i className="fa-solid fa-user me-2 text-dark" style={iconStyle} />
-                    <span className="text-dark">Edit Profile</span>
+              <div className="row g-2">
+                <div className="col-10 mx-auto">
+                  <Link
+                    to="/edit-profile"
+                    className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  >
+                    <i className="fa-solid fa-user me-2 text-dark" />
+                    Edit Profile
                   </Link>
-                </li>
-              </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -163,10 +166,10 @@ function Profile() {
           <a
             href="#"
             onClick={onLogoutClick}
-            className="text-dark fw-medium fs-5 text-decoration-none d-flex align-items-center gap-2 mb-5"
+            className="text-danger fw-medium fs-5 text-decoration-none d-flex align-items-center gap-2 mb-5"
           >
-            <i className="fa-solid fa-power-off text-dark" style={{ fontSize: 16 }} />
-            <span className="text-dark">Logout</span>
+            <i className="fa-solid fa-power-off text-danger" style={{ fontSize: 16 }} />
+            <span className="text-danger">Logout</span>
           </a>
         )}
         <MenuMitra />

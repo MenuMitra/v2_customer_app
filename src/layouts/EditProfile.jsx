@@ -112,6 +112,14 @@ function EditProfile() {
       <div className="page-content">
         <div className="container">
           <div className="edit-profile">
+            <div className="row g-2">
+              <div className="col-10 mx-auto">
+                <div className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3 mb-3" style={{ cursor: 'default' }}>
+                  <i className="fa-solid fa-user me-2 text-dark" />
+                  Edit Profile
+                </div>
+              </div>
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Name</label>

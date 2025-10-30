@@ -365,14 +365,12 @@ const OrderAccordionItem = ({
             >
               <div className="d-flex align-items-center gap-2 mb-0">
                 <h6 className="mb-0">#{orderNumber}</h6>
-                
-              {/* Status below only if not paid/cancelled */}
-              {paymentStatus !== "Paid" && status !== "cancelled" && (
-                <p className="mb-0 text-muted" style={{ fontSize: "12px" }}>
-                  ({status})
-                </p>
-              )}
-                {/* Status badge next to order number */}
+                {status === 'cooking' && (
+                  <span style={{fontWeight: 700, color: '#999999', fontSize: '13px', marginLeft: 6}}>
+                    (COOKING)
+                  </span>
+                )}
+                {/* Status badge next to order number (other statuses kept as is) */}
                 {paymentStatus === "Paid" ? (
                   <span
                     className="badge bg-success text-white"
@@ -409,25 +407,25 @@ const OrderAccordionItem = ({
                 ) : null}
               </div>
               <p
-                className="mb-0 text-dark font-weight-bold"
-                style={{ fontSize: "14px" }}
+                className="mb-0 text-dark font-weight-bold "
+                style={{ fontSize: "14px " }}
               >
                 {outletName}
               </p>
-              <p className="mb-0 text-muted" style={{ fontSize: "12px" }}>
-                {orderType} • {itemCount} Menu
+              <p className="mb-0" style={{ fontSize: "14px", color: "#999999", fontWeight: 500 }}>
+                {/* Capitalize DINE-IN and normal dark grey text for details */}
+                {(orderType && orderType.toLowerCase() === "dine-in") ? "DINE-IN" : orderType} • {itemCount} Menu
               </p>
             </div>
             <div className="text-end">
-              <p className="mb-0 text-muted" style={{ fontSize: "12px" }}>
+              <p className="mb-0" style={{ fontSize: "14px", color: "#999999", fontWeight: 500 }}>
                 {orderTime}
               </p>
-              <p className="mb-0 text-muted" style={{ fontSize: "12px" }}>
-                {/* Display section name and table number */}
+              <p className="mb-0" style={{ fontSize: "14px", color: "#999999", fontWeight: 500 }}>
+                {/* Section and table, normal dark grey */}
                 {sectionName && displayTableNumber ? (
                   <>
-                    <i className="bi bi-geo-alt-fill me-2"></i> {sectionName} -{" "}
-                    {displayTableNumber}
+                    <i className="bi bi-geo-alt-fill me-2"></i> {sectionName} - {displayTableNumber}
                   </>
                 ) : sectionName ? (
                   <>
@@ -435,12 +433,11 @@ const OrderAccordionItem = ({
                   </>
                 ) : displayTableNumber ? (
                   <>
-                    <i className="bi bi-geo-alt-fill me-2"></i>{" "}
-                    {displayTableNumber}
+                    <i className="bi bi-geo-alt-fill me-2"></i> {displayTableNumber}
                   </>
                 ) : null}
               </p>
-              <h6 className="mb-2" style={{ color: "var(--dz-theme-color)" }}>
+              <h6 className="mb-2" style={{ color: "#219150", fontWeight: 600 }}>
                 ₹{totalAmount}
               </h6>
               {/* {status !== "Cancelled" && (
