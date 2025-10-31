@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { OutletProvider } from "./contexts/OutletContext";
 import Home from "./layouts/Home";
-import AllOutlets from "./layouts/AllOutlets";
 import AuthOffcanvas from "./components/Auth/AuthOffcanvas";
 import Favourite from "./layouts/Favourite";
 import SidebarProvider from "./contexts/SidebarContext";
@@ -68,7 +67,7 @@ function App() {
                         <SidebarProvider>
                           <Routes>
                             <Route path="*" element={<Home />} />
-                            <Route path="/all-outlets" element={<AllOutlets />} />
+                            
                             <Route path="/favourites" element={<Favourite />} />
                             <Route path="/checkout" element={<Checkout />} />
                             <Route path="/orders" element={<Orders />} />

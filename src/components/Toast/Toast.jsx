@@ -86,7 +86,9 @@ const Toast = memo(function Toast({
       </button>
       
       <div className="toast-content">
-        <i className={`toast-icon ${ICONS[type]}`} aria-hidden="true"></i>
+        {type !== 'error' && (
+          <i className={`toast-icon ${ICONS[type]}`} aria-hidden="true"></i>
+        )}
         
         <div className="message">
           {title && (

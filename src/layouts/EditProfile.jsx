@@ -14,6 +14,11 @@ function EditProfile() {
     phoneNumber: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const handleNameChange = (e) => {
+    // Allow only letters and spaces
+    const next = e.target.value.replace(/[^A-Za-z\s]/g, "");
+    setFormData(prev => ({ ...prev, name: next }));
+  };
 
   useEffect(() => {
     // Load user data from localStorage on component mount
@@ -112,14 +117,6 @@ function EditProfile() {
       <div className="page-content">
         <div className="container">
           <div className="edit-profile">
-            <div className="row g-2">
-              <div className="col-10 mx-auto">
-                <div className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3 mb-3" style={{ cursor: 'default' }}>
-                  <i className="fa-solid fa-user me-2 text-dark" />
-                  Edit Profile
-                </div>
-              </div>
-            </div>
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Name</label>
@@ -128,7 +125,11 @@ function EditProfile() {
                   className="form-control"
                   placeholder="Enter your full name"
                   value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={handleNameChange}
+                  onBlur={(e) => setFormData(prev => ({ ...prev, name: (e.target.value || '').trim() }))}
+                  inputMode="text"
+                  pattern="[A-Za-z\s]+"
+                  title="Only letters and spaces are allowed"
                   required
                 />
               </div>

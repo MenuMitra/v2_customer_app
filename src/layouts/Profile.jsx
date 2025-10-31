@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
 import MenuMitra from "../components/MenuMitra";
+import ConfirmLogoutModal from "../components/ConfirmLogoutModal";
 import { useOutlet } from "../contexts/OutletContext";
 
 function Profile() {
@@ -38,6 +39,8 @@ function Profile() {
     e.preventDefault();
     setShowAuthOffcanvas(true);
   };
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   return (
     <>
@@ -98,11 +101,11 @@ function Profile() {
               </div>
               <div className="col-6">
                 <Link
-                  to="/all-outlets"
+                  to="/favourites"
                   className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
                 >
-                  <i className="fa-solid fa-store me-2 text-dark" />
-                  All Outlets
+                  <i className="fa-solid fa-heart me-2 text-dark" />
+                  Favourites
                 </Link>
               </div>
               <div className="col-6">
@@ -123,22 +126,14 @@ function Profile() {
                   Category
                 </Link>
               </div>
-              <div className="col-6">
-                <Link
-                  to="/favourites"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
-                >
-                  <i className="fa-solid fa-heart me-2 text-dark" />
-                  Favourites
-                </Link>
-              </div>
-              <div className="col-6">
+              
+              <div className="col-6 mx-auto">
                 <Link
                   to="/checkout"
                   className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
                 >
                   <i className="fa-solid fa-shopping-cart me-2 text-dark" />
-                  Cart
+                  Checkout
                 </Link>
               </div>
             </div>
@@ -165,15 +160,29 @@ function Profile() {
         {isAuthenticated && (
           <a
             href="#"
-            onClick={onLogoutClick}
-            className="text-danger fw-medium fs-5 text-decoration-none d-flex align-items-center gap-2 mb-5"
+            onClick={(e) => { e.preventDefault(); setShowLogoutConfirm(true); }}
+            className="btn btn-outline-danger d-flex align-items-center gap-2 mb-5"
+            style={{ color: "#8B0000", borderColor: "#f5c2c7", borderWidth: "2px", backgroundColor: "transparent" }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#f8d7da"; // light red
+              e.currentTarget.style.borderColor = "#dc3545"; // danger red
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "transparent";
+              e.currentTarget.style.borderColor = "#f5c2c7"; // light border
+            }}
           >
-            <i className="fa-solid fa-power-off text-danger" style={{ fontSize: 16 }} />
-            <span className="text-danger">Logout</span>
+            <i className="fa-solid fa-power-off" style={{ fontSize: 16, color: "#8B0000" }} />
+            <span style={{ color: "#8B0000" }}>Logout</span>
           </a>
         )}
         <MenuMitra />
       </div>
+      <ConfirmLogoutModal
+        show={showLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={(e) => { setShowLogoutConfirm(false); onLogoutClick(e || new Event('click')); }}
+      />
       <Footer />
     </>
   );

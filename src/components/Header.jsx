@@ -35,7 +35,6 @@ function Header() {
   // Function to check if banner should be hidden
   const shouldHideBanner = () => {
     return (
-      location.pathname.includes("/all-outlets") ||
       location.pathname.includes("/outlet-details") ||
       isProfileRoute()
     );
@@ -71,12 +70,13 @@ function Header() {
     const path = location.pathname;
     if (path === "/") return "MenuMitra";
     if (path.startsWith("/checkout")) return "Checkout";
+    if (path === "/edit-profile") return "Edit Profile";
     if (path.startsWith("/profile")) return "Profile";
     if (path.startsWith("/search")) return "Search";
     if (path.startsWith("/orders")) return "Orders";
     if (path.startsWith("/favourites")) return "Favourite";
+    if (path.startsWith("/categories")) return "Categories";
     if (path.startsWith("/order-detail")) return "Order Details";
-    if (path.startsWith("/all-outlets")) return "All Outlets" ;
     if (path.startsWith("/savings")) return "Savings" ;
     if (path.startsWith("/outlet-details")) return "Outlet Details" ;
     if (path.startsWith("/product/") || path.startsWith("/product-detail"))

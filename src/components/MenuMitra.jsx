@@ -6,6 +6,12 @@ import logo2 from '../assets/mm-logo.png';
 
 const SOCIAL_LINKS = [
   {
+    platform: 'google',
+    url: 'https://www.google.com/search?q=MenuMitra',
+    icon: 'ri-google-fill',
+    color: '#4285F4'
+  },
+  {
     platform: 'facebook',
     url: 'https://www.facebook.com/people/Menu-Mitra/61565082412478/',
     icon: 'ri-facebook-fill',
@@ -22,12 +28,6 @@ const SOCIAL_LINKS = [
     url: 'https://www.youtube.com/@menumitra',
     icon: 'ri-youtube-fill',
     color: '#FF0000'
-  },
-  {
-    platform: 'google',
-    url: 'https://www.google.com/search?q=MenuMitra',
-    icon: 'ri-google-fill',
-    color: '#4285F4'
   }
 ];
 
@@ -78,7 +78,7 @@ const MenuMitra = () => {
 
   const renderFooter = () => (
     <div className="text-center">
-      <p className="text-muted mb-0 small">version 2.0</p>
+      <p className="text-muted mb-0 small">version 2.1.1</p>
       <p className="text-muted mb-0 small">13 Aug 2025</p>
     </div>
   );

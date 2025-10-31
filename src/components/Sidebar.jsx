@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSidebar } from "../contexts/SidebarContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -7,6 +7,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { useThemeColor } from "../contexts/ThemeColorContext";
 import "../assets/css/style.css";
 import ThemeColorOffcanvas from "./ThemeColorOffcanvas";
+import ConfirmLogoutModal from "./ConfirmLogoutModal";
 import MenuMitra from "./MenuMitra";
 import axios from "axios";
 import FeedbackButton from "./FeedbackButton";
@@ -54,18 +55,19 @@ function Sidebar() {
     }, 0);
   };
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const handleLogoutAndCloseSidebar = (e) => {
-    if (onLogoutClick) onLogoutClick(e);
-    if (typeof closeSidebar === "function") closeSidebar();
-    navigate("/");
+    e.preventDefault();
+    setShowLogoutConfirm(true);
   };
 
   return (
     <div className={`sidebar style-2 right${isOpen ? " show" : ""} d-flex flex-column`}>
       {isAuthenticated && (
         <div className="user-info p-3 border-bottom">
-          <div className="d-flex align-items-center mb-2">
-            <div className="avatar-lg me-3">
+          <div className="d-flex align-items-center justify-content-between mb-2">
+            <div className="d-flex align-items-center">
+              <div className="avatar-lg me-3">
               {user?.profileImage ? (
                 <img
                   src={user.profileImage}
@@ -81,11 +83,20 @@ function Sidebar() {
                   {user?.name?.charAt(0) || "U"}
                 </div>
               )}
-            </div>
-            <div>
+              </div>
+              <div>
               <h6 className="mb-1 text-dark">{user?.name}</h6>
               <small className="text-muted">{user?.mobile}</small>
+              </div>
             </div>
+            <button
+              type="button"
+              className="btn btn-link text-dark p-0"
+              aria-label="Close sidebar"
+              onClick={closeSidebar}
+            >
+              <i className="fa-solid fa-xmark fa-lg"></i>
+            </button>
           </div>
         </div>
       )}
@@ -251,9 +262,9 @@ function Sidebar() {
               onClick={handleLogoutAndCloseSidebar}
             >
               <span className="dz-icon d-flex align-items-center justify-content-center me-2">
-                <i className="fa-solid fa-power-off font_sie_14"></i>
+                <i className="fa-solid fa-power-off font_sie_14" style={{ color: "#dc3545" }}></i>
               </span>
-              <span>Logout</span>
+              <span className="text-danger">Logout</span>
             </NavLink>
           </li>
         )}
@@ -310,6 +321,15 @@ function Sidebar() {
       <ThemeColorOffcanvas
         show={showThemeColorOffcanvas}
         onClose={() => toggleThemeColorOffcanvas(false)}
+      />
+      <ConfirmLogoutModal
+        show={showLogoutConfirm}
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={(e) => {
+          setShowLogoutConfirm(false);
+          if (typeof closeSidebar === "function") closeSidebar();
+          onLogoutClick(e || new Event('click'));
+        }}
       />
     </div>
   );
