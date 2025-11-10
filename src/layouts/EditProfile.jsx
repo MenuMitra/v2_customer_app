@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useToast } from "../components/Toast/useToast";
 
-const API_BASE_URL = 'https://men4u.xyz/v2';
+const API_BASE_URL = 'https://menu4.xyz/v2';
 
 function EditProfile() {
   const navigate = useNavigate();

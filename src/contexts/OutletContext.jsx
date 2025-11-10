@@ -186,7 +186,7 @@ export const OutletProvider = ({ children }) => {
       const accessToken = auth.accessToken;
 
       const response = await axios.post(
-        "https://men4u.xyz/v2/user/get_restaurant_details_by_code",
+        "https://menu4.xyz/v2/user/get_restaurant_details_by_code",
         {
           outlet_code: outletCode,
           section_id: sectionId || "",

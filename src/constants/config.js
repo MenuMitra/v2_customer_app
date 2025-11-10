@@ -2,7 +2,7 @@ const ENV = import.meta.env.VITE_APP_ENV || 'development';
 
 const CONFIG = {
   development: {
-    API_BASE_URL: 'https://men4u.xyz/v2/user/',
+    API_BASE_URL: 'https://menu4.xyz/v2/user/',
   },
   production: {
     API_BASE_URL: 'https://menusmitra.xyz/v2/user/',

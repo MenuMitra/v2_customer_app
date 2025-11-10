@@ -278,7 +278,7 @@ function CheckoutContent() {
       }
 
       const response = await axios.post(
-        `https://men4u.xyz/v2/common/create_order`,
+        `https://menu4.xyz/v2/common/create_order`,
         payload,
         {
           headers: {
@@ -453,7 +453,7 @@ function CheckoutContent() {
     try {
       const accessToken = getAccessToken();
       const response = await axios.post(
-        "https://men4u.xyz/v2/common/verify_coupon",
+        "https://menu4.xyz/v2/common/verify_coupon",
         {
           coupon_code: couponCode,
           app_source: "user_App",
