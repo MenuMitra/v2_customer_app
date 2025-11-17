@@ -67,7 +67,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/men4u\.xyz\/v2\/user\/.*/i,
+            urlPattern: /^https:\/\/ghanish\.in\/v2\/user\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
@@ -82,7 +82,7 @@ export default defineConfig({
             }
           },
           {
-            urlPattern: /^https:\/\/men4u\.xyz\/media\/.*/i,
+            urlPattern: /^https:\/\/ghanish\.in\/media\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'image-cache',

@@ -101,6 +101,15 @@ function Profile() {
               </div>
               <div className="col-6">
                 <Link
+                  to="/all-outlets"
+                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                >
+                  <i className="fa-solid fa-store me-2 text-dark" />
+                  All Outlets
+                </Link>
+              </div>
+              <div className="col-6">
+                <Link
                   to="/favourites"
                   className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
                 >

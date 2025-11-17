@@ -45,6 +45,50 @@ function extractOutletParamsFromPath(pathname) {
   return null;
 }
 
+// Update the bannerData array
+const bannerData = [
+  {
+    id: 1,
+    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    title: "Special Offer",
+    discount: "20% OFF",
+    textColor: "#FFFFFF", // Changed to white for better visibility on image
+    description: "*on Selected Items"
+  },
+  {
+    id: 2,
+    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    title: "Lunch Special",
+    discount: "30% OFF",
+    textColor: "#FFFFFF",
+    description: "*12PM to 3PM"
+  },
+  {
+    id: 3,
+    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    title: "Happy Hours",
+    discount: "25% OFF",
+    textColor: "#FFFFFF",
+    description: "*on Beverages"
+  },
+  {
+    id: 4,
+    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    title: "Weekend Special",
+    discount: "40% OFF",
+    textColor: "#FFFFFF",
+    description: "*Saturday & Sunday"
+  },
+  {
+    id: 5,
+    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    title: "First Order",
+    discount: "50% OFF",
+    textColor: "#FFFFFF",
+    description: "*New Customers Only"
+  }
+];
+
 const styles = {
   swiperContainer: {
     position: 'relative',

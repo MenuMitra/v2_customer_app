@@ -22,7 +22,7 @@ const STEPS = {
   OTP: "otp",
 };
 
-const API_BASE_URL = "https://menu4.xyz/v2";
+const API_BASE_URL = "https://ghanish.in/v2";
 
 // Create axios instance with common config
 const api = axios.create({

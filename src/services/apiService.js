@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://menu4.xyz/v2/user/'; // Replace with your actual base URL
+const BASE_URL = 'https://ghanish.in/v2/user/'; // Replace with your actual base URL
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

@@ -38,6 +38,39 @@ function OutletDetails() {
   const [isProcessingUPI, setIsProcessingUPI] = useState(false);
   const [isProcessingPhonePe, setIsProcessingPhonePe] = useState(false);
   const [isProcessingGPay, setIsProcessingGPay] = useState(false);
+  const lastFetchRef = useRef(0);
+  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+  const fetchRestaurantDetails = async () => {
+    try {
+      // Get the token from your auth context or localStorage
+      const auth = JSON.parse(localStorage.getItem("auth")) || {};
+      const accessToken = auth.accessToken;
+
+      const response = await fetch(
+        "https://ghanish.in/v2/user/get_restaurant_details",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            outlet_id: outletId,
+            app_source: "user_app",
+          }),
+        }
+      );
+      const data = await response.json();
+
+      setRestaurantDetails(data.detail);
+      lastFetchRef.current = Date.now();
+    } catch (error) {
+      console.error("Error fetching restaurant details:", error);
+    }
+  };
+
+  // Initial fetch and periodic refresh
   useEffect(() => {
     if (detailsError) {
       toast.error(detailsError.message || "Failed to load outlet details", "Error");

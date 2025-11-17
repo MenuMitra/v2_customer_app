@@ -232,7 +232,7 @@ export const AddToCartModal = () => {
         const token = getAccessToken();
 
         const response = await axios.post(
-          "https://menu4.xyz/v2/user/get_full_half_price_of_menu",
+          "https://ghanish.in/v2/user/get_full_half_price_of_menu",
           {
             outlet_id: outletId,
             menu_id: modalConfig.data?.menuId || modalConfig.data?.menu_id,
