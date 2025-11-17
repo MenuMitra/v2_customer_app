@@ -12,6 +12,7 @@ function Categories() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState('grid');
   const { outletId } = useOutlet();
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Replace useEffect + useState with useQuery
   const { 
@@ -214,6 +215,13 @@ function Categories() {
     );
   };
 
+  // Filter categories by search term
+  const filteredCategories = Array.isArray(categories)
+    ? categories.filter((c) =>
+        (c?.category_name || "").toLowerCase().includes(searchTerm.trim().toLowerCase())
+      )
+    : [];
+
   return (
     <div>
       <Header />
@@ -237,6 +245,23 @@ function Categories() {
               )}
             </div> */}
 
+            {/* Search bar */}
+            <div className="row mb-3">
+              <div className="col-12">
+                <div className="input-group">
+                  <span className="input-group-text bg-white"><i className="fas fa-search"></i></span>
+                  <input
+                    type="search"
+                    className="form-control"
+                    placeholder="Search categories..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Categories display */}
             <div className="row">
               {isLoading ? (
@@ -248,8 +273,8 @@ function Categories() {
                     {error.message || 'Failed to load categories'}
                   </div>
                 </div>
-              ) : categories.length > 0 ? (
-                categories.map((category, index) => (
+              ) : filteredCategories.length > 0 ? (
+                filteredCategories.map((category, index) => (
                   <CategoryCard 
                     key={category.menu_cat_id}
                     category={category}

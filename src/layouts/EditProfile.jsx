@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useToast } from "../components/Toast/useToast";
 
-const API_BASE_URL = 'https://ghanish.in/v2';
+const API_BASE_URL = 'https://menu4.xyz/v2';
 
 function EditProfile() {
   const navigate = useNavigate();
@@ -14,6 +14,11 @@ function EditProfile() {
     phoneNumber: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+  const handleNameChange = (e) => {
+    // Allow only letters and spaces
+    const next = e.target.value.replace(/[^A-Za-z\s]/g, "");
+    setFormData(prev => ({ ...prev, name: next }));
+  };
 
   useEffect(() => {
     // Load user data from localStorage on component mount
@@ -120,7 +125,11 @@ function EditProfile() {
                   className="form-control"
                   placeholder="Enter your full name"
                   value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={handleNameChange}
+                  onBlur={(e) => setFormData(prev => ({ ...prev, name: (e.target.value || '').trim() }))}
+                  inputMode="text"
+                  pattern="[A-Za-z\s]+"
+                  title="Only letters and spaces are allowed"
                   required
                 />
               </div>

@@ -49,7 +49,11 @@ export const useCachedBanners = ({ outletId, userId, enabled = true }) => {
           method: 'post'
         });
 
-        setBanners(response || []);
+        // Ensure inactive banners are not shown
+        const filtered = Array.isArray(response)
+          ? response.filter((b) => String(b?.is_active) === '1')
+          : [];
+        setBanners(filtered);
       } catch (err) {
         console.error('Error fetching banners:', err);
         setError(err);

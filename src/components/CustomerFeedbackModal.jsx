@@ -89,7 +89,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
     }
     setLoading(true);
     try {
-      await axios.post("https://ghanish.in/v2/common/customer_feedback", {
+      const response = await axios.post("https://menu4.xyz/v2/common/customer_feedback", {
         ...form,
         feedback_rating: Number(form.feedback_rating),
       });

@@ -428,7 +428,7 @@ function OrderDetail() {
       }
 
       const response = await axios.post(
-        "https://ghanish.in/v2/user/get_order_details",
+        "https://menu4.xyz/v2/user/get_order_details",
         {
           order_id: orderId,
           user_id: parseInt(userId),
@@ -469,7 +469,7 @@ function OrderDetail() {
         }
 
         const response = await fetch(
-          "https://ghanish.in/v2/user/get_order_details",
+          "https://menu4.xyz/v2/user/get_order_details",
           {
             method: "POST",
             headers: {

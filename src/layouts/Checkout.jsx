@@ -278,7 +278,7 @@ function CheckoutContent() {
       }
 
       const response = await axios.post(
-        `https://ghanish.in/v2/common/create_order`,
+        `https://menu4.xyz/v2/common/create_order`,
         payload,
         {
           headers: {
@@ -453,7 +453,7 @@ function CheckoutContent() {
     try {
       const accessToken = getAccessToken();
       const response = await axios.post(
-        "https://ghanish.in/v2/common/verify_coupon",
+        "https://menu4.xyz/v2/common/verify_coupon",
         {
           coupon_code: couponCode,
           app_source: "user_App",
@@ -920,44 +920,6 @@ function CheckoutContent() {
                     </>
                   )}
                 </div>
-                <div className="d-flex justify-content-center mb-4">
-                  <button
-                    className="btn"
-                    style={{
-                      background: "#19b955",
-                      color: "#fff",
-                      borderRadius: 30,
-                      fontWeight: 600,
-                      fontSize: 20,
-                      minWidth: 280,
-                      boxShadow: "0 2px 8px rgba(25,185,85,0.15)",
-                    }}
-                    onClick={handleCheckout}
-                    disabled={
-                      detailsLoading ||
-                      checkoutLoading ||
-                      cartItems.length === 0
-                    }
-                  >
-                    {checkoutLoading ? (
-                      <span>Processing...</span>
-                    ) : (
-                      <>
-                        Place Order{" "}
-                        <span
-                          style={{
-                            color: "#b6f5d1",
-                            fontSize: 16,
-                            fontWeight: 500,
-                            marginLeft: 4,
-                          }}
-                        >
-                          ({getCartCount()} Items)
-                        </span>
-                      </>
-                    )}
-                  </button>
-                </div>
 
                 {/* Apply Coupon UI */}
                 <div className="mt-2 mb-4">
@@ -1002,6 +964,45 @@ function CheckoutContent() {
                     </div>
                   )}
                   <hr className="mt-3 mb-0" />
+                </div>
+
+                <div className="d-flex justify-content-center mb-4">
+                  <button
+                    className="btn"
+                    style={{
+                      background: "#19b955",
+                      color: "#fff",
+                      borderRadius: 30,
+                      fontWeight: 600,
+                      fontSize: 20,
+                      minWidth: 280,
+                      boxShadow: "0 2px 8px rgba(25,185,85,0.15)",
+                    }}
+                    onClick={handleCheckout}
+                    disabled={
+                      detailsLoading ||
+                      checkoutLoading ||
+                      cartItems.length === 0
+                    }
+                  >
+                    {checkoutLoading ? (
+                      <span>Processing...</span>
+                    ) : (
+                      <>
+                        Place Order{" "}
+                        <span
+                          style={{
+                            color: "#b6f5d1",
+                            fontSize: 16,
+                            fontWeight: 500,
+                            marginLeft: 4,
+                          }}
+                        >
+                          ({getCartCount()} Items)
+                        </span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </>
             )}

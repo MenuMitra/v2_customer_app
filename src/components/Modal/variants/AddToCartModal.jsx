@@ -232,7 +232,7 @@ export const AddToCartModal = () => {
         const token = getAccessToken();
 
         const response = await axios.post(
-          "https://ghanish.in/v2/user/get_full_half_price_of_menu",
+          "https://menu4.xyz/v2/user/get_full_half_price_of_menu",
           {
             outlet_id: outletId,
             menu_id: modalConfig.data?.menuId || modalConfig.data?.menu_id,
@@ -335,7 +335,7 @@ export const AddToCartModal = () => {
         >
           <span>
             {selectedPortionObj
-              ? `${selectedPortionObj.portion_name} - ₹${selectedPortionObj.price} (${selectedPortionObj.unit_value}${selectedPortionObj.unit_type ? ` ${selectedPortionObj.unit_type}` : ''})`
+              ? `${selectedPortionObj.portion_name ? `${selectedPortionObj.portion_name} - ` : ''}₹${selectedPortionObj.price} (${selectedPortionObj.unit_value}${selectedPortionObj.unit_type ? ` ${selectedPortionObj.unit_type}` : ''})`
               : "Select a portion size"}
           </span>
           <i
@@ -416,7 +416,7 @@ export const AddToCartModal = () => {
                 return "selected portion";
               }
 
-              const label = `${portion.portion_name || ''} (${portion.unit_value}${portion.unit_type ? ` ${portion.unit_type}` : ''})`;
+              const label = `${portion.portion_name ? `${portion.portion_name} ` : ''}(${portion.unit_value}${portion.unit_type ? ` ${portion.unit_type}` : ''})`;
               return label;
             })()}
           </span>
@@ -505,7 +505,7 @@ export const AddToCartModal = () => {
             placeholder={`Add instructions for ${
               menuDetails?.portions?.find(
                 (p) => p.portion_id === selectedPortion
-              )?.portion_name
+              )?.portion_name || 'selected'
             } portion...`}
             style={{
               paddingRight: "60px",

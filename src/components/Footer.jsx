@@ -32,7 +32,14 @@ function Footer() {
     <div>
       <div
         className="menubar-area style-2 footer-fixed border-top border-3 border-primary"
-        style={{ boxShadow: "0 -10px 6px -1px rgba(0,0,0,0.1)" }}
+        style={{
+          boxShadow: "0 -10px 6px -1px rgba(0,0,0,0.1)",
+          position: "fixed",
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          zIndex: 9999
+        }}
       >
         <div className="toolbar-inner menubar-nav">
           <NavLink

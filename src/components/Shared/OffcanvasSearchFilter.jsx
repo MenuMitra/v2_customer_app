@@ -24,7 +24,7 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
 
   const fetchFoodTypes = async () => {
     try {
-      const response = await fetch('https://ghanish.in/v2/user/get_food_type_list');
+      const response = await fetch('https://menu4.xyz/v2/user/get_food_type_list');
       const data = await response.json();
       const foodTypeList = data.detail.food_type_list;
       

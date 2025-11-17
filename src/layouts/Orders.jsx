@@ -426,8 +426,24 @@ function OrdersContent() {
 
   // Update pendingOrdersByDate to use new data structure
   const pendingOrdersByDate = {};
-  (orderHistoryData?.udhariPending || []).forEach(order => {
-    const dateKey = order.datetime.split(' ').slice(0, 3).join(' ');
+// Get udhari_pending as before
+(orderHistoryData?.udhariPending || []).forEach(order => {
+  const dateKey = order.datetime.split(' ').slice(0, 3).join(' ');
+  if (!pendingOrdersByDate[dateKey]) {
+    pendingOrdersByDate[dateKey] = {
+      date: dateKey,
+      orderCount: 0,
+      orders: []
+    };
+  }
+  pendingOrdersByDate[dateKey].orders.push(order);
+  pendingOrdersByDate[dateKey].orderCount++;
+});
+// Also check ongoingOrdersData for .status === 'cooking'
+(ongoingOrdersData || []).forEach(order => {
+  if (order.status === 'cooking') {
+    // Use today for dateKey since no datetime is present; fallback to 'Today' or order.time
+    const dateKey = 'Today';
     if (!pendingOrdersByDate[dateKey]) {
       pendingOrdersByDate[dateKey] = {
         date: dateKey,
@@ -437,12 +453,12 @@ function OrdersContent() {
     }
     pendingOrdersByDate[dateKey].orders.push(order);
     pendingOrdersByDate[dateKey].orderCount++;
-  });
-
-  // Sort pending orders
-  Object.values(pendingOrdersByDate).forEach(dateGroup => {
-    dateGroup.orders.sort((a, b) => parseInt(b.orderNumber) - parseInt(a.orderNumber));
-  });
+  }
+});
+// Sort pending orders
+Object.values(pendingOrdersByDate).forEach(dateGroup => {
+  dateGroup.orders.sort((a, b) => parseInt(b.orderNumber) - parseInt(a.orderNumber));
+});
 
   // Handler for expanding all pending date accordions
   const handleExpandAllPending = () => {

@@ -347,7 +347,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
                   border: activeValue && activeValue !== "all"
                     ? "1.5px solid #22A45D"
                     : "1.5px solid #eaeaea",
-                  minWidth: "110px",
+                  width: "120px", // fixed size to avoid overlap
                   transition: "all 0.2s ease",
                   fontSize: "14px",
                   fontWeight: "500",
@@ -367,6 +367,11 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
                   color: activeValue && activeValue !== "all"
                     ? "#22A45D"
                     : "#555555",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: "inline-block",
+                  maxWidth: "72px" // keep room for icon and chevron
                 }}>
                   {getButtonLabel(type, options, activeValue)}
                 </span>
@@ -462,7 +467,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
   document.head.appendChild(styleSheet);
 
   return (
-    <div className="d-flex gap-2 justify-content-between">
+    <div className="d-flex gap-2 flex-wrap">
       {renderFilterDropdown("Type", typeOptions, activeFilters.type)}
       {renderFilterDropdown("Price", priceOptions, activeFilters.price)}
       {renderFilterDropdown("Spicy", spicyOptions, activeFilters.spicy)}

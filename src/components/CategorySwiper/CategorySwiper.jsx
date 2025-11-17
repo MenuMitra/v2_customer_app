@@ -58,7 +58,7 @@ const CategorySwiper = ({
                 <div
                   className="category-pill cursor-pointer d-inline-flex align-items-center rounded-pill border"
                   style={{
-                    backgroundColor: "#f8f9fa",
+                    backgroundColor: "#e9ecef",
                     boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.05)",
                     borderColor: "#dee2e6",
                     padding: "6px 12px",
@@ -147,7 +147,7 @@ const styles = `
   .category-pill {
     height: 32px;
     padding: 6px 12px;
-    background-color: #f8f9fa;
+    background-color: #e9ecef;
     border-color: #dee2e6 !important;
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -155,7 +155,7 @@ const styles = `
   }
 
   .category-pill:hover {
-    background-color: #e9ecef;
+    background-color: #ffffff;
     border-color: #ced4da !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
