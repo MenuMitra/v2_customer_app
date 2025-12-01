@@ -82,6 +82,9 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
     //   setError("Order number must be at least 6 digits.");
     //   return;
     // }
+    const storedUser = localStorage.getItem("adminData")
+    const parseStoredUser = storedUser ?  JSON.parse(storedUser) : null;
+    const user_id = parseStoredUser?.user_id
 
     if (!form.feedback_description.trim() || !form.feedback_rating) {
       toast.error("Feedback and rating are required.", "Validation");
@@ -91,10 +94,11 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
     try {
       await axios.post("https://ghanish.in/v2/common/customer_feedback", {
         ...form,
+        user_id,
         feedback_rating: Number(form.feedback_rating),
       });
       toast.success("Thank you for your feedback!", "Success");
-      setTimeout(() => {
+      setTimeout(() => { 
         if (response?.status === 201) {
           setForm((prev) => ({
             ...prev,
