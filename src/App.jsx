@@ -5,7 +5,7 @@ import AllOutlets from "./layouts/AllOutlets";
 import AuthOffcanvas from "./components/Auth/AuthOffcanvas";
 import Favourite from "./layouts/Favourite";
 import SidebarProvider from "./contexts/SidebarContext";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/Sidebar"; 
 import Checkout from "./layouts/Checkout";
 import Orders from "./layouts/Orders";
 import OrderDetail from "./layouts/OrderDetail";

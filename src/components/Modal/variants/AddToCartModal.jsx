@@ -649,14 +649,14 @@ export const AddToCartModal = () => {
 
         <button
           type="button"
-          className="btn btn-primary py-3 px-2 border-0 rounded-pill fs-6 fw-500 flex-grow-1"
+          className="btn btn-primary py-3 border-0 rounded-pill fs-6 fw-500  d-flex align-items-center"
           onClick={handleAddToCart}
           disabled={!hasValidQuantity()}
           style={{
             opacity: hasValidQuantity() ? 1 : 0.5,
           }}
         >
-          <i class="fa-solid fa-cart-shopping me-2"></i>
+          <i className="fa-solid fa-cart-shopping me-2"></i>
           {isInCart ? "Update Cart" : "Add to Cart"}
         </button>
       </div>
