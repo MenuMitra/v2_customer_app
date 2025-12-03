@@ -5,6 +5,7 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import axios from "axios";
 import MenuMitra from "../assets/logo.png"; // adjust path as needed
+import { ENV } from "../config";
 
 const OrderAccordionItem = ({
   orderId,
@@ -312,7 +313,7 @@ const OrderAccordionItem = ({
       }
 
       const response = await axios.post(
-        "https://ghanish.in/v2/user/get_order_details",
+        `${ENV.V2_COMMON_BASE}/v2/user/get_order_details`,
         {
           order_id: orderId,
           user_id: parseInt(userId),

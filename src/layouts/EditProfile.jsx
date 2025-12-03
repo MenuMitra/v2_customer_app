@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useToast } from "../components/Toast/useToast";
-
-const API_BASE_URL = 'https://ghanish.in/v2';
+import {ENV} from "../config";
+const API_BASE_URL = ENV.V2_COMMON_BASE;
 
 function EditProfile() {
   const navigate = useNavigate();

@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
+import {ENV} from "../config";
 
 const OutletContext = createContext();
 
@@ -186,7 +187,7 @@ export const OutletProvider = ({ children }) => {
       const accessToken = auth.accessToken;
 
       const response = await axios.post(
-        "https://ghanish.in/v2/user/get_restaurant_details_by_code",
+        `${ENV.V2_COMMON_BASE}/user/get_restaurant_details_by_code`,
         {
           outlet_code: outletCode,
           section_id: sectionId || "",

@@ -9,6 +9,7 @@ import { jsPDF } from "jspdf";
 import toast from "react-hot-toast";
 import MenuMitra from "../assets/logo.png";
 import FeedbackButton from "../components/FeedbackButton";
+import {ENV} from '../config';
 
 function OrderDetail() {
   const { orderId } = useParams();
@@ -428,7 +429,7 @@ function OrderDetail() {
       }
 
       const response = await axios.post(
-        "https://ghanish.in/v2/user/get_order_details",
+        `${ENV.V2_COMMON_BASE}/v2/user/get_order_details`,
         {
           order_id: orderId,
           user_id: parseInt(userId),
@@ -469,7 +470,7 @@ function OrderDetail() {
         }
 
         const response = await fetch(
-          "https://ghanish.in/v2/user/get_order_details",
+          `${ENV.V2_COMMON_BASE}/v2/user/get_order_details`,
           {
             method: "POST",
             headers: {

@@ -5,6 +5,7 @@ import { useModal } from "../../../contexts/ModalContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useOutlet } from "../../../contexts/OutletContext";
 import axios from "axios";
+import {ENV} from '../../../config';
 
 export const AddToCartModal = () => {
   const { closeModal, modalConfig } = useModal();
@@ -232,7 +233,7 @@ export const AddToCartModal = () => {
         const token = getAccessToken();
 
         const response = await axios.post(
-          "https://ghanish.in/v2/user/get_full_half_price_of_menu",
+          `${ENV.V2_COMMON_BASE}/user/get_full_half_price_of_menu`,
           {
             outlet_id: outletId,
             menu_id: modalConfig.data?.menuId || modalConfig.data?.menu_id,

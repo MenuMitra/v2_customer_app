@@ -1,8 +1,6 @@
 import axiosInstance from './axios';
-
+import {ENV} from '../config';
 // API version constant
-const API_VERSION = 'v2';
-
 export const apiService = {
   // Common API calls that return different data shapes
   common: {
@@ -12,7 +10,7 @@ export const apiService = {
       const auth = authData ? JSON.parse(authData) : null;
       const userId = auth?.userId;
 
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_all_menu_list_by_category`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_all_menu_list_by_category`, {
         outlet_id: outletId,
         app_source: "user_app",
         user_id: userId || null
@@ -45,7 +43,7 @@ export const apiService = {
       };
     },
     getSpecialMenus: async ({ outletId, userId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_special_menu_list`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_special_menu_list`, {
         outlet_id: outletId,
         user_id: userId,
         app_source: "user_app"
@@ -53,7 +51,7 @@ export const apiService = {
       return response?.data?.detail || {};
     },
     getDetails: async ({ outletId, menuId, menuCatId, userId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_menu_details`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_menu_details`, {
         outlet_id: outletId,
         menu_id: Number(menuId),
         menu_cat_id: Number(menuCatId),
@@ -83,7 +81,7 @@ export const apiService = {
       if (keyword !== undefined && keyword !== null && keyword.trim() !== "") {
         payload.keyword = keyword.trim();
       }
-      const response = await axiosInstance.post(`/${API_VERSION}/user/search_menu`, payload, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/search_menu`, payload, {
         headers: { "Content-Type": "application/json" },
       });
       return response?.data;
@@ -93,7 +91,7 @@ export const apiService = {
   // Favorites
   favorites: {
     getList: async ({ outletId, userId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_favourite_list`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_favourite_list`, {
         outlet_id: outletId,
         user_id: userId,
         app_source: "user_app"
@@ -101,7 +99,7 @@ export const apiService = {
       return response?.data?.detail?.lists || {};
     },
     add: async ({ outletId, userId, menuId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/save_favourite_menu`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/save_favourite_menu`, {
         outlet_id: outletId,
         user_id: userId,
         menu_id: menuId,
@@ -110,7 +108,7 @@ export const apiService = {
       return response.data;
     },
     remove: async ({ outletId, userId, menuId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/remove_favourite_menu`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/remove_favourite_menu`, {
         outlet_id: outletId,
         user_id: userId,
         menu_id: menuId,
@@ -123,7 +121,7 @@ export const apiService = {
   // Add a new section for checkout related APIs
   checkout: {
     getDetails: async ({ outletId, orderItems }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_checkout_detail`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_checkout_detail`, {
         outlet_id: outletId,
         order_items: orderItems,
         app_source: "user_app"
@@ -133,7 +131,7 @@ export const apiService = {
     
     checkExistingOrder: async ({ userId, outletId }) => {
       try {
-        const response = await axiosInstance.post(`/${API_VERSION}/user/check_order_exist`, {
+        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/check_order_exist`, {
           user_id: userId,
           outlet_id: outletId,
           app_source: "user_app"
@@ -148,7 +146,7 @@ export const apiService = {
     },
 
     addToExistingOrder: async ({ orderId, userId, outletId, orderItems }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/add_to_existing_order`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/add_to_existing_order`, {
         order_id: orderId.toString(),
         user_id: userId.toString(),
         outlet_id: outletId.toString(),
@@ -167,7 +165,7 @@ export const apiService = {
       orderItems 
     }) => {
       const response = await axiosInstance.post(
-        `/${API_VERSION}/user/complete_or_cancel_existing_order_create_new_order`,
+        `${ENV.V2_COMMON_BASE}/user/complete_or_cancel_existing_order_create_new_order`,
         {
           order_id: orderId.toString(),
           user_id: userId,
@@ -204,7 +202,7 @@ export const apiService = {
         payload.user_id = userId;
       }
 
-      const response = await axiosInstance.post(`/${API_VERSION}/user/banner_listview`, payload);
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/banner_listview`, payload);
       return response?.data?.banners || [];
     },
   },
@@ -212,14 +210,14 @@ export const apiService = {
   // Customer related APIs
   customer: {
     getRestaurantDetails: async ({ outletId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_restaurant_details`, {
+      const response = await axiosInstance.post(`/user/get_restaurant_details`, {
         outlet_id: outletId,
         app_source: "user_app"
       });
       return response?.data?.detail || {};
     },
     getSavings: async ({ userId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_user_count`, {
+      const response = await axiosInstance.post(`/${ENV.V2_COMMON_BASE}/user/get_user_count`, {
         user_id: parseInt(userId),
         app_source: "user_app"
       });
@@ -227,7 +225,7 @@ export const apiService = {
     },
     
     getAllRestaurants: async () => {
-      const response = await axiosInstance.get(`/${API_VERSION}/user/get_all_restaurants`, {
+      const response = await axiosInstance.get(`${ENV.V2_COMMON_BASE}/user/get_all_restaurants`, {
         headers: {
           app_source: "customer_app"
         }
@@ -236,7 +234,7 @@ export const apiService = {
     },
     
     getOrderHistory: async ({ userId, outletId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_completed_and_cancel_order_list`, {
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_completed_and_cancel_order_list`, {
         user_id: parseInt(userId),
         outlet_id: outletId,
         app_source: "user_app"
@@ -246,7 +244,7 @@ export const apiService = {
 
     // Add this new method
     getOngoingOrders: async ({ userId, outletId }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/get_ongoing_or_placed_order`, {
+      const response = await axiosInstance.post(`/user/get_ongoing_or_placed_order`, {
         user_id: parseInt(userId),
         outlet_id: outletId,
         app_source: "user_app"
@@ -255,7 +253,7 @@ export const apiService = {
     },
     
     cancelOrder: async ({ outletId, orderId, note }) => {
-      const response = await axiosInstance.post(`/${API_VERSION}/user/cancel_order`, {
+      const response = await axiosInstance.post(`/${ENV.V2_COMMON_BASE}/user/cancel_order`, {
         outlet_id: outletId,
         order_id: orderId,
         note,

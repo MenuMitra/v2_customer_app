@@ -13,6 +13,7 @@ import LazyImage from "../components/Shared/LazyImage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiService from "../api/apiService";
 import { useToastContext } from "../components/Toast/ToastContext";
+import {ENV} from "../config";
 
 const FooterSummary = React.memo(function FooterSummary({ checkoutDetails }) {
   // Fallback to zeros if no data yet
@@ -278,7 +279,7 @@ function CheckoutContent() {
       }
 
       const response = await axios.post(
-        `https://ghanish.in/v2/common/create_order`,
+        `${ENV.V2_COMMON_BASE}/common/create_order`,
         payload,
         {
           headers: {
@@ -453,7 +454,7 @@ function CheckoutContent() {
     try {
       const accessToken = getAccessToken();
       const response = await axios.post(
-        "https://ghanish.in/v2/common/verify_coupon",
+        `${ENV.V2_COMMON_BASE}/v2/common/verify_coupon`,
         {
           coupon_code: couponCode,
           app_source: "user_App",
@@ -946,6 +947,7 @@ function CheckoutContent() {
                         color: "#222",
                         fontWeight: 500,
                         minWidth: 70,
+                        borderRadius: 8,
                       }}
                       onClick={handleVerifyCoupon}
                       disabled={!couponCode || couponLoading}

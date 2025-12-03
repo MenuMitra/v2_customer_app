@@ -6,6 +6,7 @@ import OutletInfoBanner from "../components/OutletInfoBanner";
 import { useToast } from "../components/Toast/useToast";
 import { useQuery } from "@tanstack/react-query";
 import apiService from "../api/apiService";
+import {ENV} from '../config';
 
 function OutletDetails() {
   const { outletInfo, outletId } = useOutlet();
@@ -48,7 +49,7 @@ function OutletDetails() {
       const accessToken = auth.accessToken;
 
       const response = await fetch(
-        "https://ghanish.in/v2/user/get_restaurant_details",
+        `${ENV.V2_COMMON_BASE}/v2/user/get_restaurant_details`,
         {
           method: "POST",
           headers: {

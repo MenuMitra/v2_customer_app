@@ -1,6 +1,7 @@
 import axios from 'axios';
+import {ENV} from '../config/env';
 
-const BASE_URL = 'https://ghanish.in/v2/user/'; // Replace with your actual base URL
+const BASE_URL = `${ENV.V2_COMMON_BASE}/v2/user/`; // Replace with your actual base URL
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

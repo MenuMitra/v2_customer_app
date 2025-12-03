@@ -1,7 +1,7 @@
 import axios from 'axios';
-
+import {ENV} from '../config';
 // API configuration
-const API_BASE_URL = 'https://ghanish.in';
+const API_BASE_URL = ENV.V2_COMMON_BASE;
 export const API_VERSION = '/v2';
 export const APP_PREFIX = '/user';
 

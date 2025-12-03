@@ -3,7 +3,7 @@
 // import { useOutlet } from '../../contexts/OutletContext';
 // import { useCacheData } from '../../contexts/CacheDataContext';
 
-// const API_BASE_URL = 'https://ghanish.in/v2';
+// const API_BASE_URL = 'https://menusmitra.xyz/v2';
 
 // export const useFavorite = () => {
 //   const [loading, setLoading] = useState(false);

@@ -20,7 +20,7 @@ import apiService from "../api/apiService";
 import OfferBanner from "./OfferBanner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCachedBanners } from "../hooks/useCachedBanners";
-
+import {ENV} from "../config";
 // Helper function to get auth data
 const getAuthData = () => {
   const authData = localStorage.getItem("auth");
@@ -49,7 +49,7 @@ function extractOutletParamsFromPath(pathname) {
 const bannerData = [
   {
     id: 1,
-    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
     title: "Special Offer",
     discount: "20% OFF",
     textColor: "#FFFFFF", // Changed to white for better visibility on image
@@ -57,7 +57,7 @@ const bannerData = [
   },
   {
     id: 2,
-    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
     title: "Lunch Special",
     discount: "30% OFF",
     textColor: "#FFFFFF",
@@ -65,7 +65,7 @@ const bannerData = [
   },
   {
     id: 3,
-    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
     title: "Happy Hours",
     discount: "25% OFF",
     textColor: "#FFFFFF",
@@ -73,7 +73,7 @@ const bannerData = [
   },
   {
     id: 4,
-    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
     title: "Weekend Special",
     discount: "40% OFF",
     textColor: "#FFFFFF",
@@ -81,7 +81,7 @@ const bannerData = [
   },
   {
     id: 5,
-    imageUrl: "https://ghanish.in/v2/media/menu_images/mm_images_70143.jpg",
+    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
     title: "First Order",
     discount: "50% OFF",
     textColor: "#FFFFFF",

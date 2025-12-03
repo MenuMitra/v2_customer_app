@@ -20,9 +20,8 @@ const STEPS = {
   LOGIN: "login",
   SIGNUP: "signup",
   OTP: "otp",
-};
-
-const API_BASE_URL = "https://ghanish.in/v2";
+}; 
+const API_BASE_URL = "https://menusmitra.xyz/v2";
 
 // Create axios instance with common config
 const api = axios.create({

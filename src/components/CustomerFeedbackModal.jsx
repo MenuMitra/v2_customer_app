@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useToast } from "../components/Toast/useToast";
+import {ENV} from '../config';
 
 const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
   const toast = useToast();
@@ -92,7 +93,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
     }
     setLoading(true);
     try {
-      await axios.post("https://ghanish.in/v2/common/customer_feedback", {
+      await axios.post(`${ENV.V2_COMMON_BASE}/common/customer_feedback`, {
         ...form,
         user_id,
         feedback_rating: Number(form.feedback_rating),
