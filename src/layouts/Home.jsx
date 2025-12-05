@@ -20,7 +20,7 @@ import apiService from "../api/apiService";
 import OfferBanner from "./OfferBanner";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCachedBanners } from "../hooks/useCachedBanners";
-import {ENV} from "../config";
+import { ENV } from "../config";
 // Helper function to get auth data
 const getAuthData = () => {
   const authData = localStorage.getItem("auth");
@@ -89,84 +89,7 @@ const bannerData = [
   }
 ];
 
-const styles = {
-  swiperContainer: {
-    position: 'relative',
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden'
-  },
-  slide: {
-    position: 'relative',
-    width: '100%',
-    height: '300px' // Adjust height as needed
-  },
-  slideImage: {
-    width: '100%',
-    height: '300px',
-    objectFit: 'cover'
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.4)'
-  },
-  content: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    textAlign: 'center',
-    color: '#FFFFFF',
-    width: '100%',
-    padding: '0 20px'
-  },
-  title: {
-    fontSize: '1.25rem',
-    marginBottom: '0.5rem',
-    fontWeight: '500'
-  },
-  discount: {
-    fontSize: '2.5rem',
-    fontWeight: 'bold',
-    marginBottom: '0.5rem'
-  },
-  description: {
-    fontSize: '0.875rem',
-    opacity: '0.9'
-  },
-  navigation: {
-    button: {
-      position: 'absolute',
-      top: '50%',
-      transform: 'translateY(-50%)',
-      zIndex: 10,
-      width: '40px',
-      height: '40px',
-      backgroundColor: 'rgba(255, 255, 255, 0.9)',
-      borderRadius: '50%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
-    },
-    icon: {
-      color: '#666'
-    }
-  },
-  pagination: {
-    position: 'absolute',
-    bottom: '10px',
-    width: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    zIndex: 10
-  }
-};
+
 
 function Home() {
   // Keep core hooks and context values
@@ -228,24 +151,24 @@ function Home() {
     onMutate: async ({ menuId, isFavorite }) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries(["specialMenus", outletId, userId]);
-      
+
       // Snapshot the previous value
       const previousData = queryClient.getQueryData([
         "specialMenus",
         outletId,
         userId,
       ]);
-      
+
       // Optimistically update the UI
       queryClient.setQueryData(["specialMenus", outletId, userId], (old) => {
         if (!old) return old;
         return old.map((menu) =>
-          menu.menu_id === menuId 
+          menu.menu_id === menuId
             ? { ...menu, is_favourite: isFavorite ? 1 : 0 }
             : menu
         );
       });
-      
+
       return { previousData };
     },
     onError: (err, variables, context) => {
@@ -299,7 +222,7 @@ function Home() {
     // First apply category filter
     let filtered =
       selectedCategoryId === "all" || !selectedCategoryId
-      ? menuItems
+        ? menuItems
         : categoriesData.menusByCategory[selectedCategoryId] || [];
 
     // Then apply search if active
@@ -400,7 +323,7 @@ function Home() {
       // Handle unauthenticated users - maybe show login modal
       return;
     }
-    
+
     try {
       await toggleFavorite.mutateAsync({ menuId, isFavorite: !isFavorite });
     } catch (error) {
@@ -454,32 +377,32 @@ function Home() {
         <Header />
         <div className="page-content">
           <div className=" pt-0">
-            <div className="container p-b40 p-t0">
+            <div className="container mx-auto px-4 pb-10 pt-0">
 
               {/* Modern Banner Swiper with Cache Status */}
               {!hideBanners && (
                 bannersLoading ? (
                   // Loading skeleton for banners
                   <div className="modern-banner-swiper">
-                    <div style={{ height: '200px', display: 'flex', gap: '20px', padding: '0 20px' }}>
+                    <div className="h-[200px] flex gap-5 px-5">
                       {Array.from({ length: 3 }).map((_, index) => (
-                        <Skeleton key={`skeleton-${index}`} height={200} style={{ borderRadius: '20px', flex: '1' }} />
+                        <Skeleton key={`skeleton-${index}`} height={200} className="rounded-[20px] flex-1" />
                       ))}
                     </div>
                   </div>
                 ) : bannersError ? (
                   // Error state
                   <div className="text-center p-4">
-                    <p className="text-muted">Failed to load banners</p>
+                    <p className="text-gray-500">Failed to load banners</p>
                   </div>
                 ) : banners.length === 0 ? (
                   // No banners state
                   <div className="text-center p-4">
-                    <p className="text-muted">No banners available</p>
+                    <p className="text-gray-500">No banners available</p>
                   </div>
                 ) : (
                   <div>
-                    
+
                     <CodeSandboxBannerSwiper
                       banners={banners.map(banner => ({
                         id: banner.banner_id,
@@ -501,26 +424,16 @@ function Home() {
               )}
 
               <div
-                className="title-bar d-flex justify-content-between align-items-center"
+                className="title-bar flex justify-between items-center cursor-pointer"
                 onClick={() => navigate("/categories")}
-                style={{ cursor: "pointer" }}
               >
-                <span className="title mb-0 font-18">
+                <span className="title mb-0 text-lg">
                   {isSearching ? "Search Results" : "Categories"}
                 </span>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "#888",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "2px",
-                  }}
-                >
+                <span className="text-[12px] text-[#888] inline-flex items-center gap-[2px]">
                   See all{" "}
                   <i
-                    className="fas fa-chevron-right"
-                    style={{ fontSize: "12px" }}
+                    className="fas fa-chevron-right text-[12px]"
                   ></i>
                 </span>
               </div>
@@ -532,28 +445,18 @@ function Home() {
                 onCategoryClick={handleCategoryClick}
               />
               <div class="title-bar mt-0">
-                <span class="title mb-0 font-18">Menus</span>
+                <span class="title mb-0 text-lg">Menus</span>
               </div>
-              <div className="row g-3 mb-3">
+              <div className="grid grid-cols-2 gap-3 mb-3">
                 {isLoading ? (
                   // Skeleton for VerticalMenuCards
                   [...Array(6)].map((_, index) => (
-                    <div className="col-6" key={`skeleton-${index}`}>
+                    <div className="col-span-1" key={`skeleton-${index}`}>
                       <div
-                        style={{
-                          borderRadius: "16px",
-                          overflow: "hidden",
-                          backgroundColor: "#fff",
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-                        }}
+                        className="rounded-2xl overflow-hidden bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
                       >
                         {/* Image Skeleton */}
-                        <div
-                          style={{
-                            position: "relative",
-                            paddingTop: "75%",
-                          }}
-                        >
+                        <div className="relative pt-[75%]">
                           <Skeleton
                             height="100%"
                             width="100%"
@@ -567,31 +470,17 @@ function Home() {
                             }}
                           />
                           {/* Discount Badge Skeleton */}
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "10px",
-                              left: "10px",
-                              zIndex: 1,
-                            }}
-                          >
+                          <div className="absolute top-2.5 left-2.5 z-10">
                             <Skeleton
                               height={24}
                               width={45}
                               baseColor="#C8C8C8"
                               highlightColor="#E0E0E0"
-                              style={{ borderRadius: "12px" }}
+                              className="rounded-[12px]"
                             />
                           </div>
                           {/* Favorite Button Skeleton */}
-                          <div
-                            style={{
-                              position: "absolute",
-                              top: "10px",
-                              right: "10px",
-                              zIndex: 1,
-                            }}
-                          >
+                          <div className="absolute top-2.5 right-2.5 z-10">
                             <Skeleton
                               circle
                               height={32}
@@ -603,18 +492,18 @@ function Home() {
                         </div>
 
                         {/* Content Section */}
-                        <div style={{ padding: "12px" }}>
+                        <div className="p-3">
                           {/* Title Skeleton */}
                           <Skeleton
                             height={20}
                             width="80%"
                             baseColor="#C8C8C8"
                             highlightColor="#E0E0E0"
-                            style={{ marginBottom: "8px" }}
+                            className="mb-2"
                           />
 
                           {/* Price and Rating Row */}
-                          <div className="d-flex justify-content-between align-items-center">
+                          <div className="flex justify-between items-center">
                             <Skeleton
                               height={18}
                               width={60}
@@ -635,13 +524,13 @@ function Home() {
                 ) : isSearching ? (
                   filteredMenus.length > 0 ? (
                     visibleMenus.map((menuItem) => (
-                      <div className="col-6" key={menuItem.menuId}>
+                      <div className="col-span-1" key={menuItem.menuId}>
                         <VerticalMenuCard
                           image={
                             menuItem.image ? (
                               menuItem.image
                             ) : (
-                              <i className="fa-solid fa-utensils font-55"></i>
+                              <i className="fa-solid fa-utensils text-[55px]"></i>
                             )
                           }
                           title={menuItem.menuName}
@@ -659,19 +548,19 @@ function Home() {
                       </div>
                     ))
                   ) : (
-                    <div className="col-12 text-center py-4">
-                      <p className="text-muted">No results found</p>
+                    <div className="col-span-2 text-center py-4">
+                      <p className="text-gray-500">No results found</p>
                     </div>
                   )
                 ) : (
                   visibleMenus.map((menuItem) => (
-                    <div className="col-6" key={menuItem.menuId}>
+                    <div className="col-span-1" key={menuItem.menuId}>
                       <VerticalMenuCard
                         image={
                           menuItem.image ? (
                             menuItem.image
                           ) : (
-                            <i className="fa-solid fa-utensils font-55 opacity-50 text-muted"></i>
+                            <i className="fa-solid fa-utensils text-[55px] opacity-50 text-gray-500"></i>
                           )
                         }
                         title={menuItem.menuName}
@@ -697,7 +586,7 @@ function Home() {
               {filteredMenus.length > visibleMenuCount && (
                 <div className="text-center mb-4">
                   <button
-                    className="btn btn-outline-primary px-4 py-2"
+                    className="px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-500 hover:text-white transition-colors"
                     onClick={handleLoadMoreMenus}
                   >
                     Load More
@@ -712,23 +601,24 @@ function Home() {
         <Footer />
 
         <div
-          className="offcanvas offcanvas-bottom pwa-offcanvas"
-          style={{ display: "none" }}
+          className="pwa-offcanvas fixed bottom-0 left-0 w-full z-50 bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] transition-transform duration-300 transform translate-y-full data-[open=true]:translate-y-0"
+          id="pwa-install-prompt"
+          style={{ display: "none" }} // Kept for logic control, though classes handle transition? JS likely toggles display.
         >
-          <div className="container">
-            <div className="offcanvas-body small">
-              <img className="logo" src="assets/images/icon.png" alt="" />
-              <h6 className="title font-w600">W3Grocery on Your Home Screen</h6>
-              <p>
+          <div className="container mx-auto px-4">
+            <div className="p-4 text-sm text-center">
+              <img className="w-12 h-12 mx-auto mb-3" src="assets/images/icon.png" alt="" />
+              <h6 className="font-semibold text-lg mb-2">W3Grocery on Your Home Screen</h6>
+              <p className="mb-4 text-gray-600">
                 Install W3Grocery Pre-Build Grocery Mobile App Template to your
                 home screen for easy access, just like any other app
               </p>
-              <button type="button" className="btn btn-sm btn-primary pwa-btn">
+              <button type="button" className="pwa-btn px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
                 Add to Home Screen
               </button>
               <button
                 type="button"
-                className="btn btn-sm pwa-close btn-secondary ms-2 text-white"
+                className="pwa-close px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors ml-3"
               >
                 Maybe later
               </button>

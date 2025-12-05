@@ -310,12 +310,7 @@ export const AddToCartModal = () => {
 
     if (portions.length === 0) {
       return (
-        <div
-          className="form-control d-flex justify-content-between align-items-center border border-2 rounded-3 p-3 fs-6 text-dark disabled"
-          style={{
-            cursor: "not-allowed"
-          }}
-        >
+        <div className="w-full flex justify-between items-center border-2 border-gray-200 rounded-lg p-3 text-base text-gray-900 cursor-not-allowed opacity-60">
           <span>No portion sizes available</span>
         </div>
       );
@@ -325,34 +320,21 @@ export const AddToCartModal = () => {
     const selectedPortionObj = portions.find(p => p.portion_id === selectedPortion);
 
     return (
-      <div className="position-relative">
+      <div className="relative">
         <div
-          className="form-control d-flex justify-content-between align-items-center rounded-3 p-3 fs-6 text-dark user-select-none"
+          className="w-full flex justify-between items-center rounded-lg p-3 text-base text-gray-900 select-none cursor-pointer border-[1.5px] border-gray-200"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          style={{
-            border: "1.5px solid #e9ecef",
-            cursor: "pointer"
-          }}
         >
           <span>
             {selectedPortionObj
               ? `${selectedPortionObj.portion_name ? `${selectedPortionObj.portion_name} - ` : ''}₹${selectedPortionObj.price} (${selectedPortionObj.unit_value}${selectedPortionObj.unit_type ? ` ${selectedPortionObj.unit_type}` : ''})`
               : "Select a portion size"}
           </span>
-          <i
-            className={`fas fa-chevron-${isDropdownOpen ? "up" : "down"} text-secondary`}
-          ></i>
+          <i className={`fas fa-chevron-${isDropdownOpen ? "up" : "down"} text-gray-600`}></i>
         </div>
 
         {isDropdownOpen && portions.length > 0 && (
-          <div
-            className="position-absolute w-100 mt-1 shadow-sm bg-transparent rounded-3 border"
-            style={{
-              border: "1.5px solid #e9ecef",
-              zIndex: 1000,
-              overflow: "hidden"
-            }}
-          >
+          <div className="absolute w-full mt-1 shadow-sm bg-transparent rounded-lg border-[1.5px] border-gray-200 z-[1000] overflow-hidden">
             {portions.map((portion) => (
               <div
                 key={portion.portion_id}
@@ -360,28 +342,19 @@ export const AddToCartModal = () => {
                   handlePortionChange(portion.portion_id);
                   setIsDropdownOpen(false);
                 }}
-                className={`d-flex justify-content-between align-items-center p-3 border-bottom bg-light`}
-                style={{
-                  cursor: "pointer",
-                  transition: "all 0.2s ease"
-                }}
+                className="flex justify-between items-center p-3 border-b border-gray-200 bg-gray-100 cursor-pointer transition-all duration-200"
               >
-                <div className="d-flex flex-column">
-                  <span
-                    style={{
-                      color: "#212529"
-                    }}
-                    className={`fs-6 ${
-                      selectedPortion === portion.portion_id ? "fw-medium" : "fw-normal"
-                    }`}
-                  >
+                <div className="flex flex-col">
+                  <span className={`text-base text-gray-900 ${
+                    selectedPortion === portion.portion_id ? "font-medium" : "font-normal"
+                  }`}>
                     {`${portion.portion_name ? `${portion.portion_name} - ` : ''}₹${portion.price} (${
                       portion.unit_value
                     }${portion.unit_type ? ` ${portion.unit_type}` : ''})`}
                   </span>
                 </div>
                 {selectedPortion === portion.portion_id && (
-                  <i className="fas fa-check text-success"></i>
+                  <i className="fas fa-check text-green-600"></i>
                 )}
               </div>
             ))}
@@ -394,17 +367,15 @@ export const AddToCartModal = () => {
   return (
     <BaseModal isOpen={true} title={modalTitle} onClose={closeModal}>
       <div className="mb-4">
-        <label className="text-secondary mb-2" style={{ fontSize: "14px" }}>
+        <label className="text-gray-600 mb-2 block text-sm">
           Select Portion
         </label>
-        <div className="row">
-          <div className="col-12">{renderPortionSelection()}</div>
-        </div>
+        <div className="w-full">{renderPortionSelection()}</div>
       </div>
 
       <div className="mb-4">
-        <label className="text-secondary mb-2 d-flex justify-content-between align-items-center">
-          <span style={{ fontSize: "14px" }}>
+        <label className="text-gray-600 mb-2 flex justify-between items-center">
+          <span className="text-sm">
             Special Instructions for{" "}
             {(() => {
               if (!selectedPortion || !menuDetails?.portions?.length) {
@@ -422,18 +393,16 @@ export const AddToCartModal = () => {
             })()}
           </span>
           <small
-            style={{
-              color:
-                (comments[selectedPortion]?.length || 0) > 50
-                  ? "#dc3545"
-                  : "#6c757d",
-              fontSize: "12px",
-            }}
+            className={`text-xs ${
+              (comments[selectedPortion]?.length || 0) > 50
+                ? "text-red-600"
+                : "text-gray-600"
+            }`}
           ></small>
         </label>
 
         {/* Quick Suggestions */}
-        <div className="d-flex flex-wrap gap-2 mb-3">
+        <div className="flex flex-wrap gap-2 mb-3">
           {[
             { icon: "🌶️", text: "Extra spicy" },
             { icon: "🥬", text: "No onions" },
@@ -458,28 +427,18 @@ export const AddToCartModal = () => {
                 onClick={() =>
                   !suggestionDisabled && handleSuggestionClick(suggestion.text)
                 }
-                style={{
-                  backgroundColor: suggestionSelected ? "#e8f5e9" : "#f8f9fa",
-                  border: `1px solid ${
-                    suggestionSelected ? "#28a745" : "#e9ecef"
-                  }`,
-                  borderRadius: "20px",
-                  padding: "8px 12px",
-                  fontSize: "13px",
-                  color: suggestionSelected ? "#28a745" : "#6c757d",
-                  cursor: suggestionDisabled ? "not-allowed" : "pointer",
-                  transition: "all 0.2s ease",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  userSelect: "none",
-                  opacity: suggestionDisabled ? 0.5 : 1,
-                }}
+                className={`flex items-center gap-1 px-3 py-2 rounded-full text-[13px] select-none transition-all duration-200 ${
+                  suggestionSelected
+                    ? "bg-green-50 border border-green-600 text-green-600"
+                    : "bg-gray-100 border border-gray-200 text-gray-600"
+                } ${
+                  suggestionDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                }`}
               >
                 <span>{suggestion.icon}</span>
                 <span>{suggestion.text}</span>
                 {suggestionSelected && (
-                  <span style={{ marginLeft: "4px", fontSize: "10px" }}>✓</span>
+                  <span className="ml-1 text-[10px]">✓</span>
                 )}
               </div>
             );
@@ -487,20 +446,20 @@ export const AddToCartModal = () => {
         </div>
 
         {/* Comment textarea */}
-        <div className="position-relative">
-          <div className="d-flex justify-content-end mb-1">
-            <span className="text-muted small me-2">
+        <div className="relative">
+          <div className="flex justify-end mb-1">
+            <span className="text-gray-500 text-sm mr-2">
               {comments[selectedPortion]?.length || 0}/50
             </span>
           </div>
           <textarea
-            className={`form-control rounded-3 p-3 fs-6 ${
+            className={`w-full rounded-lg p-3 text-base transition-all duration-200 ${
               comments[selectedPortion]?.length < 5 && comments[selectedPortion]?.length > 0
-                ? "border-danger"
+                ? "border-red-600"
                 : comments[selectedPortion]?.length > 50
-                ? "border-danger"
-                : "border-light"
-            }`}
+                ? "border-red-600"
+                : "border-gray-200"
+            } border focus:outline-none focus:ring-0`}
             value={comments[selectedPortion] || ""}
             onChange={(e) => handleCommentChange(e.target.value)}
             placeholder={`Add instructions for ${
@@ -512,8 +471,7 @@ export const AddToCartModal = () => {
               paddingRight: "60px",
               minHeight: "60px",
               maxHeight: "120px",
-              resize: "vertical",
-              transition: "all 0.2s ease"
+              resize: "vertical"
             }}
             onFocus={(e) => {
               if (comments[selectedPortion]?.length <= 50) {
@@ -545,14 +503,7 @@ export const AddToCartModal = () => {
 
         {/* Validation message */}
         {comments[selectedPortion]?.length > 0 && (
-          <small
-            style={{
-              color: "#dc3545",
-              fontSize: "12px",
-              marginTop: "6px",
-              display: "block",
-            }}
-          >
+          <small className="text-red-600 text-xs mt-1.5 block">
             {comments[selectedPortion]?.length < 5
               ? "Instructions must be at least 5 characters"
               : comments[selectedPortion]?.length > 50
@@ -562,65 +513,26 @@ export const AddToCartModal = () => {
         )}
 
         {/* Helper text */}
-        <small
-          style={{
-            color: "#6c757d",
-            fontSize: "12px",
-            marginTop: comments[selectedPortion]?.length > 0 ? "2px" : "6px",
-            display: "block",
-          }}
-        >
+        <small className={`text-gray-600 text-xs block ${comments[selectedPortion]?.length > 0 ? 'mt-0.5' : 'mt-1.5'}`}>
           Click to add/remove suggestions or type your custom instructions
         </small>
       </div>
 
-      <div className="d-flex align-items-center gap-3 mt-4">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            border: "1px solid #28a745",
-            borderRadius: "999px",
-            padding: "5px 5px",
-            background: "white",
-            flex: "1",
-          }}
-        >
+      <div className="flex items-center gap-3 mt-4">
+        <div className="flex items-center border border-green-600 rounded-full p-1.5 bg-white flex-1">
           <button
             type="button"
             onClick={() =>
               handleQuantityChange(quantities[selectedPortion] - 1)
             }
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "#07813a",
-              color: "white",
-              border: "none",
-              fontSize: "20px",
-              fontWeight: 500,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginRight: "20px",
-              transition: "background 0.2s",
-              opacity: quantities[selectedPortion] <= 0 ? 0.5 : 1,
-            }}
+            className={`w-10 h-10 rounded-full bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center mr-5 transition-all duration-200 ${
+              quantities[selectedPortion] <= 0 ? 'opacity-50' : 'opacity-100'
+            }`}
             disabled={quantities[selectedPortion] <= 0}
           >
             –
           </button>
-          <span
-            style={{
-              fontSize: "20px",
-              fontWeight: 400,
-              color: "#23232b",
-              minWidth: "24px",
-              textAlign: "center",
-              flex: "1",
-            }}
-          >
+          <span className="text-xl font-normal text-[#23232b] min-w-[24px] text-center flex-1">
             {quantities[selectedPortion]}
           </span>
           <button
@@ -628,21 +540,7 @@ export const AddToCartModal = () => {
             onClick={() =>
               handleQuantityChange(quantities[selectedPortion] + 1)
             }
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              backgroundColor: "#07813a",
-              color: "white",
-              border: "none",
-              fontSize: "20px",
-              fontWeight: 500,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginLeft: "20px",
-              transition: "background 0.2s",
-            }}
+            className="w-10 h-10 rounded-full bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center ml-5 transition-all duration-200"
           >
             +
           </button>
@@ -650,14 +548,14 @@ export const AddToCartModal = () => {
 
         <button
           type="button"
-          className="btn btn-primary py-3 border-0 rounded-pill fs-6 fw-500  d-flex align-items-center"
+          className="btn btn-primary py-3 border-0 rounded-full text-base font-medium flex items-center"
           onClick={handleAddToCart}
           disabled={!hasValidQuantity()}
           style={{
             opacity: hasValidQuantity() ? 1 : 0.5,
           }}
         >
-          <i className="fa-solid fa-cart-shopping me-2"></i>
+          <i className="fa-solid fa-cart-shopping mr-2"></i>
           {isInCart ? "Update Cart" : "Add to Cart"}
         </button>
       </div>

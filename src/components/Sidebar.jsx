@@ -62,36 +62,32 @@ function Sidebar() {
   };
 
   return (
-    <div className={`sidebar style-2 right${isOpen ? " show" : ""} d-flex flex-column`}>
+    <div className={`sidebar style-2 right${isOpen ? " show" : ""} flex flex-col`}>
       {isAuthenticated && (
-        <div className="user-info p-3 border-bottom">
-          <div className="d-flex align-items-center justify-content-between mb-2">
-            <div className="d-flex align-items-center">
-              <div className="avatar-lg me-3">
-              {user?.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt="Profile"
-                  className="rounded-circle"
-                  style={{ width: 60, height: 60, objectFit: "cover" }}
-                />
-              ) : (
-                <div
-                  className="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white"
-                  style={{ width: 60, height: 60, fontSize: "24px" }}
-                >
-                  {user?.name?.charAt(0) || "U"}
-                </div>
-              )}
+        <div className="user-info p-3 border-b border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center">
+              <div className="avatar-lg mr-3">
+                {user?.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt="Profile"
+                    className="rounded-full w-[60px] h-[60px] object-cover"
+                  />
+                ) : (
+                  <div className="rounded-full bg-primary flex items-center justify-center text-white w-[60px] h-[60px] text-2xl">
+                    {user?.name?.charAt(0) || "U"}
+                  </div>
+                )}
               </div>
               <div>
-              <h6 className="mb-1 text-dark">{user?.name}</h6>
-              <small className="text-muted">{user?.mobile}</small>
+                <h6 className="mb-1 text-gray-900">{user?.name}</h6>
+                <small className="text-gray-500">{user?.mobile}</small>
               </div>
             </div>
             <button
               type="button"
-              className="btn btn-link text-dark p-0"
+              className="btn btn-link text-gray-900 p-0"
               aria-label="Close sidebar"
               onClick={closeSidebar}
             >
@@ -109,16 +105,15 @@ function Sidebar() {
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `nav-link d-flex align-items-center ${
-                isActive
-                  ? "active bg-success text-white fw-bold px-2 rounded-5"
-                  : ""
+              `nav-link flex items-center ${isActive
+                ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
+                : ""
               }`
             }
             onClick={handleLinkClick}
             end
           >
-            <span className="dz-icon d-flex align-items-center justify-content-center me-2">
+            <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-utensils"></i>
             </span>
             <span>Menu</span>
@@ -128,15 +123,14 @@ function Sidebar() {
           <NavLink
             to="/categories"
             className={({ isActive }) =>
-              `nav-link d-flex align-items-center ${
-                isActive
-                  ? "active bg-success text-white fw-bold px-2 rounded-5"
-                  : ""
+              `nav-link flex items-center ${isActive
+                ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
+                : ""
               }`
             }
             onClick={handleLinkClick}
           >
-            <span className="dz-icon d-flex align-items-center justify-content-center me-2">
+            <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-list"></i>
             </span>
             <span>Category</span>
@@ -146,15 +140,14 @@ function Sidebar() {
           <NavLink
             to="/search"
             className={({ isActive }) =>
-              `nav-link d-flex align-items-center ${
-                isActive
-                  ? "active bg-success text-white fw-bold px-2 rounded-5"
-                  : ""
+              `nav-link flex items-center ${isActive
+                ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
+                : ""
               }`
             }
             onClick={handleLinkClick}
           >
-            <span className="dz-icon d-flex align-items-center justify-content-center me-2">
+            <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-magnifying-glass"></i>
             </span>
             <span>Search</span>
@@ -164,15 +157,14 @@ function Sidebar() {
           <NavLink
             to="/favourites"
             className={({ isActive }) =>
-              `nav-link d-flex align-items-center ${
-                isActive
-                  ? "active bg-success text-white fw-bold px-2 rounded-5"
-                  : ""
+              `nav-link flex items-center ${isActive
+                ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
+                : ""
               }`
             }
             onClick={handleLinkClick}
           >
-            <span className="dz-icon d-flex align-items-center justify-content-center me-2">
+            <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-heart"></i>
             </span>
             <span>Favourites</span>
@@ -181,28 +173,15 @@ function Sidebar() {
         <li>
           <NavLink
             to="/checkout"
-            className="sidebar-link d-flex align-items-center"
+            className="sidebar-link flex items-center"
             onClick={handleLinkClick}
           >
-            <span className="dz-icon d-flex align-items-center justify-content-center me-2">
+            <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-shopping-cart"></i>
             </span>
             <span>Cart</span>
             {cartCount > 0 && (
-              <span
-                className="badge rounded-circle ms-auto"
-                style={{
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  minWidth: "18px",
-                  height: "18px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.75rem",
-                  marginLeft: "auto",
-                }}
-              >
+              <span className="badge rounded-full ml-auto bg-[#dc3545] text-white min-w-[18px] h-[18px] flex items-center justify-center text-xs">
                 {cartCount}
               </span>
             )}
@@ -212,15 +191,14 @@ function Sidebar() {
           <NavLink
             to="/orders"
             className={({ isActive }) =>
-              `nav-link d-flex align-items-center ${
-                isOrderRoute()
-                  ? "active bg-success text-white fw-bold px-2 rounded-5"
-                  : ""
+              `nav-link flex items-center ${isOrderRoute()
+                ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
+                : ""
               }`
             }
             onClick={handleLinkClick}
           >
-            <span className="dz-icon d-flex align-items-center justify-content-center me-2">
+            <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-clock-rotate-left"></i>
             </span>
             <span>Orders</span>
@@ -232,15 +210,14 @@ function Sidebar() {
             <NavLink
               to="/profile"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center ${
-                  isProfileRoute()
-                    ? "active bg-success text-white fw-bold px-2 rounded-5"
-                    : ""
+                `nav-link flex items-center ${isProfileRoute()
+                  ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
+                  : ""
                 }`
               }
               onClick={handleLinkClick}
             >
-              <span className="dz-icon d-flex align-items-center justify-content-center me-2">
+              <span className="dz-icon flex items-center justify-center mr-2">
                 <i className="fa-solid fa-user"></i>
               </span>
               <span>Profile</span>
@@ -253,16 +230,15 @@ function Sidebar() {
             <NavLink
               to="/logout"
               className={({ isActive }) =>
-                `nav-link d-flex align-items-center ${
-                  isActive
-                    ? "active bg-success text-white fw-bold px-2 rounded-5"
-                    : ""
+                `nav-link flex items-center ${isActive
+                  ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
+                  : ""
                 }`
               }
               onClick={handleLogoutAndCloseSidebar}
             >
-              <span className="dz-icon d-flex align-items-center justify-content-center me-2">
-                <i className="fa-solid fa-power-off font_sie_14" style={{ color: "#dc3545" }}></i>
+              <span className="dz-icon flex items-center justify-center mr-2">
+                <i className="fa-solid fa-power-off font_sie_14 text-[#dc3545]"></i>
               </span>
               <span className="text-danger">Logout</span>
             </NavLink>
@@ -270,7 +246,7 @@ function Sidebar() {
         )}
         {/* Only show FeedbackButton if user is logged in */}
         {user && (
-          <li className="mt-2 mb-2 d-flex justify-content-center">
+          <li className="mt-2 mb-2 flex justify-center">
             <FeedbackButton onOpen={closeSidebar} />
           </li>
         )}
@@ -278,13 +254,13 @@ function Sidebar() {
 
         <li>
           <div className="mode">
-            <div className="nav-link d-flex align-items-center justify-content-between">
-              <div className="d-flex align-items-center">
-                <span className="dz-icon me-2">
+            <div className="nav-link flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="dz-icon mr-2">
                   {isDarkMode ? (
-                    <i class="fa-solid fa-sun"></i>
+                    <i className="fa-solid fa-sun"></i>
                   ) : (
-                    <i class="fa-solid fa-moon"></i>
+                    <i className="fa-solid fa-moon"></i>
                   )}
                 </span>
               </div>
@@ -306,7 +282,7 @@ function Sidebar() {
         </li>
       </ul>
 
-         
+
 
       {/* <a
       href="javascript:void(0);"

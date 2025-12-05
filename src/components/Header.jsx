@@ -53,9 +53,10 @@ function Header() {
       if (!mainBarRef.current) return;
 
       if (window.scrollY > 50) {
-        mainBarRef.current.classList.add("sticky-header");
+        // Equivalent to sticky-header: fixed top, bg-white, shadow
+        mainBarRef.current.classList.add("fixed", "top-0", "left-0", "w-full", "bg-white", "shadow-md", "z-[999]", "transition-all", "duration-300");
       } else {
-        mainBarRef.current.classList.remove("sticky-header");
+        mainBarRef.current.classList.remove("fixed", "top-0", "left-0", "w-full", "bg-white", "shadow-md", "z-[999]", "transition-all", "duration-300");
       }
     };
 
@@ -77,10 +78,10 @@ function Header() {
     if (path.startsWith("/favourites")) return "Favourite";
     if (path.startsWith("/categories")) return "Categories";
     if (path.startsWith("/order-detail")) return "Order Details";
-    if (path.startsWith("/savings")) return "Savings" ;
-    if (path.startsWith("/outlet-details")) return "Outlet Details" ;
+    if (path.startsWith("/savings")) return "Savings";
+    if (path.startsWith("/outlet-details")) return "Outlet Details";
     if (path.startsWith("/product/") || path.startsWith("/product-detail"))
- 
+
       return "Product Details";
     return "";
   };
@@ -90,42 +91,41 @@ function Header() {
       <TestEnvironmentBanner />
       {/* Overlay always rendered, class toggled by isOpen */}
       <div
-        className={`dark-overlay${isOpen ? " active" : ""}`}
+        className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         onClick={closeSidebar}
       ></div>
       {/* <Sidebar /> */}
       {/* Sidebar always rendered, class toggled by isOpen for smooth animation */}
-      <header className="header">
-        <div className="main-bar" ref={mainBarRef}>
-          <div className="container">
-            <div className="header-content position-relative">
+      <header className="relative block">
+        <div className="bg-white w-full transition-all duration-300" ref={mainBarRef}>
+          <div className="container mx-auto px-4">
+            <div className="relative flex items-center justify-between py-3 min-h-[60px]">
               {/* Left content: back arrow for non-home pages, logo+title for home */}
-              <div className="left-content d-flex align-items-center gap-2">
+              <div className="flex items-center gap-2">
                 {!isHomePath && (
                   <button
-                    className="btn btn-link p-0 me-2"
-                    style={{ fontSize: 22, color: "#222" }}
+                    className="p-0 mr-2 bg-transparent border-0 flex items-center justify-center text-[#222] text-[22px]"
                     onClick={() => navigate(-1)}
                   >
                     <i className="fas fa-arrow-left"></i>
                   </button>
                 )}
                 {/* Logo and title for home page, left-aligned */}
+                {/* Logo and title for home page, left-aligned */}
                 {isHomePath && (
                   <a
                     href="https://menumitra.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="d-flex align-items-center text-decoration-none"
-                    style={{ gap: 4 }}
+                    className="flex items-center gap-1 no-underline"
                     aria-label="Go to MenuMitra website"
                   >
                     <img
                       src={logo2}
                       alt="MenuMitra Logo"
-                      style={{ height: 40, width: 40, marginRight: 0 }}
+                      className="h-10 w-10 mr-0"
                     />
-                    <span className="fs-5 fw-semibold text-dark lh-1">
+                    <span className="text-lg font-semibold text-gray-900 leading-none">
                       MenuMitra
                     </span>
                   </a>
@@ -134,30 +134,24 @@ function Header() {
               {/* Centered header title for all non-home pages */}
               {!isHomePath && getHeaderTitle() && (
                 <div
-                  style={{
-                    position: "absolute",
-                    left: "50%",
-                    top: "50%",
-                    transform: "translate(-50%, -50%)",
-                    zIndex: 1,
-                  }}
+                  className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none"
                 >
-                  <h5 className="title mb-0 text-nowrap" style={{ margin: 0 }}>
+                  <h5 className="m-0 whitespace-nowrap text-lg font-medium text-gray-900">
                     {getHeaderTitle()}
                   </h5>
                 </div>
               )}
-              <div className="mid-content" />
-              <div className="right-content d-flex align-items-center gap-2">
-                <Link to="/search" className="header-icon">
-                  <i className="fs-4 fas fa-search"></i>
+              <div className="mid-content hidden" />
+              <div className="flex items-center gap-2">
+                <Link to="/search" className="flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors">
+                  <i className="text-xl fas fa-search"></i>
                 </Link>
                 <a
                   href="#"
-                  className="menu-toggler ms-2"
-                  onClick={toggleSidebar}
+                  className="ml-2 flex items-center justify-center text-gray-800 hover:text-blue-600 transition-colors"
+                  onClick={(e) => { e.preventDefault(); toggleSidebar(); }}
                 >
-                  <i className="fs-4 fas fa-bars"></i>
+                  <i className="text-xl fas fa-bars"></i>
                 </a>
               </div>
             </div>

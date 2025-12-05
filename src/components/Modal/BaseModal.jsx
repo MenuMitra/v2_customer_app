@@ -64,55 +64,36 @@ const BaseModal = ({
     }
   };
 
-  const overlayStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    paddingTop: layoutOffsets.header + 16,
-    paddingBottom: layoutOffsets.footer + 16,
-    paddingLeft: 16,
-    paddingRight: 16,
-    overflowY: 'auto',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    zIndex: 2000,
-    boxSizing: 'border-box'
-  };
-
   const contentMaxHeight = layoutOffsets.viewport
     ? Math.max(layoutOffsets.viewport - (layoutOffsets.header + layoutOffsets.footer + 64), 240)
     : undefined;
 
   return (
     <div 
-      className="modal fade show add-menu-card" 
-      style={overlayStyle}
+      className="fixed inset-0 flex items-center justify-center overflow-y-auto bg-black/50 z-[2000] box-border px-4"
+      style={{
+        paddingTop: layoutOffsets.header + 16,
+        paddingBottom: layoutOffsets.footer + 16,
+      }}
       onClick={handleBackdropClick}
       aria-modal="true" 
       role="dialog"
     >
       <div 
-        className={`modal-dialog ${size}`}
+        className={`w-full m-0 ${size === 'modal-dialog-centered' ? 'max-w-lg' : ''}`}
         role="document"
-        style={{ width: '100%', margin: 0 }}
       >
         <div 
-          className="modal-content"
+          className="w-full bg-white rounded-lg shadow-xl overflow-y-auto"
           style={{
-            width: '100%',
             maxHeight: contentMaxHeight ? `${contentMaxHeight}px` : 'calc(100vh - 120px)',
-            overflowY: 'auto'
           }}
         >
           {title && (
-            <div className="modal-header">
-              <h5 className="modal-title">{title}</h5>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h5 className="text-lg font-semibold text-gray-900 m-0">{title}</h5>
               <button 
-                className="btn-close" 
+                className="text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-0 text-2xl leading-none p-0 w-8 h-8 flex items-center justify-center" 
                 onClick={onClose}
                 type="button"
                 aria-label="Close"
@@ -121,11 +102,11 @@ const BaseModal = ({
               </button>
             </div>
           )}
-          <div className="modal-body">
+          <div className="p-4">
             {children}
           </div>
           {footer && (
-            <div className="modal-footer">
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
               {footer}
             </div>
           )}

@@ -30,18 +30,8 @@ function Footer() {
 
   return (
     <div>
-      <div
-        className="menubar-area style-2 footer-fixed border-top border-3 border-primary"
-        style={{
-          boxShadow: "0 -10px 6px -1px rgba(0,0,0,0.1)",
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          zIndex: 9999
-        }}
-      >
-        <div className="toolbar-inner menubar-nav">
+      <div className="fixed bottom-0 left-0 w-full bg-white p-[15px] rounded-t-[10px] z-[999] shadow-[0_-10px_6px_-1px_rgba(0,0,0,0.1)] border-t border-[#E8EFF3]">
+        <div className="flex items-center max-w-[1000px] mx-auto px-0">
           <NavLink
             to={
               outletCode && sectionId && tableId
@@ -49,7 +39,10 @@ function Footer() {
                 : "/"
             }
             className={({ isActive }) =>
-              `nav-link ${isActive ? "active text-primary" : ""}`
+              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
+                ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
+                : "hover:text-[#027335]"
+              }`
             }
             end
           >
@@ -64,7 +57,10 @@ function Footer() {
             }}
             to="/favourites"
             className={({ isActive }) =>
-              `nav-link ${isActive ? "active text-primary" : ""}`
+              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
+                ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
+                : "hover:text-[#027335]"
+              }`
             }
           >
             <i className="fa-solid fa-heart"></i>
@@ -78,16 +74,17 @@ function Footer() {
             }}
             to="/checkout"
             className={({ isActive }) =>
-              `nav-link position-relative d-flex align-items-center justify-content-center ${
-                isActive ? "active text-primary" : ""
+              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
+                ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
+                : "hover:text-[#027335]"
               }`
             }
           >
-            <span style={{ position: "relative", display: "inline-block" }}>
+            <span className="relative inline-block">
               <i className="fa-solid fa-cart-shopping"></i>
               {cartCount > 0 && (
                 <span
-                  className="position-absolute badge rounded-pill"
+                  className="absolute badge rounded-full flex items-center justify-center border border-white"
                   style={{
                     bottom: "14px",
                     left: "15px",
@@ -96,12 +93,8 @@ function Footer() {
                     height: 13,
                     backgroundColor: "#F44336",
                     color: "white",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
                     padding: "0 4px",
                     zIndex: 2,
-                    border: "1px solid white",
                   }}
                 >
                   {/* {cartCount} */}
@@ -119,7 +112,10 @@ function Footer() {
             }}
             to="/orders"
             className={() =>
-              `nav-link ${isOrderRoute() ? "active text-primary" : ""}`
+              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isOrderRoute()
+                ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
+                : "hover:text-[#027335]"
+              }`
             }
           >
             <i className="fa-solid fa-clock-rotate-left"></i>
@@ -127,7 +123,10 @@ function Footer() {
           <NavLink
             to="/profile"
             className={() =>
-              `nav-link ${isProfileRoute() ? "active text-primary" : ""}`
+              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isProfileRoute()
+                ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
+                : "hover:text-[#027335]"
+              }`
             }
           >
             <i className="fa-solid fa-user"></i>
