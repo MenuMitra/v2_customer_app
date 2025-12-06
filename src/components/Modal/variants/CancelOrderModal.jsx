@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
   const [reason, setReason] = useState('');
@@ -37,20 +37,21 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
   if (!isOpen) return null;
 
   return (
-    <div className="modal show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content" style={{ borderRadius: '16px' }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="w-full max-w-lg mx-4">
+        <div className="bg-white rounded-2xl shadow-xl">
           {/* Header */}
-          <div className="d-flex justify-content-between align-items-center p-3">
-            <h6 className="mb-0">
+          <div className="flex justify-between items-center p-3 border-b border-gray-200">
+            <h6 className="text-base font-semibold m-0">
               Cancel Order {orderNumber ? `#${orderNumber}` : ''}
             </h6>
             <button 
               type="button" 
-              className="btn-close" 
+              className="text-gray-400 hover:text-gray-600 bg-transparent border-0 text-xl leading-none p-0 w-6 h-6 flex items-center justify-center"
               onClick={onClose}
-              style={{ fontSize: '0.8rem' }}
-            ></button>
+            >
+              <i className="fa-solid fa-xmark"></i>
+            </button>
           </div>
 
           {/* Body */}
@@ -58,56 +59,41 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
             {/* Textarea Section */}
             <div className="mb-4">
               <div className="mb-2">
-                <span className="text-danger">*</span>
-                <span style={{ fontSize: '0.9rem' }}>Please provide a reason for cancellations</span>
+                <span className="text-red-600">*</span>
+                <span className="text-sm ml-1">Please provide a reason for cancellations</span>
               </div>
               <textarea
-                className="form-control"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 placeholder="Enter your reason here..."
                 rows="3"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                style={{
-                  border: '1px solid #E8E8E8',
-                  borderRadius: '8px',
-                  fontSize: '0.9rem'
-                }}
               ></textarea>
             </div>
 
             {/* Predefined Reasons Section */}
             <div>
-              <p className="text-danger mb-3" style={{ fontSize: '0.9rem' }}>
+              <p className="text-red-600 mb-3 text-sm">
                 Reason for cancellation:
               </p>
               {predefinedReasons.map((item, index) => (
                 <div 
                   key={index} 
-                  className="d-flex align-items-start mb-2"
+                  className="flex items-start mb-3 cursor-pointer"
                   onClick={() => setReason(item.description)}
-                  style={{ 
-                    cursor: 'pointer',
-                    marginBottom: '12px',
-                    opacity: 1
-                  }}
                 >
                   <input
                     type="radio"
                     name="cancelReason"
-                    className="me-2 mt-1"
+                    className="mr-2 mt-1 w-4 h-4 cursor-pointer"
                     checked={reason === item.description}
                     onChange={() => setReason(item.description)}
-                    style={{ transform: 'scale(1.1)' }}
                   />
                   <div>
-                    <p className="mb-0" style={{ fontSize: '0.9rem', fontWeight: '500' }}>
+                    <p className="mb-0 text-sm font-medium">
                       {item.title}
                     </p>
-                    <p className="mb-0" style={{ 
-                      fontSize: '0.85rem', 
-                      color: '#666',
-                      marginTop: '2px'
-                    }}>
+                    <p className="mb-0 text-xs text-gray-600 mt-0.5">
                       {item.description}
                     </p>
                   </div>
@@ -117,34 +103,21 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
           </div>
 
           {/* Footer */}
-          <div className="d-flex justify-content-between p-3 gap-3">
+          <div className="flex justify-between p-3 gap-3">
             <button 
               type="button" 
-              className="btn flex-grow-1"
+              className="flex-1 bg-gray-100 text-gray-800 border-0 rounded-lg py-2.5 px-4 hover:bg-gray-200 transition-colors"
               onClick={onClose}
-              style={{
-                backgroundColor: '#F5F5F5',
-                color: '#333',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px'
-              }}
             >
               Close
             </button>
             <button 
               type="button" 
-              className="btn btn-danger flex-grow-1"
+              className="flex-1 bg-red-600 text-white border-0 rounded-lg py-2.5 px-4 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleConfirm}
               disabled={!reason.trim()}
-              style={{
-                backgroundColor: '#FF0000',
-                border: 'none',
-                borderRadius: '8px',
-                padding: '10px'
-              }}
             >
-              <i className="fas fa-times-circle me-2"></i>
+              <i className="fas fa-times-circle mr-2"></i>
               Confirm Cancel
             </button>
           </div>

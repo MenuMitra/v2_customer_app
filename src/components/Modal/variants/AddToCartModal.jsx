@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import BaseModal from "../BaseModal";
 import { useCart } from "../../../contexts/CartContext";
 import { useModal } from "../../../contexts/ModalContext";
@@ -548,12 +548,9 @@ export const AddToCartModal = () => {
 
         <button
           type="button"
-          className="btn btn-primary py-3 border-0 rounded-full text-base font-medium flex items-center"
+          className="bg-green-600 hover:bg-green-700 text-white py-3 px-6 border-0 rounded-full text-base font-medium flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleAddToCart}
           disabled={!hasValidQuantity()}
-          style={{
-            opacity: hasValidQuantity() ? 1 : 0.5,
-          }}
         >
           <i className="fa-solid fa-cart-shopping mr-2"></i>
           {isInCart ? "Update Cart" : "Add to Cart"}

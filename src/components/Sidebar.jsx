@@ -87,7 +87,7 @@ function Sidebar() {
             </div>
             <button
               type="button"
-              className="btn btn-link text-gray-900 p-0"
+              className="text-gray-900 p-0 bg-transparent border-0 cursor-pointer hover:opacity-80 transition-opacity"
               aria-label="Close sidebar"
               onClick={closeSidebar}
             >
@@ -99,15 +99,15 @@ function Sidebar() {
       {/* <a href="index.html" className="side-menu-logo">
           <img src="assets/images/logo-sidebar.svg" alt="logo" />
         </a> */}
-      <ul className="nav navbar-nav">
+      <ul className="flex flex-col list-none p-0 m-0">
         {/* <li className="nav-label">Main Menu</li> */}
         <li>
           <NavLink
             to="/"
             className={({ isActive }) =>
-              `nav-link flex items-center ${isActive
+              `block py-3 px-4 no-underline transition-all duration-200 flex items-center ${isActive
                 ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
-                : ""
+                : "text-gray-700 hover:bg-gray-100"
               }`
             }
             onClick={handleLinkClick}
@@ -123,9 +123,9 @@ function Sidebar() {
           <NavLink
             to="/categories"
             className={({ isActive }) =>
-              `nav-link flex items-center ${isActive
+              `block py-3 px-4 no-underline transition-all duration-200 flex items-center ${isActive
                 ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
-                : ""
+                : "text-gray-700 hover:bg-gray-100"
               }`
             }
             onClick={handleLinkClick}
@@ -140,9 +140,9 @@ function Sidebar() {
           <NavLink
             to="/search"
             className={({ isActive }) =>
-              `nav-link flex items-center ${isActive
+              `block py-3 px-4 no-underline transition-all duration-200 flex items-center ${isActive
                 ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
-                : ""
+                : "text-gray-700 hover:bg-gray-100"
               }`
             }
             onClick={handleLinkClick}
@@ -157,9 +157,9 @@ function Sidebar() {
           <NavLink
             to="/favourites"
             className={({ isActive }) =>
-              `nav-link flex items-center ${isActive
+              `block py-3 px-4 no-underline transition-all duration-200 flex items-center ${isActive
                 ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
-                : ""
+                : "text-gray-700 hover:bg-gray-100"
               }`
             }
             onClick={handleLinkClick}
@@ -173,7 +173,7 @@ function Sidebar() {
         <li>
           <NavLink
             to="/checkout"
-            className="sidebar-link flex items-center"
+            className="block py-3 px-4 no-underline transition-all duration-200 flex items-center text-gray-700 hover:bg-gray-100"
             onClick={handleLinkClick}
           >
             <span className="dz-icon flex items-center justify-center mr-2">
@@ -181,7 +181,7 @@ function Sidebar() {
             </span>
             <span>Cart</span>
             {cartCount > 0 && (
-              <span className="badge rounded-full ml-auto bg-[#dc3545] text-white min-w-[18px] h-[18px] flex items-center justify-center text-xs">
+              <span className="inline-flex items-center justify-center rounded-full ml-auto bg-[#dc3545] text-white min-w-[18px] h-[18px] text-xs px-1.5 py-0.5">
                 {cartCount}
               </span>
             )}
@@ -191,9 +191,9 @@ function Sidebar() {
           <NavLink
             to="/orders"
             className={({ isActive }) =>
-              `nav-link flex items-center ${isOrderRoute()
+              `block py-3 px-4 no-underline transition-all duration-200 flex items-center ${isOrderRoute()
                 ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
-                : ""
+                : "text-gray-700 hover:bg-gray-100"
               }`
             }
             onClick={handleLinkClick}
@@ -210,9 +210,9 @@ function Sidebar() {
             <NavLink
               to="/profile"
               className={({ isActive }) =>
-                `nav-link flex items-center ${isProfileRoute()
+                `block py-3 px-4 no-underline transition-all duration-200 flex items-center ${isProfileRoute()
                   ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
-                  : ""
+                  : "text-gray-700 hover:bg-gray-100"
                 }`
               }
               onClick={handleLinkClick}
@@ -230,9 +230,9 @@ function Sidebar() {
             <NavLink
               to="/logout"
               className={({ isActive }) =>
-                `nav-link flex items-center ${isActive
+                `block py-3 px-4 no-underline transition-all duration-200 flex items-center ${isActive
                   ? "active bg-success text-white font-bold px-2 rounded-[2rem]"
-                  : ""
+                  : "text-gray-700 hover:bg-gray-100"
                 }`
               }
               onClick={handleLogoutAndCloseSidebar}
@@ -240,7 +240,7 @@ function Sidebar() {
               <span className="dz-icon flex items-center justify-center mr-2">
                 <i className="fa-solid fa-power-off font_sie_14 text-[#dc3545]"></i>
               </span>
-              <span className="text-danger">Logout</span>
+              <span className="text-[#dc3545]">Logout</span>
             </NavLink>
           </li>
         )}
@@ -250,11 +250,11 @@ function Sidebar() {
             <FeedbackButton onOpen={closeSidebar} />
           </li>
         )}
-        <li className="nav-label">Settings</li>
+        <li className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-2 mt-4">Settings</li>
 
         <li>
           <div className="mode">
-            <div className="nav-link flex items-center justify-between">
+            <div className="block py-3 px-4 flex items-center justify-between">
               <div className="flex items-center">
                 <span className="dz-icon mr-2">
                   {isDarkMode ? (
