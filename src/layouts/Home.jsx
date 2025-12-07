@@ -377,7 +377,7 @@ function Home() {
         <Header />
         <div className="page-content">
           <div className=" pt-0">
-            <div className="container mx-auto px-4 pb-10 pt-0">
+            <div className="container mx-auto px-4 pb-24 pt-0">
 
               {/* Modern Banner Swiper with Cache Status */}
               {!hideBanners && (
@@ -584,9 +584,9 @@ function Home() {
               </div>
               {/* Lazy Load Button */}
               {filteredMenus.length > visibleMenuCount && (
-                <div className="text-center mb-4">
+                <div className="text-center mb-20">
                   <button
-                    className="px-4 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-500 hover:text-white transition-colors"
+                    className="px-4 py-2 border border-blue-500 text-blue-500 rounded-3xl hover:bg-blue-500 hover:text-white transition-colors"
                     onClick={handleLoadMoreMenus}
                   >
                     Load More

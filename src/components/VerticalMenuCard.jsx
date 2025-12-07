@@ -1,13 +1,9 @@
-import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import LazyImage from "./Shared/LazyImage";
 import { useModal } from "../contexts/ModalContext";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
-import { useOutlet } from "../contexts/OutletContext";
-import { useCacheData } from "../contexts/CacheDataContext"; // Add this import
-import apiService from '../api/apiService';
 import { useMenuItems } from '../hooks/useMenuItems';
 
 // FoodTypeIcon component
@@ -16,103 +12,26 @@ const FoodTypeIcon = ({ foodType }) => {
     switch (foodType?.toLowerCase()) {
       case "veg":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #4CAF50",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <div
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                backgroundColor: "#4CAF50",
-              }}
-            ></div>
+          <div className="w-[14px] h-[14px] rounded-[3px] border border-[#4CAF50] bg-white flex items-center justify-center align-middle">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#4CAF50]"></div>
           </div>
         );
       case "nonveg":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #F44336",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <div
-              style={{
-                width: 0,
-                height: 0,
-                borderLeft: "3px solid transparent",
-                borderRight: "3px solid transparent",
-                borderBottom: "5px solid #F44336",
-              }}
-            ></div>
+          <div className="w-[14px] h-[14px] rounded-[3px] border border-[#F44336] bg-white flex items-center justify-center align-middle">
+            <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-[#F44336]"></div>
           </div>
         );
       case "vegan":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #4CAF50",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <i
-              className="fa-solid fa-leaf"
-              style={{
-                color: "#4CAF50",
-                fontSize: "10px",
-                lineHeight: 1,
-              }}
-            ></i>
+          <div className="w-[14px] h-[14px] rounded-[3px] border border-[#4CAF50] bg-white flex items-center justify-center align-middle">
+            <i className="fa-solid fa-leaf text-[#4CAF50] text-[10px] leading-none"></i>
           </div>
         );
       case "egg":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #e0e0e0",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <i
-              className="fa-solid fa-egg"
-              style={{
-                color: "#B0BEC5",
-                fontSize: "10px",
-                // transform: "rotate(-15deg)",
-              }}
-            ></i>
+          <div className="w-[14px] h-[14px] rounded-[3px] border border-[#e0e0e0] bg-white flex items-center justify-center align-middle">
+            <i className="fa-solid fa-egg text-[#B0BEC5] text-[10px]"></i>
           </div>
         );
       default:
@@ -127,23 +46,18 @@ const VerticalMenuCard = ({
   image,
   title,
   currentPrice,
-  reviewCount,
   isFavorite = false,
   discount,
   menuItem = {},
   onFavoriteUpdate,
-  originalPrice,
 }) => {
   // Convert isFavorite to boolean if it's a number
   const isFavoriteBoolean = typeof isFavorite === 'number' ? isFavorite === 1 : Boolean(isFavorite);
-  
+
   const { toggleFavorite, isFavoriteLoading } = useMenuItems();
   const { openModal } = useModal();
-  const { cartItems, getCartItemComment } = useCart(); // Add this back
+  const { cartItems, getCartItemComment } = useCart();
   const { user, setShowAuthOffcanvas } = useAuth();
-  const { outletId } = useOutlet();
-  const MAX_QUANTITY = 20;
-
 
   // Generate the product URL from menuItem data with safety checks
   const detailPageUrl =
@@ -221,11 +135,6 @@ const VerticalMenuCard = ({
     openModal("addToCart", menuItem);
   };
 
-  // Get total quantity across all portions
-  const getTotalQuantity = () => {
-    return cartItemsForMenu.reduce((sum, item) => sum + item.quantity, 0);
-  };
-
   // Handle quantity changes
   const handleQuantityChange = (increment) => {
     if (!menuItem) return;
@@ -246,54 +155,28 @@ const VerticalMenuCard = ({
 
   return (
     <div className="card-item style-1">
-      <div className="dz-media" style={{ position: "relative" }}>
+      <div className="dz-media relative">
         <Link to={detailPageUrl}>
           {typeof image === "string" ? (
             <LazyImage
               src={image}
               alt={title}
               blur={true}
-              className="menu-image"
-              style={{
-                borderRadius: "12px",
-                width: "100%",
-              }}
+              className="menu-image rounded-3xl w-full"
             />
           ) : (
-            <div
-              className="d-flex justify-content-center align-items-center"
-              style={{
-                borderRadius: "12px",
-                width: "100%",
-                aspectRatio: "4/4",
-                backgroundColor: "#f8f9fa",
-              }}
-            >
+            <div className="flex justify-center items-center w-full aspect-square bg-[#f8f9fa]">
               {image}
             </div>
           )}
         </Link>
         {discount && (
           <div
-            className="rainbow-off-label"
+            className="rainbow-off-label absolute top-0 left-0 py-[1px] px-2 pl-1.5 rounded-tl-[8px] rounded-br-[10px] text-xs font-bold text-white z-[2] min-w-[32px] text-center tracking-wide"
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              padding: "1px 8px 1px 6px",
-              borderTopLeftRadius: "8px",
-              borderBottomRightRadius: "10px",
-              fontSize: "12px",
-              fontWeight: 700,
-              color: "#fff",
-              background:
-                "linear-gradient(90deg, #a8e063, #f8ff00, #f7971e, #f857a6, #a8e063)",
+              background: "linear-gradient(90deg, #a8e063, #f8ff00, #f7971e, #f857a6, #a8e063)",
               backgroundSize: "300% 300%",
               animation: "rainbow 3s ease infinite",
-              zIndex: 2,
-              minWidth: "32px",
-              textAlign: "center",
-              letterSpacing: "0.5px",
             }}
           >
             {discount} Off
@@ -302,57 +185,38 @@ const VerticalMenuCard = ({
       </div>
       <div className="dz-content">
         {/* Category name and food type icon */}
-        <div className="d-flex align-items-center justify-content-between mb-2">
-          <div className="d-flex align-items-center gap-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
             <FoodTypeIcon foodType={menuItem?.menuFoodType} />
-            <span className="text-muted small" style={{ fontSize: "12px" }}>
+            <span className="text-muted small text-xs">
               {menuItem?.categoryName || "Category"}
             </span>
           </div>
           <a
             href="javascript:void(0);"
-            className={`${isFavoriteLoading ? "disabled" : ""}`}
+            className={`${isFavoriteLoading ? "disabled pointer-events-none" : "pointer-events-auto"} cursor-pointer no-underline`}
             onClick={handleFavoriteToggle}
-            style={{
-              pointerEvents: isFavoriteLoading ? "none" : "auto",
-              cursor: "pointer",
-              textDecoration: "none",
-            }}
           >
             <div className={`like-button ${isFavoriteBoolean ? "active" : ""}`}>
               <i
-                className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart`}
+                className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart text-base leading-none`}
                 style={{
-                  fontSize: "16px",
                   color: isFavoriteBoolean ? "#dc3545" : "#6c757d",
-                  lineHeight: 1,
                 }}
               />
             </div>
           </a>
         </div>
 
-        <h6 className="title mb-3" style={{ textAlign: "left" }}>
+        <h6 className="title mb-3 text-left">
           <Link to={detailPageUrl}>{title}</Link>
         </h6>
 
         <div className="dz-meta mb-3">
-          <ul
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
+          <ul className="flex justify-between items-center">
             {/* Spicy index with icon */}
             {menuItem?.spicyIndex && Number(menuItem.spicyIndex) > 0 && (
-              <li
-                className="spicy_index"
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
+              <li className="spicy_index flex items-center">
                 {[...Array(3)].map((_, index) => {
                   const spicyIndex = Number(menuItem.spicyIndex);
                   let color = "#E0E0E0"; // default: white/grey
@@ -366,25 +230,14 @@ const VerticalMenuCard = ({
                   return (
                     <i
                       key={index}
-                      className="fa-solid fa-pepper-hot"
-                      style={{
-                        color,
-                        fontSize: "14px",
-                        marginRight: index < 2 ? "2px" : "0",
-                      }}
+                      className={`fa-solid fa-pepper-hot text-sm ${index < 2 ? 'mr-[2px]' : ''}`}
+                      style={{ color }}
                     ></i>
                   );
                 })}
               </li>
             )}
-            <li
-              className="price"
-              style={{
-                color: "#3AB4F2",
-                fontSize: "15px",
-                marginLeft: "auto",
-              }}
-            >
+            <li className="price text-[#3AB4F2] text-[15px] ml-auto">
               {menuItem.offer > 0 ? (
                 <>
                   ₹{Math.round(menuItem.portions?.[0]?.price * (1 - menuItem.offer / 100))}
@@ -398,36 +251,31 @@ const VerticalMenuCard = ({
             </li>
           </ul>
         </div>
-        <div className="mt-2" style={{ minHeight: "38px" }}>
+        <div className="mt-2 min-h-[38px]">
           {!cartItemsForMenu.length ? (
             <a
-              className="btn btn-primary add-btn light w-100"
+              className="btn btn-primary add-btn light w-100 rounded-3xl"
               href="javascript:void(0);"
               onClick={handleAddToCartClick}
             >
-              <i class="fa-solid fa-cart-shopping me-2"></i>
+              <i className="fa-solid fa-cart-shopping me-2"></i>
               Add to cart
             </a>
           ) : null}
           <div
-            className={`dz-stepper border-1 rounded-stepper stepper-fill ${
-              cartItemsForMenu.length ? "active" : ""
-            }`}
+            className={`dz-stepper border-1 rounded-stepper stepper-fill ${cartItemsForMenu.length ? "active" : ""
+              }`}
           >
-            <div className="input-group bootstrap-touchspin bootstrap-touchspin-injected d-flex align-items-center">
+            <div className="input-group bootstrap-touchspin bootstrap-touchspin-injected flex items-center">
               <button
-                className="btn btn-primary rounded-circle p-2"
+                className="btn btn-primary rounded-full p-2 w-[35px] h-[35px]"
                 type="button"
                 onClick={() => handleQuantityChange(false)}
-                style={{ width: "35px", height: "35px" }}
               >
                 -
               </button>
 
-              <div
-                className="d-flex align-items-center justify-content-center mx-2"
-                style={{ flex: 1 }}
-              >
+              <div className="flex items-center justify-center mx-2 flex-1">
                 {cartItemsForMenu.length > 0 && menuItem?.portions ? (
                   <div className="row g-0 w-100">
                     {menuItem.portions
@@ -445,18 +293,10 @@ const VerticalMenuCard = ({
                       .map((portion, index, filteredArray) => (
                         <div
                           key={portion.portion_id}
-                          className={`col text-center ${
-                            index < filteredArray.length - 1 ? "border-end" : ""
-                          }`}
+                          className={`col text-center ${index < filteredArray.length - 1 ? "border-end" : ""
+                            }`}
                         >
                           <div className="fw-bold">{portion.quantity}</div>
-                          {/* <div className="text-muted small">
-                            {portion.portion_name.toLowerCase() === "full"
-                              ? "F"
-                              : portion.portion_name.toLowerCase() === "half"
-                              ? "H"
-                              : portion.portion_name.charAt(0).toUpperCase()}
-                          </div> */}
                         </div>
                       ))}
                   </div>
@@ -468,10 +308,9 @@ const VerticalMenuCard = ({
               </div>
 
               <button
-                className="btn btn-primary rounded-circle p-2"
+                className="btn btn-primary rounded-full p-2 w-[35px] h-[35px]"
                 type="button"
                 onClick={() => handleQuantityChange(true)}
-                style={{ width: "35px", height: "35px" }}
               >
                 +
               </button>
@@ -479,7 +318,7 @@ const VerticalMenuCard = ({
           </div>
         </div>
         {menuComment && (
-          <div className="text-muted small mt-1" style={{ fontSize: "12px" }}>
+          <div className="text-muted small mt-1 text-xs">
             <i className="fas fa-comment-alt me-1"></i>
             {menuComment}
           </div>
@@ -493,12 +332,10 @@ VerticalMenuCard.propTypes = {
   image: PropTypes.oneOfType([PropTypes.string, PropTypes.element]).isRequired,
   title: PropTypes.string.isRequired,
   currentPrice: PropTypes.number.isRequired,
-  reviewCount: PropTypes.number,
   isFavorite: PropTypes.oneOfType([PropTypes.bool, PropTypes.number]),
   discount: PropTypes.string,
   menuItem: PropTypes.object,
   onFavoriteUpdate: PropTypes.func.isRequired,
-  originalPrice: PropTypes.number,
 };
 
 export default VerticalMenuCard;

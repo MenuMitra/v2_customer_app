@@ -534,7 +534,7 @@ function ProductDetail() {
           <div className="container">
             <button
               onClick={isCrossOutlet ? undefined : handleAddToCart}
-              className="btn btn-primary text-start w-100"
+              className="btn btn-primary text-start w-100 rounded-3xl"
               disabled={isCrossOutlet || !menuDetails.portions?.length}
               style={{
                 opacity: isCrossOutlet ? 0.5 : 1,

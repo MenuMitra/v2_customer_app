@@ -548,7 +548,7 @@ export const AddToCartModal = () => {
 
         <button
           type="button"
-          className="bg-green-600 hover:bg-green-700 text-white py-3 px-6 border-0 rounded-full text-base font-medium flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-green-600 hover:bg-green-700 text-white py-3 px-6 border-0 rounded-3xl text-base font-medium flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleAddToCart}
           disabled={!hasValidQuantity()}
         >
