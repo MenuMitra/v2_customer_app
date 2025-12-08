@@ -60,7 +60,7 @@ function Profile() {
                 </h5>
                 {!isAuthenticated && (
                   <button
-                    className="btn btn-light position-absolute top-0 end-0 m-3 fw-semibold rounded-2 px-3 py-2 border-2 border-white shadow-none"
+                    className="btn btn-light position-absolute top-0 end-0 m-3 fw-semibold rounded-3xl px-3 py-2 border-2 border-white shadow-none"
                     style={{ zIndex: 10 }}
                     onClick={handleLoginClick}
                   >

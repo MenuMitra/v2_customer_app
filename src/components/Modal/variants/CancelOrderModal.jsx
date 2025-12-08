@@ -106,14 +106,14 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
           <div className="flex justify-between p-3 gap-3">
             <button 
               type="button" 
-              className="flex-1 bg-gray-100 text-gray-800 border-0 rounded-lg py-2.5 px-4 hover:bg-gray-200 transition-colors"
+              className="flex-1 bg-gray-100 text-gray-800 border-0 rounded-3xl py-2.5 px-4 hover:bg-gray-200 transition-colors"
               onClick={onClose}
             >
               Close
             </button>
             <button 
               type="button" 
-              className="flex-1 bg-red-600 text-white border-0 rounded-lg py-2.5 px-4 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-red-600 text-white border-0 rounded-3xl py-2.5 px-4 hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleConfirm}
               disabled={!reason.trim()}
             >

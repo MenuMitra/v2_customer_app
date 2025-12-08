@@ -273,7 +273,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
             <div className="modal-footer">
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="btn btn-secondary rounded-3xl"
                 onClick={onClose}
                 disabled={loading}
               >
@@ -281,7 +281,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
               </button>
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary rounded-3xl"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Feedback"}

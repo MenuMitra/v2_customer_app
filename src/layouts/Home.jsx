@@ -613,12 +613,12 @@ function Home() {
                 Install W3Grocery Pre-Build Grocery Mobile App Template to your
                 home screen for easy access, just like any other app
               </p>
-              <button type="button" className="pwa-btn px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              <button type="button" className="pwa-btn px-4 py-2 bg-blue-600 text-white rounded-3xl text-sm font-medium hover:bg-blue-700 transition-colors">
                 Add to Home Screen
               </button>
               <button
                 type="button"
-                className="pwa-close px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors ml-3"
+                className="pwa-close px-4 py-2 bg-gray-200 text-gray-800 rounded-3xl text-sm font-medium hover:bg-gray-300 transition-colors ml-3"
               >
                 Maybe later
               </button>

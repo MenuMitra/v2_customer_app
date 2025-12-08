@@ -122,7 +122,7 @@ function Categories() {
       <div className="bg-light rounded-pill p-1 shadow-sm" role="group" aria-label="View mode">
         <button
           type="button"
-          className={`btn btn-sm rounded-pill px-3 py-2 me-1 ${
+          className={`btn btn-sm rounded-3xl px-3 py-2 me-1 ${
             viewMode === 'grid' 
               ? 'text-white shadow-sm' 
               : 'text-muted'

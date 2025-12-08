@@ -338,7 +338,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
             <div className="dropdown">
               <button
                 type="button"
-                className={`btn rounded-pill d-flex align-items-center gap-2 px-3 py-2 ${
+                className={`btn rounded-3xl d-flex align-items-center gap-2 px-3 py-2 ${
                   activeValue && activeValue !== "all"
                     ? "filter-active"
                     : "filter-default"

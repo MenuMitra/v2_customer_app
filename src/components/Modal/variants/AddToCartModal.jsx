@@ -525,7 +525,7 @@ export const AddToCartModal = () => {
             onClick={() =>
               handleQuantityChange(quantities[selectedPortion] - 1)
             }
-            className={`w-10 h-10 rounded-full bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center mr-5 transition-all duration-200 ${
+            className={`w-10 h-10 rounded-3xl bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center mr-5 transition-all duration-200 ${
               quantities[selectedPortion] <= 0 ? 'opacity-50' : 'opacity-100'
             }`}
             disabled={quantities[selectedPortion] <= 0}
@@ -540,7 +540,7 @@ export const AddToCartModal = () => {
             onClick={() =>
               handleQuantityChange(quantities[selectedPortion] + 1)
             }
-            className="w-10 h-10 rounded-full bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center ml-5 transition-all duration-200"
+            className="w-10 h-10 rounded-3xl bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center ml-5 transition-all duration-200"
           >
             +
           </button>

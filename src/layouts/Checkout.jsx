@@ -616,7 +616,7 @@ function CheckoutContent() {
                           {/* Remove button in top right */}
                           <button
                             type="button"
-                            className="btn p-0 border-0 bg-transparent shadow-none position-absolute"
+                            className="btn p-0 rounded-3xl border-0 bg-transparent shadow-none position-absolute"
                             aria-label="Remove"
                             style={{
                               top: 12,
@@ -747,7 +747,7 @@ function CheckoutContent() {
                                   )} */}
                                   <div className="bg-light rounded-pill d-flex align-items-center px-2 py-1">
                                     <button
-                                      className="btn btn-link p-0 m-0"
+                                      className="btn rounded-3xl btn-link p-0 m-0"
                                       style={{
                                         color: "#222",
                                         fontSize: 20,

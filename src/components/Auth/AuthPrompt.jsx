@@ -85,7 +85,7 @@ const AuthPrompt = ({
         <h5 className="mb-3">{finalTitle}</h5>
         <p className="text-dark mb-4">{finalSubtitle}</p>
         <button
-          className="btn btn-outline-primary px-4 py-3 rounded-5 "
+          className="btn btn-outline-primary px-4 py-3 rounded-3xl"
           style={buttonStyle}
           onClick={handleLogin}
           aria-label="Open login"

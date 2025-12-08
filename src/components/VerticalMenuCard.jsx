@@ -268,7 +268,7 @@ const VerticalMenuCard = ({
           >
             <div className="input-group bootstrap-touchspin bootstrap-touchspin-injected flex items-center">
               <button
-                className="btn btn-primary rounded-full p-2 w-[35px] h-[35px]"
+                className="btn btn-primary rounded-3xl p-2 w-[35px] h-[35px]"
                 type="button"
                 onClick={() => handleQuantityChange(false)}
               >
@@ -308,7 +308,7 @@ const VerticalMenuCard = ({
               </div>
 
               <button
-                className="btn btn-primary rounded-full p-2 w-[35px] h-[35px]"
+                className="btn btn-primary rounded-3xl p-2 w-[35px] h-[35px]"
                 type="button"
                 onClick={() => handleQuantityChange(true)}
               >
