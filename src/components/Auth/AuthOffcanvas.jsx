@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import BaseModal from "../Modal/BaseModal";
 import { useAuth } from "../../contexts/AuthContext";
@@ -502,12 +502,12 @@ const handleInputFocus = (e) => {
     <div className="px-1">
       <form onSubmit={handlePhoneSubmit}>
         <div className="mb-3">
-          <label className="form-label">Phone Number</label>
-          <div className="input-group">
-            <span className="input-group-text">+91</span>
+          <label className="block mb-2 text-sm font-medium text-[var(--title)]">Phone Number</label>
+          <div className="flex">
+            <span className="inline-flex items-center px-3 text-sm text-[#495057] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">+91</span>
             <input
               type="tel"
-              className="form-control"
+              className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
               ref={phoneInputRef}
               value={phoneNumber}
               onChange={(e) => {
@@ -526,11 +526,11 @@ const handleInputFocus = (e) => {
               disabled={isLoading}
             />
           </div>
-          <small className="text-muted">Enter 10 digit mobile number</small>
+          <small className="text-[#6c757d] text-xs">Enter 10 digit mobile number</small>
         </div>
         <button
           type="submit"
-          className="btn btn-primary w-100"
+          className="w-full py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={
             isLoading ||
             phoneNumber.length !== 10 ||
@@ -538,9 +538,9 @@ const handleInputFocus = (e) => {
           }
         >
           {isLoading ? (
-            <span>
+            <span className="flex items-center justify-center">
               <span
-                className="spinner-border spinner-border-sm me-2"
+                className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin"
                 role="status"
                 aria-hidden="true"
               ></span>
@@ -553,33 +553,22 @@ const handleInputFocus = (e) => {
       </form>
 
       <div className="text-center mt-4">
-        <div className="d-flex align-items-center justify-content-center gap-2 mb-3">
-          <div className="border-bottom flex-grow-1"></div>
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="border-b flex-grow"></div>
           <button
             type="button"
-            className="btn btn-link p-0 text-decoration-none"
+            className="p-0 bg-transparent border-0 text-sm font-medium transition-opacity duration-200 text-[#6c757d] hover:opacity-80 cursor-pointer"
             onClick={() => setCurrentStep(STEPS.SIGNUP)}
             disabled={isLoading}
-            style={{
-              fontSize: "0.875rem",
-              fontWeight: "500",
-              transition: "opacity 0.2s ease",
-              color: "#6c757d",
-            }}
           >
             New to MenuMitra?{" "}
-            <span className="ms-2" style={{ color: "#027335" }}>
+            <span className="ml-2 text-[#027335]">
               Register
               <svg
-                className="ms-1 mt-0"
+                className="ml-1 inline-block w-[0.68em] h-[0.68em] text-[#027335]"
                 viewBox="0 0 10 10"
                 xmlns="http://www.w3.org/2000/svg"
                 aria-hidden="true"
-                style={{
-                  width: "0.68em",
-                  height: "0.68em",
-                  color: "#027335",
-                }}
               >
                 <path
                   d="M1.004 9.166 9.337.833m0 0v8.333m0-8.333H1.004"
@@ -591,40 +580,20 @@ const handleInputFocus = (e) => {
               </svg>
             </span>
           </button>
-          <div className="border-bottom flex-grow-1"></div>
+          <div className="border-b flex-grow"></div>
         </div>
       </div>
     </div>
   );
 
-  const buttonContainerStyle = {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    marginTop: "1rem",
-  };
-
-  const backButtonStyle = {
-    width: "40px",
-    height: "40px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: isDarkMode ? "#027335" : "#e8f5eb",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    transition: "background-color 0.2s ease",
-  };
-
   const renderSignupStep = () => (
     <div className="px-1">
       <form onSubmit={handleSignupSubmit}>
         <div className="mb-3">
-          <label className="form-label">Full Name</label>
+          <label className="block mb-2 text-sm font-medium text-[var(--title)]">Full Name</label>
           <input
             type="text"
-            className="form-control"
+            className="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg outline-none focus:border-[var(--primary)] transition-colors"
             ref={nameInputRef}
             value={userDetails.name}
             onChange={(e) => {
@@ -641,12 +610,12 @@ const handleInputFocus = (e) => {
           />
         </div>
         <div className="mb-3">
-          <label className="form-label">Phone Number</label>
-          <div className="input-group">
-            <span className="input-group-text">+91</span>
+          <label className="block mb-2 text-sm font-medium text-[var(--title)]">Phone Number</label>
+          <div className="flex">
+            <span className="inline-flex items-center px-3 text-sm text-[#495057] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">+91</span>
             <input
               type="tel"
-              className="form-control"
+              className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
               value={phoneNumber}
               onChange={(e) => {
                 const value = e.target.value.replace(/\D/g, "");
@@ -664,29 +633,28 @@ const handleInputFocus = (e) => {
               disabled={isLoading}
             />
           </div>
-          <small className="text-muted">Enter 10 digit mobile number</small>
+          <small className="text-[#6c757d] text-xs">Enter 10 digit mobile number</small>
         </div>
-        <div style={buttonContainerStyle}>
+        <div className="flex items-center gap-3 mt-4">
           <button
             type="button"
-            style={backButtonStyle}
+            className={`w-10 h-10 flex items-center justify-center ${isDarkMode ? 'bg-[#027335]' : 'bg-[#e8f5eb]'} border-0 rounded-lg cursor-pointer transition-colors hover:opacity-80`}
             onClick={() => setCurrentStep(STEPS.LOGIN)}
             disabled={isLoading}
-            className={`back-btn ${isDarkMode ? "dark-mode" : ""}`}
           >
             {backButtonIcon}
           </button>
           <button
             type="submit"
-            className="btn btn-primary flex-grow-1"
+            className="flex-1 py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={
               isLoading || !userDetails.name.trim() || phoneNumber.length !== 10
             }
           >
             {isLoading ? (
-              <span>
+              <span className="flex items-center justify-center">
                 <span
-                  className="spinner-border spinner-border-sm me-2"
+                  className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin"
                   role="status"
                   aria-hidden="true"
                 ></span>
@@ -708,7 +676,7 @@ const handleInputFocus = (e) => {
       <div className="text-center mt-3">
         <button
           type="button"
-          className="btn btn-link text-decoration-none"
+          className="p-0 bg-transparent border-0 text-[var(--primary)] hover:opacity-80 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={handleResendOTP}
           disabled={isLoading || isResendDisabled}
         >
@@ -720,20 +688,20 @@ const handleInputFocus = (e) => {
 
   const renderOTPStep = () => (
     <div className="px-1">
-      <p className="text-dark mb-4">
+      <p className="text-[var(--title)] mb-4">
         Enter the verification code sent to <br />
-        <span className="fw-bold fs-6">+91 {phoneNumber}</span>
+        <span className="font-bold text-base">+91 {phoneNumber}</span>
       </p>
       <form ref={otpFormRef} onSubmit={handleOTPSubmit}>
         <div className="mb-4">
           <div
             id="otp"
-            className="digit-group d-flex gap-2 justify-content-center"
+            className="digit-group flex gap-2 justify-center"
           >
             {[1, 2, 3, 4].map((digit) => (
               <input
                 key={digit}
-                className="form-control text-center"
+                className="w-12 h-12 px-3 py-2 border border-[var(--border-color)] rounded-lg text-center outline-none focus:border-[var(--primary)] transition-colors"
                 type="text"
                 id={`digit-${digit}`}
                 name={`digit-${digit}`}
@@ -749,25 +717,24 @@ const handleInputFocus = (e) => {
             ))}
           </div>
         </div>
-        <div style={buttonContainerStyle}>
+        <div className="flex items-center gap-3 mt-4">
           <button
             type="button"
-            style={backButtonStyle}
+            className={`w-10 h-10 flex items-center justify-center ${isDarkMode ? 'bg-[#027335]' : 'bg-[#e8f5eb]'} border-0 rounded-lg cursor-pointer transition-colors hover:opacity-80`}
             onClick={() => setCurrentStep(STEPS.LOGIN)}
             disabled={isLoading}
-            className={`back-btn ${isDarkMode ? "dark-mode" : ""}`}
           >
             {backButtonIcon}
           </button>
           <button
             type="submit"
-            className="btn btn-primary flex-grow-1"
+            className="flex-1 py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading || otp.length !== 4}
           >
             {isLoading ? (
-              <span>
+              <span className="flex items-center justify-center">
                 <span
-                  className="spinner-border spinner-border-sm me-2"
+                  className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin"
                   role="status"
                   aria-hidden="true"
                 ></span>
@@ -791,25 +758,17 @@ const handleInputFocus = (e) => {
     >
       <div className="auth-modal-content">
         {/* Custom title with close button */}
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h6 className="title font-w600 mb-0">
+        <div className="flex justify-between items-center mb-3">
+          <h6 className="title font-semibold mb-0 text-base">
             {currentStep === STEPS.LOGIN && "Login to MenuMitra"}
             {currentStep === STEPS.SIGNUP && "Create Account"}
             {currentStep === STEPS.OTP && "Verify OTP"}
           </h6>
           <button 
-            className="btn-close" 
+            className={`bg-transparent border-0 text-xl p-1 cursor-pointer hover:opacity-80 transition-opacity ${isDarkMode ? 'text-white' : 'text-[#6c757d]'}`}
             onClick={handleClose}
             type="button"
             aria-label="Close"
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '1.2rem',
-              color: isDarkMode ? '#ffffff' : '#6c757d',
-              padding: '0.25rem',
-              cursor: 'pointer'
-            }}
           >
             <i className="fa-solid fa-xmark"></i>
           </button>

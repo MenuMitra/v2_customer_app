@@ -108,20 +108,20 @@ function CategoryFilteredMenuList() {
         <div className="container p-b80">
           {category && (
             <div className="category-header mb-4">
-              <h4 className="title mb-1">
+              <h4 className="title mb-1 text-xl font-semibold">
                 {categoryName || category.category_name}
               </h4>
               {menuCount && (
-                <small className="text-muted">
+                <small className="text-[#6c757d] text-sm">
                   {menuCount} Items Available
                 </small>
               )}
             </div>
           )}
           
-          <div className="row g-3">
+          <div className="grid grid-cols-1 gap-3">
             {menus.map((menu) => (
-              <div key={menu.menu_id} className="col-12">
+              <div key={menu.menu_id}>
                 <VerticalMenuCard
                   image={menu.images?.[0]?.image || DEFAULT_IMAGE}
                   title={menu.menu_name}
@@ -150,8 +150,8 @@ function CategoryFilteredMenuList() {
             ))}
             
             {menus.length === 0 && (
-              <div className="col-12">
-                <div className="alert alert-info">
+              <div>
+                <div className="bg-[#cff4fc] border border-[#b6effb] text-[#055160] px-4 py-3 rounded-lg">
                   No menu items found in this category.
                 </div>
               </div>

@@ -1,4 +1,3 @@
-import React from "react";
 import BaseModal from "../BaseModal";
 import { useNavigate } from "react-router-dom";
 
@@ -30,17 +29,14 @@ function OrderExistsModal({
               "). Would you like to cancel this order and create a new one, or add items to this order?"}
         </p>
 
-        <div className="d-grid gap-2">
+        <div className="grid gap-2">
           {/* Only show cancel button if order is not in cooking or served state */}
           {orderStatus &&
             !["cooking", "served"].includes(
               orderStatus.toLowerCase().trim()
             ) && (
               <button
-                className="btn text-white"
-                style={{
-                  backgroundColor: "#FF3B30",
-                }}
+                className="px-3 py-2 text-sm font-semibold text-white bg-[#FF3B30] hover:bg-[#FF3B30]/90 rounded-3xl border-0 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
                 onClick={async () => {
                   await onCancelExisting();
                   navigate("/orders");
@@ -50,7 +46,7 @@ function OrderExistsModal({
                 {isLoading ? (
                   <>
                     <span
-                      className="spinner-border spinner-border-sm me-2"
+                      className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
                       role="status"
                       aria-hidden="true"
                     ></span>
@@ -63,17 +59,14 @@ function OrderExistsModal({
             )}
 
           <button
-            className="btn text-white"
-            style={{
-              backgroundColor: "#007AFF",
-            }}
+            className="px-3 py-2 text-sm font-semibold text-white bg-[#007AFF] hover:bg-[#007AFF]/90 rounded-3xl border-0 transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
             onClick={onAddToExisting}
             disabled={isLoading}
           >
             {isLoading ? (
               <>
                 <span
-                  className="spinner-border spinner-border-sm me-2"
+                  className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"
                   role="status"
                   aria-hidden="true"
                 ></span>
@@ -85,7 +78,7 @@ function OrderExistsModal({
           </button>
 
           <button
-            className="btn btn-light text-black"
+            className="px-3 py-2 text-sm font-semibold text-black bg-[#f8f9fa] hover:bg-[#e9ecef] rounded-3xl border border-[#dee2e6] transition-colors duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none"
             onClick={onClose}
             disabled={isLoading}
           >

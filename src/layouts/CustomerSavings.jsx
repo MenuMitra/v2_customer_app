@@ -1,4 +1,3 @@
-import React from "react";
 import { useQuery } from '@tanstack/react-query';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -24,9 +23,9 @@ function CustomerSavingsContent() {
     enabled: !!userId,
   });
 
-  if (isLoading) return <div className="page-content bottom-content"><div className="container">Loading...</div></div>;
-  if (error) return <div className="page-content bottom-content"><div className="container">Error: {error.message}</div></div>;
-  if (!savingsData) return <div className="page-content bottom-content"><div className="container">No savings data available</div></div>;
+  if (isLoading) return <div className="page-content bottom-content"><div className="max-w-[1200px] mx-auto px-4">Loading...</div></div>;
+  if (error) return <div className="page-content bottom-content"><div className="max-w-[1200px] mx-auto px-4">Error: {error.message}</div></div>;
+  if (!savingsData) return <div className="page-content bottom-content"><div className="max-w-[1200px] mx-auto px-4">No savings data available</div></div>;
 
   // Calculate effective totals considering special and coupon discounts
   const totalAmountSpent = Number(savingsData.total_amount_spent || 0);
@@ -36,91 +35,61 @@ function CustomerSavingsContent() {
 
   return (
       <div className="page-content bottom-content">
-        <div className="container px-3">
+        <div className="max-w-[1200px] mx-auto px-3">
           {/* Total Savings Card */}
-          <div
-            className="card border-0 mb-4"
-            style={{ backgroundColor: "#027335" }}
-          >
-            <div className="card-body text-white py-3">
-              <h6 className="mb-3 fw-normal text-center text-white">
+          <div className="bg-[#027335] rounded-lg shadow-sm border-0 mb-4">
+            <div className="p-4 text-white py-3">
+              <h6 className="mb-3 font-normal text-center text-white text-base">
                 Total Savings
               </h6>
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <span className="fw-light">Regular Discount</span>
-                <span className="fs-5">₹{savingsData.regular_discount}</span>
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-light">Regular Discount</span>
+                <span className="text-xl">₹{savingsData.regular_discount}</span>
               </div>
-              <div className="d-flex justify-content-between align-items-center">
-                <span className="fw-light">Special Discount</span>
-                <span className="fs-5">₹{savingsData.special_discount}</span>
+              <div className="flex justify-between items-center">
+                <span className="font-light">Special Discount</span>
+                <span className="text-xl">₹{savingsData.special_discount}</span>
               </div>
-              <div className="d-flex justify-content-between align-items-center mt-2">
-                <span className="fw-light">Coupon Discount</span>
-                <span className="fs-5">₹{totalCouponDiscount}</span>
+              <div className="flex justify-between items-center mt-2">
+                <span className="font-light">Coupon Discount</span>
+                <span className="text-xl">₹{totalCouponDiscount}</span>
               </div>
             </div>
           </div>
 
           {/* Statistics Cards */}
-          <div className="row g-3 mb-4">
-            <div className="col-4">
-              <div
-                className="card h-100"
-                style={{
-                  border: "1px solid #E5E7EB",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className="card-body p-3 d-flex flex-column justify-content-center align-items-center">
-                  <div className="fs-3 fw-bold text-dark mb-1">
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div>
+              <div className="bg-white rounded-lg h-full border border-[#E5E7EB] shadow-sm">
+                <div className="p-3 flex flex-col justify-center items-center">
+                  <div className="text-3xl font-bold text-[#212529] mb-1">
                     {savingsData.user_count}
                   </div>
-                  <div
-                    className="text-muted small"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <div className="text-[#6B7280] text-xs text-center">
                     Total Orders
                   </div>
                 </div>
               </div>
             </div>
-            <div className="col-4">
-              <div
-                className="card h-100"
-                style={{
-                  border: "1px solid #E5E7EB",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className="card-body p-3 d-flex flex-column justify-content-center align-items-center">
-                  <div className="fs-3 fw-bold text-dark mb-1">
+            <div>
+              <div className="bg-white rounded-lg h-full border border-[#E5E7EB] shadow-sm">
+                <div className="p-3 flex flex-col justify-center items-center">
+                  <div className="text-3xl font-bold text-[#212529] mb-1">
                     ₹{totalAmountSpent}
                   </div>
-                  <div
-                    className="text-muted small"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <div className="text-[#6B7280] text-xs text-center">
                     Amount spent on orders
                   </div>
                 </div>
               </div>
             </div>
-            <div className="col-4">
-              <div
-                className="card h-100"
-                style={{
-                  border: "1px solid #E5E7EB",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                }}
-              >
-                <div className="card-body p-3 d-flex flex-column justify-content-center align-items-center">
-                  <div className="fs-3 fw-bold text-dark mb-1">
+            <div>
+              <div className="bg-white rounded-lg h-full border border-[#E5E7EB] shadow-sm">
+                <div className="p-3 flex flex-col justify-center items-center">
+                  <div className="text-3xl font-bold text-[#212529] mb-1">
                     {savingsData.coupon_count || 0}
                   </div>
-                  <div
-                    className="text-muted small"
-                    style={{ color: "#6B7280" }}
-                  >
+                  <div className="text-[#6B7280] text-xs text-center">
                     Total Coupons Applied
                   </div>
                 </div>
@@ -132,60 +101,49 @@ function CustomerSavingsContent() {
           {Object.entries(savingsData.outlet_wise_data).map(([key, outlet]) => (
             <div
               key={key}
-              className="card mb-4"
-              style={{
-                border: "1px solid #E5E7EB",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-                backgroundColor: "#FFFFFF",
-              }}
+              className="bg-white rounded-lg shadow-sm mb-4 border border-[#E5E7EB]"
             >
-              <div className="card-body p-3">
-                <h6 className="mb-4 fw-semibold">{outlet.outlet_name}</h6>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span style={{ color: "#A1A5B7" }}>Total Orders</span>
-                  <span className="badge bg-success rounded-pill px-3">
+              <div className="p-3">
+                <h6 className="mb-4 font-semibold text-base">{outlet.outlet_name}</h6>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[#A1A5B7]">Total Orders</span>
+                  <span className="bg-[#198754] text-white rounded-full px-3 py-1 text-xs font-medium">
                     {outlet.order_count}
                   </span>
                 </div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span style={{ color: "#A1A5B7" }}>Amount Spent on Orders</span>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[#A1A5B7]">Amount Spent on Orders</span>
                   {(() => {
                     const outletAmount = Number(outlet.total_amount_spent || 0);
                     const outletSpecial = Number(outlet.special_discount || 0);
                     const outletCoupon = Number(outlet.coupon_discount || 0);
                     const outletEffective = Math.max(0, outletAmount - outletSpecial - outletCoupon);
                     return (
-                      <span className="text-dark">₹{outletEffective}</span>
+                      <span className="text-[#212529]">₹{outletEffective}</span>
                     );
                   })()}
                 </div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span style={{ color: "#A1A5B7" }}>Regular Discount</span>
-                  <span style={{ color: "#027335" }}>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[#A1A5B7]">Regular Discount</span>
+                  <span className="text-[#027335]">
                     ₹{outlet.regular_discount}
                   </span>
                 </div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span style={{ color: "#A1A5B7" }}>Special Discount</span>
-                  <span style={{ color: "#027335" }}>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[#A1A5B7]">Special Discount</span>
+                  <span className="text-[#027335]">
                     ₹{outlet.special_discount}
                   </span>
                 </div>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <span style={{ color: "#A1A5B7" }}>Coupon Discount</span>
-                  <span style={{ color: "#027335" }}>
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[#A1A5B7]">Coupon Discount</span>
+                  <span className="text-[#027335]">
                     ₹{Number(outlet.coupon_discount || 0)}
                   </span>
                 </div>
-                <div className="d-flex justify-content-between align-items-center">
-                  <span style={{ color: "#A1A5B7" }}>Complementary Items</span>
-                  <span
-                    className="badge rounded-pill px-3"
-                    style={{
-                      backgroundColor: "#E8F3FF",
-                      color: "#3699FF",
-                    }}
-                  >
+                <div className="flex justify-between items-center">
+                  <span className="text-[#A1A5B7]">Complementary Items</span>
+                  <span className="bg-[#E8F3FF] text-[#3699FF] rounded-full px-3 py-1 text-xs font-medium">
                     {outlet.complementary_count}
                   </span>
                 </div>

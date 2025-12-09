@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useOutlet } from "../contexts/OutletContext";
@@ -6,7 +6,6 @@ import OutletInfoBanner from "../components/OutletInfoBanner";
 import { useToast } from "../components/Toast/useToast";
 import { useQuery } from "@tanstack/react-query";
 import apiService from "../api/apiService";
-import {ENV} from '../config';
 
 function OutletDetails() {
   const { outletInfo, outletId } = useOutlet();
@@ -39,37 +38,6 @@ function OutletDetails() {
   const [isProcessingUPI, setIsProcessingUPI] = useState(false);
   const [isProcessingPhonePe, setIsProcessingPhonePe] = useState(false);
   const [isProcessingGPay, setIsProcessingGPay] = useState(false);
-  const lastFetchRef = useRef(0);
-  const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-  const fetchRestaurantDetails = async () => {
-    try {
-      // Get the token from your auth context or localStorage
-      const auth = JSON.parse(localStorage.getItem("auth")) || {};
-      const accessToken = auth.accessToken;
-
-      const response = await fetch(
-        `${ENV.V2_COMMON_BASE}/v2/user/get_restaurant_details`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({
-            outlet_id: outletId,
-            app_source: "user_app",
-          }),
-        }
-      );
-      const data = await response.json();
-
-      setRestaurantDetails(data.detail);
-      lastFetchRef.current = Date.now();
-    } catch (error) {
-      console.error("Error fetching restaurant details:", error);
-    }
-  };
 
   // Initial fetch and periodic refresh
   useEffect(() => {
@@ -82,34 +50,34 @@ function OutletDetails() {
     return (
       <>
         <Header />
-        <div className="container py-4">
+        <div className="max-w-[1200px] mx-auto px-4 py-4">
           <div className="card mb-4">
             <div className="card-body">
-              <div className="d-flex align-items-center mb-4 placeholder-glow">
-                <div className="rounded-3 bg-light me-3" style={{ width: 64, height: 64 }} />
-                <div className="w-100">
-                  <div className="placeholder rounded-pill col-6 mb-2" style={{ height: 20 }} />
-                  <div className="placeholder rounded-pill col-8" style={{ height: 14 }} />
+              <div className="flex items-center mb-4 animate-pulse">
+                <div className="rounded-xl bg-[#f8f9fa] mr-3 w-16 h-16" />
+                <div className="w-full">
+                  <div className="h-5 bg-[#e9ecef] rounded-full w-1/2 mb-2" />
+                  <div className="h-3.5 bg-[#e9ecef] rounded-full w-2/3" />
                 </div>
               </div>
 
-              <div className="row g-3 mb-4 placeholder-glow">
+              <div className="grid grid-cols-3 gap-3 mb-4 animate-pulse">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div className="col-4" key={`stats-skel-${i}`}>
-                    <div className="placeholder rounded-pill col-8 mb-2" style={{ height: 24 }} />
-                    <div className="placeholder rounded-pill col-6" style={{ height: 12 }} />
+                  <div key={`stats-skel-${i}`}>
+                    <div className="h-6 bg-[#e9ecef] rounded-full w-2/3 mb-2" />
+                    <div className="h-3 bg-[#e9ecef] rounded-full w-1/2" />
                   </div>
                 ))}
               </div>
 
-              <div className="text-center mb-3 placeholder-glow">
-                <div className="placeholder rounded-pill col-6 mx-auto" style={{ height: 16 }} />
+              <div className="text-center mb-3 animate-pulse">
+                <div className="h-4 bg-[#e9ecef] rounded-full w-1/2 mx-auto" />
               </div>
 
-              <div className="row g-2 placeholder-glow">
-                <div className="col-6"><div className="placeholder rounded-3 w-100" style={{ height: 48 }} /></div>
-                <div className="col-6"><div className="placeholder rounded-3 w-100" style={{ height: 48 }} /></div>
-                <div className="col-12"><div className="placeholder rounded-3 w-100" style={{ height: 48 }} /></div>
+              <div className="grid grid-cols-2 gap-2 animate-pulse">
+                <div><div className="h-12 bg-[#e9ecef] rounded-xl w-full" /></div>
+                <div><div className="h-12 bg-[#e9ecef] rounded-xl w-full" /></div>
+                <div className="col-span-2"><div className="h-12 bg-[#e9ecef] rounded-xl w-full" /></div>
               </div>
             </div>
           </div>
@@ -238,41 +206,28 @@ function OutletDetails() {
     <>
       <Header />
       <OutletInfoBanner />
-      <div className="container py-4">
+      <div className="max-w-[1200px] mx-auto px-4 py-4">
         {/* Restaurant Details Card */}
         <div className="card mb-4">
-          <div
-            className="card-body rounded-3"
-            style={{
-              border: "1px solid #E5E7EB",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-            }}
-          >
-            <div className="d-flex align-items-center mb-4">
-              <div
-                className="rounded-3 bg-light me-3 d-flex align-items-center justify-content-center"
-                style={{ width: "64px", height: "64px" }}
-              >
+          <div className="card-body  border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
+            <div className="flex items-center mb-4">
+              <div className="rounded-xl bg-[#f8f9fa] mr-3 flex items-center justify-center w-16 h-16">
                 {restaurantDetails?.outlet_details?.image ? (
                   <img
                     src={restaurantDetails.outlet_details.image}
                     alt="Restaurant"
-                    className="rounded-3 w-100 h-100"
-                    style={{ objectFit: "cover" }}
+                    className="rounded-xl w-full h-full object-cover"
                   />
                 ) : (
-                  <i
-                    className="fas fa-store text-primary"
-                    style={{ fontSize: "24px" }}
-                  ></i>
+                  <i className="fas fa-store text-[var(--primary)] text-2xl"></i>
                 )}
               </div>
               <div>
-                <div className="d-flex align-items-center mb-1">
-                  <h5 className="mb-0 fw-semibold me-2">
+                <div className="flex items-center mb-1">
+                  <h5 className="mb-0 font-semibold mr-2">
                     {restaurantDetails?.outlet_details?.name}
                   </h5>
-                  <div className="d-flex align-items-center">
+                  <div className="flex items-center">
                     {(() => {
                       const foodType = restaurantDetails?.outlet_details?.veg_nonveg?.toLowerCase();
                       if (foodType === "veg") return <VegIcon />;
@@ -281,13 +236,13 @@ function OutletDetails() {
                     })()}
                   </div>
                 </div>
-                <p className="text-muted mb-1">
-                  <i className="fas fa-map-marker-alt me-2"></i>
+                <p className="text-[#6c757d] mb-1 text-sm">
+                  <i className="fas fa-map-marker-alt mr-2"></i>
                   {restaurantDetails?.outlet_details?.address}
                 </p>
-                <div className="d-flex align-items-center">
-                  <span className="text-muted small">
-                    <i className="fas fa-phone me-1"></i>
+                <div className="flex items-center">
+                  <span className="text-[#6c757d] text-sm">
+                    <i className="fas fa-phone mr-1"></i>
                     {restaurantDetails?.outlet_details?.mobile}
                   </span>
                 </div>
@@ -295,107 +250,97 @@ function OutletDetails() {
             </div>
 
             {/* Statistics Grid */}
-            <div className="row g-3 mb-4">
-              <div className="col-4 d-flex flex-column align-items-center justify-content-center py-3">
-                <h3 className="mb-1 fw-semibold">
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="flex flex-col items-center justify-center py-3">
+                <h3 className="mb-1 font-semibold text-2xl">
                   {restaurantDetails?.count?.total_menu}
                 </h3>
-                <small className="text-muted">Menu Items</small>
+                <small className="text-[#6c757d] text-xs">Menu Items</small>
               </div>
-              <div className="col-4 d-flex flex-column align-items-center justify-content-center py-3">
-                <h3 className="mb-1 fw-semibold">
+              <div className="flex flex-col items-center justify-center py-3">
+                <h3 className="mb-1 font-semibold text-2xl">
                   {restaurantDetails?.count?.total_special_menu}
                 </h3>
-                <small className="text-muted">Special Items</small>
+                <small className="text-[#6c757d] text-xs">Special Items</small>
               </div>
-              <div className="col-4 d-flex flex-column align-items-center justify-content-center py-3">
-                <h3 className="mb-1 fw-semibold">
+              <div className="flex flex-col items-center justify-center py-3">
+                <h3 className="mb-1 font-semibold text-2xl">
                   {restaurantDetails?.count?.total_offer_menu}
                 </h3>
-                <small className="text-muted">Offer Items</small>
+                <small className="text-[#6c757d] text-xs">Offer Items</small>
               </div>
-              <div className="col-6 d-flex flex-column align-items-center justify-content-center py-3">
-                <h3 className="mb-1 fw-semibold">
-                  {restaurantDetails?.count?.total_category}
-                </h3>
-                <small className="text-muted">Categories</small>
-              </div>
-              <div className="col-6 d-flex flex-column align-items-center justify-content-center py-3">
-                <h3 className="mb-1 fw-semibold">
-                  {restaurantDetails?.count?.total_tables}
-                </h3>
-                <small className="text-muted">Total Tables</small>
+              <div className="col-span-3 grid grid-cols-2 gap-3">
+                <div className="flex flex-col items-center justify-center py-3">
+                  <h3 className="mb-1 font-semibold text-2xl">
+                    {restaurantDetails?.count?.total_category}
+                  </h3>
+                  <small className="text-[#6c757d] text-xs">Categories</small>
+                </div>
+                <div className="flex flex-col items-center justify-center py-3">
+                  <h3 className="mb-1 font-semibold text-2xl">
+                    {restaurantDetails?.count?.total_tables}
+                  </h3>
+                  <small className="text-[#6c757d] text-xs">Total Tables</small>
+                </div>
               </div>
             </div>
 
             {/* UPI Payment Section */}
             <div className="text-center mb-3">
-              <h6 className="mb-2">Quick Payment</h6>
-              <div className="d-flex align-items-center justify-content-center">
-                <i className="fas fa-qrcode text-primary me-2"></i>
-                <span className="font-monospace me-2 fs-5">
+              <h6 className="mb-2 text-base font-semibold">Quick Payment</h6>
+              <div className="flex items-center justify-center">
+                <i className="fas fa-qrcode text-[var(--primary)] mr-2"></i>
+                <span className="font-mono mr-2 text-lg">
                   {restaurantDetails?.outlet_details?.upi_id}
                 </span>
                 {restaurantDetails?.outlet_details?.upi_id && (
                   <button
                     type="button"
-                    className="btn btn-sm px-0"
+                    className="px-0 text-lg hover:text-[var(--primary)] transition-colors"
                     onClick={handleCopyUPI}
                     aria-label="Copy UPI ID"
                   >
-                    <i className="fa-solid fa-copy fs-5"></i>
+                    <i className="fa-solid fa-copy"></i>
                   </button>
                 )}
               </div>
             </div>
 
-            <div className="row g-2">
-              <div className="col-6">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
                 <button
-                  className="btn w-100 h-75"
-                  style={{
-                    backgroundColor: "#f3e8ff",
-                    color: "#5F259F",
-                  }}
+                  className="w-full h-[75%] bg-[#f3e8ff] text-[#5F259F] rounded-lg hover:bg-[#e9d5ff] transition-colors disabled:opacity-50 disabled:cursor-not-allowed py-3"
                   onClick={handlePhonePe}
                   disabled={isProcessingPhonePe}
                 >
-                  <div className="d-flex align-items-center justify-content-center">
-                    <img src="/icons/phonepe-icon.svg" alt="PhonePe" width="40" height="40" className="me-2" />
+                  <div className="flex items-center justify-center">
+                    <img src="/icons/phonepe-icon.svg" alt="PhonePe" width="40" height="40" className="mr-2" />
                     <span>
                       {isProcessingPhonePe ? "Opening..." : "PhonePe"}
                     </span>
                   </div>
                 </button>
               </div>
-              <div className="col-6">
+              <div>
                 <button
-                  className="btn w-100 h-75"
-                    style={{
-                      backgroundColor: "#e8f0fe",
-                      color: "#1a73e8",
-                    }}
+                  className="w-full h-[75%] bg-[#e8f0fe] text-[#1a73e8] rounded-lg hover:bg-[#d2e3fc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed py-3"
                   onClick={handleGooglePay}
                   disabled={isProcessingGPay}
                 >
-                  <div className="d-flex align-items-center justify-content-center">
-                    <img src="/icons/google-pay-icon.svg" alt="Google Pay" width="40" height="40" className="me-2" />
+                  <div className="flex items-center justify-center">
+                    <img src="/icons/google-pay-icon.svg" alt="Google Pay" width="40" height="40" className="mr-2" />
                     <span>{isProcessingGPay ? "Opening..." : "GPay"}</span>
                   </div>
                 </button>
               </div>
-              <div className="col-12">
+              <div className="col-span-2">
                 <button
-                  className="btn w-100 text-dark h-100"
+                  className="w-full h-full bg-[#e6ffe6] text-[#212529] rounded-lg hover:bg-[#ccffcc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed py-3"
                   onClick={handleGenericUPI}
                   disabled={isProcessingUPI}
-                  style={{
-                    backgroundColor: "#e6ffe6",
-                    // color: "#28a745",
-                  }}
                 >
-                  <div className="d-flex align-items-center justify-content-center">
-                    <img src="/icons/upi-payment-icon.svg" alt="UPI Payment" width="40" height="40" className="me-2" />
+                  <div className="flex items-center justify-center">
+                    <img src="/icons/upi-payment-icon.svg" alt="UPI Payment" width="40" height="40" className="mr-2" />
                     <span>
                       {isProcessingUPI ? "Opening..." : "Other UPI Apps"}
                     </span>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -113,16 +113,21 @@ function EditProfile() {
 
   return (
     <>
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
       <Header />
       <div className="page-content">
-        <div className="container">
+        <div className="max-w-[1200px] mx-auto px-4">
           <div className="edit-profile">
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Name</label>
+                <label className="block mb-2 text-sm font-medium text-[var(--title)]">Name</label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg outline-none focus:border-[var(--primary)] transition-colors"
                   placeholder="Enter your full name"
                   value={formData.name}
                   onChange={handleNameChange}
@@ -134,12 +139,12 @@ function EditProfile() {
                 />
               </div>
               <div className="mb-3">
-                <label className="form-label">Phone Number</label>
-                <div className="input-group">
-                  <span className="input-group-text">+91</span>
+                <label className="block mb-2 text-sm font-medium text-[var(--title)]">Phone Number</label>
+                <div className="flex">
+                  <span className="inline-flex items-center px-3 text-sm text-[#495057] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">+91</span>
                   <input
                     type="tel"
-                    className="form-control"
+                    className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
                     value={formData.phoneNumber}
                     onChange={handlePhoneChange}
                     placeholder="Enter your phone number"
@@ -148,16 +153,16 @@ function EditProfile() {
                     required
                   />
                 </div>
-                <small className="text-muted">Enter 10 digit mobile number</small>
+                <small className="text-[#6c757d] text-xs">Enter 10 digit mobile number</small>
               </div>
               <button 
                 type="submit" 
-                className="btn btn-primary w-100"
+                className="w-full py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isLoading}
               >
                 {isLoading ? (
-                  <span>
-                    <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  <span className="flex items-center justify-center">
+                    <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin" role="status" aria-hidden="true"></span>
                     Updating...
                   </span>
                 ) : (

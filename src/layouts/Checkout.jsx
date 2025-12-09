@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AuthPrompt from "../components/Auth/AuthPrompt";
@@ -15,7 +15,7 @@ import apiService from "../api/apiService";
 import { useToastContext } from "../components/Toast/ToastContext";
 import {ENV} from "../config";
 
-const FooterSummary = React.memo(function FooterSummary({ checkoutDetails }) {
+const FooterSummary = function FooterSummary({ checkoutDetails }) {
   // Fallback to zeros if no data yet
   const details = checkoutDetails || {
     grand_total: "0.00",
@@ -42,28 +42,28 @@ const FooterSummary = React.memo(function FooterSummary({ checkoutDetails }) {
         </li>
         {Number(details.discount_amount) > 0 && (
           <li>
-            <span className="text-soft">
+            <span className="text-gray-500">
               Discount ({details.discount_percent}%)
             </span>
-            <span className="text-soft text-success">
+            <span className="text-gray-500 text-green-600">
               -₹{details.discount_amount}
             </span>
           </li>
         )}
         <li>
-          <span className="text-soft">Subtotal</span>
-          <span className="text-soft">₹{subtotal.toFixed(2)}</span>
+          <span className="text-gray-500">Subtotal</span>
+          <span className="text-gray-500">₹{subtotal.toFixed(2)}</span>
         </li>
 
         <li>
-          <span className="text-soft">
+          <span className="text-gray-500">
             Service Charge ({details.service_charges_percent}%)
           </span>
-          <span className="text-soft">+₹{details.service_charges_amount}</span>
+          <span className="text-gray-500">+₹{details.service_charges_amount}</span>
         </li>
         <li>
-          <span className="text-soft">GST ({details.gst_percent}%)</span>
-          <span className="text-soft">+₹{details.gst_amount}</span>
+          <span className="text-gray-500">GST ({details.gst_percent}%)</span>
+          <span className="text-gray-500">+₹{details.gst_amount}</span>
         </li>
         <li>
           <h5>Grand Total</h5>
@@ -72,7 +72,7 @@ const FooterSummary = React.memo(function FooterSummary({ checkoutDetails }) {
       </ul>
     </div>
   );
-});
+};
 
 // Extracted authenticated content component
 function CheckoutContent() {
@@ -509,29 +509,18 @@ function CheckoutContent() {
         // Empty cart view
         <div className="page-content">
           <div className="content-inner pt-0">
-            <div className="container p-b20">
-              <div
-                className="d-flex align-items-center justify-content-center"
-                style={{ minHeight: "calc(100vh - 300px)" }}
-              >
+            <div className="container mx-auto pb-5">
+              <div className="flex items-center justify-center min-h-[calc(100vh-300px)]">
                 <div className="text-center">
                   <div className="mb-4">
-                    <i
-                      className="fa-solid fa-shopping-cart"
-                      style={{
-                        fontSize: 80,
-                        opacity: 0.5,
-                        color: "#6c757d",
-                      }}
-                    ></i>
+                    <i className="fa-solid fa-shopping-cart text-[80px] opacity-50 text-gray-600"></i>
                   </div>
-                  <h5 className="mb-3">Your cart is empty</h5>
-                  <p className="text-muted mb-4">
+                  <h5 className="mb-3 text-lg font-semibold">Your cart is empty</h5>
+                  <p className="text-gray-500 mb-4">
                     Add some items to your cart to get started
                   </p>
                   <button
-                    className="btn btn-primary px-4 py-3"
-                    style={{ borderRadius: 12, fontWeight: 500 }}
+                    className="px-4 py-3 bg-green-700 text-white rounded-3xl font-medium hover:bg-green-900 transition-colors"
                     onClick={() => navigate("/")}
                   >
                     Go to Home
@@ -543,46 +532,20 @@ function CheckoutContent() {
         </div>
       ) : (
         // Main checkout view
-        <div
-          className="page-content"
-          style={{
-            // background: "#f7f8fa",
-            minHeight: "100vh",
-          }}
-        >
-          <div
-            className="container bottom-content pt-0"
-            style={{ paddingBottom: "40px" }}
-          >
+        <div className="page-content min-h-screen">
+          <div className="container mx-auto bottom-content pt-0 pb-10">
             {/* Menu/Cart Items List */}
             <div className="item-list style-2">
-              <ul className="list-unstyled">
+              <ul className="list-none p-0">
                 {cartItems.length === 0 ? (
-                  <div
-                    className="d-flex flex-column justify-content-center align-items-center"
-                    style={{
-                      minHeight: "60vh", // Adjust as needed for your header/footer
-                      width: "100%",
-                      // background: '#fcfbfc'
-                    }}
-                  >
+                  <div className="flex flex-col justify-center items-center min-h-[60vh] w-full">
                     {/* Cart SVG Icon */}
-                    <i
-                      className="fa-solid fa-shopping-cart"
-                      style={{
-                        fontSize: 64,
-                        color: "#adb5bd",
-                      }}
-                    ></i>
-                    <span
-                      className="text-muted fs-5 mt-3 mb-2"
-                      style={{ color: "#b0b3b8" }}
-                    >
+                    <i className="fa-solid fa-shopping-cart text-[64px] text-gray-400"></i>
+                    <span className="text-gray-500 text-xl mt-3 mb-2">
                       Your cart is empty
                     </span>
                     <button
-                      className="btn btn-outline-success px-4 py-3 mt-4"
-                      style={{ borderRadius: 12, fontWeight: 500 }}
+                      className="px-4 py-3 mt-4 border border-green-600 text-green-600 bg-white rounded-xl font-medium hover:bg-green-50 transition-colors"
                       onClick={() => navigate("/")}
                     >
                       Go to Home
@@ -594,8 +557,7 @@ function CheckoutContent() {
                     return (
                       <li
                         key={`${item.menuId}-${item.portionId}`}
-                        className="mb-3 border-0"
-                        style={{ cursor: "pointer" }}
+                        className="mb-3 border-0 cursor-pointer"
                         onClick={() => {
                           if (!menuCatId) {
                             addToast({
@@ -609,21 +571,12 @@ function CheckoutContent() {
                           );
                         }}
                       >
-                        <div
-                          className="rounded-4 shadow-lg position-relative p-3 border-3"
-                          style={{ minHeight: 90 }}
-                        >
+                        <div className="rounded-2xl shadow-lg relative p-3 border-2 min-h-[90px]">
                           {/* Remove button in top right */}
                           <button
                             type="button"
-                            className="btn p-0 rounded-3xl border-0 bg-transparent shadow-none position-absolute"
+                            className="p-0 rounded-full border-0 bg-transparent shadow-none absolute top-3 right-4 text-[22px] text-gray-400 hover:text-gray-600"
                             aria-label="Remove"
-                            style={{
-                              top: 12,
-                              right: 16,
-                              fontSize: 22,
-                              color: "#b0b3b8",
-                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRemoveItem(item.menuId, item.portionId);
@@ -631,101 +584,48 @@ function CheckoutContent() {
                           >
                             ×
                           </button>
-                          <div className="d-flex align-items-center">
-                            <div className="flex-grow-1">
-                              <div className="d-flex align-items-center mb-1">
-                                <h5
-                                  className="mb-0"
-                                  style={{ fontWeight: 600 }}
-                                >
+                          <div className="flex items-center">
+                            <div className="flex-grow">
+                              <div className="flex items-center mb-1">
+                                <h5 className="mb-0 font-semibold">
                                   {item.menuName}
                                 </h5>
                                 {/* Add offer display */}
                                 {item.offer && (
-                                  <span
-                                    className="badge bg-success-subtle text-success ms-2"
-                                    style={{
-                                      fontSize: 12,
-                                      padding: "4px 8px",
-                                      borderRadius: 12,
-                                      fontWeight: 500,
-                                    }}
-                                  >
+                                  <span className="inline-block bg-green-100 text-green-600 ml-2 text-xs px-2 py-1 rounded-xl font-medium">
                                     {item.offer}% OFF
                                   </span>
                                 )}
                               </div>
-                              <div className="d-flex align-items-center mb-1">
-                                <span
-                                  className="text-success me-2"
-                                  style={{
-                                    fontSize: 15,
-                                    display: "flex",
-                                    alignItems: "center",
-                                  }}
-                                >
-                                  <i
-                                    className="fa-solid fa-utensils me-1"
-                                    style={{ fontSize: 15, color: "#19b955" }}
-                                  ></i>
+                              <div className="flex items-center mb-1">
+                                <span className="text-green-600 mr-2 text-[15px] flex items-center">
+                                  <i className="fa-solid fa-utensils mr-1 text-[15px] text-[#19b955]"></i>
                                   {item.portionName}
                                 </span>
                               </div>
 
                               {/* Add Special Instructions/Comment display */}
                               {item.comment && (
-                                <div className="d-flex align-items-center mb-2">
-                                  <span
-                                    className="text-muted"
-                                    style={{
-                                      fontSize: 13,
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: "4px",
-                                    }}
-                                  >
-                                    <i
-                                      className="fa-solid fa-message-lines"
-                                      style={{
-                                        fontSize: 12,
-                                        color: "#6c757d",
-                                      }}
-                                    ></i>
-                                    <span
-                                      style={{
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        display: "-webkit-box",
-                                        WebkitLineClamp: 2,
-                                        WebkitBoxOrient: "vertical",
-                                        lineHeight: "1.2",
-                                      }}
-                                    >
+                                <div className="flex items-center mb-2">
+                                  <span className="text-gray-500 text-[13px] flex items-center gap-1">
+                                    <i className="fa-solid fa-message-lines text-xs text-gray-600"></i>
+                                    <span className="overflow-hidden text-ellipsis line-clamp-2 leading-tight">
                                       {item.comment}
                                     </span>
                                   </span>
                                 </div>
                               )}
 
-                              <div className="d-flex align-items-center justify-content-between">
-                                <div className="d-flex align-items-center">
-                                  <span
-                                    className="fw-bold"
-                                    style={{ color: "#2196f3", fontSize: 18 }}
-                                  >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <span className="font-bold text-[#2196f3] text-lg">
                                     ₹
                                     {parseFloat(item.price).toFixed(2) ||
                                       "0.00"}
                                   </span>
                                   {item.offer > 0 && (
                                     <>
-                                      <span
-                                        className="ms-2 text-muted"
-                                        style={{
-                                          textDecoration: "line-through",
-                                          fontSize: 16,
-                                        }}
-                                      >
+                                      <span className="ml-2 text-gray-500 line-through text-base">
                                         ₹
                                         {item.originalPrice ||
                                           (
@@ -736,23 +636,10 @@ function CheckoutContent() {
                                     </>
                                   )}
                                 </div>
-                                <div className="d-flex flex-column align-items-end gap-1">
-                                  {/* {item.offer > 0 && (
-                                    <span
-                                      className="text-success fw-bold mb-1"
-                                      style={{ fontSize: 16 }}
-                                    >
-                                      {item.offer}% Off
-                                    </span>
-                                  )} */}
-                                  <div className="bg-light rounded-pill d-flex align-items-center px-2 py-1">
+                                <div className="flex flex-col items-end gap-1">
+                                  <div className="bg-gray-100 rounded-full flex items-center px-2 py-1">
                                     <button
-                                      className="btn rounded-3xl btn-link p-0 m-0"
-                                      style={{
-                                        color: "#222",
-                                        fontSize: 20,
-                                        minWidth: 28,
-                                      }}
+                                      className="p-0 m-0 text-gray-900 text-xl min-w-[28px] bg-transparent border-0 hover:text-gray-700"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleQuantityChange(
@@ -764,23 +651,11 @@ function CheckoutContent() {
                                     >
                                       –
                                     </button>
-                                    <span
-                                      className="mx-2"
-                                      style={{
-                                        minWidth: 18,
-                                        textAlign: "center",
-                                        fontWeight: 500,
-                                      }}
-                                    >
+                                    <span className="mx-2 min-w-[18px] text-center font-medium">
                                       {item.quantity}
                                     </span>
                                     <button
-                                      className="btn btn-link p-0 m-0"
-                                      style={{
-                                        color: "#222",
-                                        fontSize: 20,
-                                        minWidth: 28,
-                                      }}
+                                      className="p-0 m-0 text-gray-900 text-xl min-w-[28px] bg-transparent border-0 hover:text-gray-700"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handleQuantityChange(
@@ -807,10 +682,7 @@ function CheckoutContent() {
             {/* Summary Card */}
             {cartItems.length > 0 && (
               <>
-                <div
-                  className="rounded-4 shadow-sm p-3 mb-3"
-                  style={{ border: "1px solid #e0e0e0", marginTop: 24 }}
-                >
+                <div className="rounded-2xl shadow-sm p-3 mb-3 border border-gray-300 mt-6">
                   {/* Remove the loading spinner - show content immediately */}
                   {checkoutError ? (
                     <div className="text-center text-danger py-3">
@@ -818,21 +690,18 @@ function CheckoutContent() {
                     </div>
                   ) : (
                     <>
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <span className="fw-bold" style={{ fontSize: 18 }}>
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-lg">
                           Total
                         </span>
-                        <span className="fw-bold" style={{ fontSize: 18 }}>
+                        <span className="font-bold text-lg">
                           ₹{checkoutDetails?.total_bill_amount || getCartTotal().toFixed(2)}
                         </span>
                       </div>
-                      <hr className="my-2" style={{ borderColor: "#e0e0e0" }} />
+                      <hr className="my-2 border-gray-300" />
                       
                       {/* Regular Discount */}
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ color: "#b0b3b8" }}
-                      >
+                      <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>
                           Discount ({checkoutDetails?.discount_percent || 0}%)
                         </span>
@@ -843,10 +712,7 @@ function CheckoutContent() {
 
                       {/* Add Coupon Discount Line - Only show when coupon is successfully applied */}
                       {couponStatus?.success && (
-                        <div
-                          className="d-flex justify-content-between align-items-center mb-1"
-                          style={{ color: "#b0b3b8" }}
-                        >
+                        <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                           <span>
                             Coupon Discount ({couponStatus.couponDetails.code})
                           </span>
@@ -857,10 +723,7 @@ function CheckoutContent() {
                       )}
 
                       {/* Subtotal after discounts */}
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ color: "#b0b3b8" }}
-                      >
+                      <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>Subtotal</span>
                         <span>
                           ₹
@@ -879,10 +742,7 @@ function CheckoutContent() {
                       </div>
 
                       {/* Service Charges and GST sections */}
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ color: "#b0b3b8" }}
-                      >
+                      <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>
                           Service Charges ({checkoutDetails?.service_charges_percent || 0}%)
                         </span>
@@ -890,21 +750,18 @@ function CheckoutContent() {
                           +₹{checkoutDetails?.service_charges_amount || "0.00"}
                         </span>
                       </div>
-                      <div
-                        className="d-flex justify-content-between align-items-center mb-1"
-                        style={{ color: "#b0b3b8" }}
-                      >
+                      <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>GST ({checkoutDetails?.gst_percent || 0}%)</span>
                         <span>+₹{checkoutDetails?.gst_amount || "0.00"}</span>
                       </div>
-                      <hr className="my-2" style={{ borderColor: "#e0e0e0" }} />
+                      <hr className="my-2 border-gray-300" />
                       
                       {/* Grand Total with coupon discount */}
-                      <div className="d-flex justify-content-between align-items-center">
-                        <span className="fw-bold" style={{ fontSize: 18 }}>
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-lg">
                           Grand Total
                         </span>
-                        <span className="fw-bold" style={{ fontSize: 18 }}>
+                        <span className="font-bold text-lg">
                           ₹
                           {checkoutDetails ? (
                             (
@@ -924,31 +781,21 @@ function CheckoutContent() {
 
                 {/* Apply Coupon UI */}
                 <div className="mt-2 mb-4">
-                  <label className="mb-1 fw-semibold" style={{ fontSize: 15 }}>
+                  <label className="mb-1 font-semibold text-[15px]">
                     Apply Coupon
                   </label>
-                  <div
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
+                  <div className="flex items-center gap-2">
                     <input
                       type="text"
-                      className="form-control"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg uppercase font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="Enter coupon code"
                       value={couponCode}
                       onChange={handleCouponInput}
                       maxLength={20}
-                      style={{ textTransform: "uppercase", fontWeight: 500 }}
                       autoComplete="off"
                     />
                     <button
-                      className="btn"
-                      style={{
-                        background: "#b6d4fe",
-                        color: "#222",
-                        fontWeight: 500,
-                        minWidth: 70,
-                        borderRadius: 8,
-                      }}
+                      className="bg-[#b6d4fe] text-gray-900 font-medium min-w-[70px] rounded-lg px-4 py-2 hover:bg-[#a0c4ee] transition-colors"
                       onClick={handleVerifyCoupon}
                       disabled={!couponCode || couponLoading}
                     >
@@ -957,29 +804,19 @@ function CheckoutContent() {
                   </div>
                   {couponStatus && (
                     <div
-                      className={`mt-2 fw-semibold ${
-                        couponStatus.success ? "text-success" : "text-danger"
+                      className={`mt-2 font-semibold text-sm ${
+                        couponStatus.success ? "text-green-600" : "text-red-600"
                       }`}
-                      style={{ fontSize: 14 }}
                     >
                       {couponStatus.message}
                     </div>
                   )}
-                  <hr className="mt-3 mb-0" />
+                  <hr className="mt-3 mb-0 border-gray-300" />
                 </div>
 
-                <div className="d-flex justify-content-center mb-4">
+                <div className="flex justify-center mb-4">
                   <button
-                    className="btn"
-                    style={{
-                      background: "#19b955",
-                      color: "#fff",
-                      borderRadius: 30,
-                      fontWeight: 600,
-                      fontSize: 20,
-                      minWidth: 280,
-                      boxShadow: "0 2px 8px rgba(25,185,85,0.15)",
-                    }}
+                    className="bg-[#19b955] text-white rounded-full font-semibold text-xl min-w-[280px] px-6 py-3 shadow-[0_2px_8px_rgba(25,185,85,0.15)] hover:bg-[#17a54d] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleCheckout}
                     disabled={
                       detailsLoading ||
@@ -992,14 +829,7 @@ function CheckoutContent() {
                     ) : (
                       <>
                         Place Order{" "}
-                        <span
-                          style={{
-                            color: "#b6f5d1",
-                            fontSize: 16,
-                            fontWeight: 500,
-                            marginLeft: 4,
-                          }}
-                        >
+                        <span className="text-[#b6f5d1] text-base font-medium ml-1">
                           ({getCartCount()} Items)
                         </span>
                       </>

@@ -1,22 +1,14 @@
-import React from "react";
 import { useParams, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Pagination, Autoplay } from "swiper/modules";
 import { useCart } from "../contexts/CartContext";
 import { useModal } from "../contexts/ModalContext";
 import { useOutlet } from "../contexts/OutletContext";
 import { useAuth } from "../contexts/AuthContext";
-import LazyImage from "../components/Shared/LazyImage";
 import apiService from "../api/apiService";
 import { useMenuItems } from "../hooks/useMenuItems";
 import TripleSlider from "../components/TripleSlider/TripleSlider";
-
-// Import Swiper styles
-import "swiper/css";
-import "swiper/css/pagination";
 
 // FoodTypeIcon component
 const FoodTypeIcon = ({ foodType }) => {
@@ -24,103 +16,26 @@ const FoodTypeIcon = ({ foodType }) => {
     switch (foodType?.toLowerCase()) {
       case "veg":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #4CAF50",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <div
-              style={{
-                width: "6px",
-                height: "6px",
-                borderRadius: "50%",
-                backgroundColor: "#4CAF50",
-              }}
-            ></div>
+          <div className="w-3.5 h-3.5 rounded-sm border border-[#4CAF50] bg-white flex items-center justify-center align-middle">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#4CAF50]"></div>
           </div>
         );
       case "nonveg":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #F44336",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <div
-              style={{
-                width: 0,
-                height: 0,
-                borderLeft: "3px solid transparent",
-                borderRight: "3px solid transparent",
-                borderBottom: "5px solid #F44336",
-              }}
-            ></div>
+          <div className="w-3.5 h-3.5 rounded-sm border border-[#F44336] bg-white flex items-center justify-center align-middle">
+            <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[5px] border-b-[#F44336]"></div>
           </div>
         );
       case "vegan":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #4CAF50",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <i
-              className="fa-solid fa-leaf"
-              style={{
-                color: "#4CAF50",
-                fontSize: "10px",
-                lineHeight: 1,
-              }}
-            ></i>
+          <div className="w-3.5 h-3.5 rounded-sm border border-[#4CAF50] bg-white flex items-center justify-center align-middle">
+            <i className="fa-solid fa-leaf text-[#4CAF50] text-[10px] leading-none"></i>
           </div>
         );
       case "egg":
         return (
-          <div
-            style={{
-              width: "14px",
-              height: "14px",
-              borderRadius: "3px",
-              border: "1px solid #e0e0e0",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              verticalAlign: "middle",
-            }}
-          >
-            <i
-              className="fa-solid fa-egg"
-              style={{
-                color: "#B0BEC5",
-                fontSize: "10px",
-                // transform: "rotate(-15deg)",
-              }}
-            ></i>
+          <div className="w-3.5 h-3.5 rounded-sm border border-[#e0e0e0] bg-white flex items-center justify-center align-middle">
+            <i className="fa-solid fa-egg text-[#B0BEC5] text-[10px]"></i>
           </div>
         );
       default:
@@ -250,8 +165,8 @@ function ProductDetail() {
       <>
         <Header />
         <div className="page-content">
-          <div className="container">
-            <div className="text-center p-5">Loading...</div>
+          <div className="max-w-[1200px] mx-auto px-4">
+            <div className="text-center p-5 text-[#6c757d]">Loading...</div>
           </div>
         </div>
         <Footer />
@@ -264,8 +179,8 @@ function ProductDetail() {
       <>
         <Header />
         <div className="page-content">
-          <div className="container">
-            <div className="alert alert-danger">
+          <div className="max-w-[1200px] mx-auto px-4">
+            <div className="bg-[#f8d7da] border border-[#f5c2c7] text-[#842029] px-4 py-3 rounded-lg">
               {error.message || "Failed to load menu details"}
             </div>
           </div>
@@ -284,8 +199,8 @@ function ProductDetail() {
         {/* Cross-outlet info (compact) */}
         {isCrossOutlet && (
           <div className="mx-3 mt-2">
-            <div className="d-flex align-items-center small mb-2 bg-danger text-white rounded-3 p-2">
-              <i className="fa-solid fa-circle-info me-2"></i>
+            <div className="flex items-center text-sm mb-2 bg-[#dc3545] text-white rounded-xl p-2">
+              <i className="fa-solid fa-circle-info mr-2"></i>
               <span>
                 This item is from <strong>{crossOutletName}</strong>. Ordering is disabled for your current outlet.
               </span>
@@ -327,10 +242,9 @@ function ProductDetail() {
                 />
               ) : (
                 <div
-                  className="bnr-img d-flex justify-content-center align-items-center border border-2 border-light-subtle"
-                  style={{ aspectRatio: "16/9" }}
+                  className="bnr-img flex justify-center items-center border-2 border-gray-200 aspect-video"
                 >
-                  <i className="fa-solid fa-utensils font-100 opacity-50 text-muted"></i>
+                  <i className="fa-solid fa-utensils font-100 opacity-50 text-[#6c757d]"></i>
                 </div>
               )}
             </div>
@@ -356,39 +270,31 @@ function ProductDetail() {
             />
           ) : (
             <div className="dz-banner-heading">
-              <div className="overlay-black-light bg-body-secondary">
-                <div
-                  className="d-flex justify-content-center align-items-center border border-2 border-light-subtle"
-                  style={{ aspectRatio: "1/1" }}
-                >
-                  <i className="fa-solid fa-utensils font-100 opacity-50 text-muted"></i>
+              <div className="overlay-black-light bg-[#f8f9fa]">
+                <div className="flex justify-center items-center border-2 border-[#dee2e6] aspect-square">
+                  <i className="fa-solid fa-utensils text-[100px] opacity-50 text-[#6c757d]"></i>
                 </div>
               </div>
             </div>
           )}
 
           <div className="account-box style-1">
-            <div className="container p-b60">
+            <div className="max-w-[1200px] mx-auto px-4 pb-60">
               <div className="company-detail">
                 <div className="detail-content">
                   <div className="flex-1">
-                    <h3 className="text-secondary sub-title small d-flex align-items-center justify-content-between">
-                      <div className="d-flex align-items-center">
+                    <h3 className="text-[var(--secondary)] sub-title text-sm flex items-center justify-between">
+                      <div className="flex items-center">
                         <FoodTypeIcon foodType={menuDetails.menu_food_type} />
-                        <span className="ms-2">
+                        <span className="ml-2">
                           {menuDetails.category_name?.toUpperCase()}
                         </span>
                       </div>
-                      <a
-                        href="javascript:void(0);"
-                        className={`${isFavoriteLoading ? "disabled" : ""}`}
+                      <button
+                        type="button"
+                        className={`${isFavoriteLoading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"} no-underline`}
                         onClick={handleFavoriteToggle}
-                        style={{
-                          pointerEvents: isFavoriteLoading ? "none" : "auto",
-                          cursor: isFavoriteLoading ? "not-allowed" : "pointer",
-                          textDecoration: "none",
-                          opacity: isFavoriteLoading ? 0.5 : 1,
-                        }}
+                        disabled={isFavoriteLoading}
                         title={isFavoriteLoading ? "Updating favorite..." : ""}
                       >
                         <div
@@ -401,40 +307,26 @@ function ProductDetail() {
                               menuDetails?.is_favourite === 1
                                 ? "solid"
                                 : "regular"
-                            } fa-heart`}
-                            style={{
-                              fontSize: "20px",
-                              color:
-                                menuDetails?.is_favourite === 1
-                                  ? "#dc3545"
-                                  : "#6c757d",
-                              lineHeight: 1,
-                            }}
+                            } fa-heart text-[20px] leading-none ${
+                              menuDetails?.is_favourite === 1
+                                ? "text-[#dc3545]"
+                                : "text-[#6c757d]"
+                            }`}
                           />
                         </div>
-                      </a>
+                      </button>
                     </h3>
-                    <h4 className="d-flex justify-content-between align-items-center">
+                    <h4 className="flex justify-between items-center">
                       {menuDetails.menu_name}
                     </h4>
                   </div>
                 </div>
-                {/* <ul className="item-inner">
-                  <li>
-                    <div className="reviews-info">
-                      <h6 className="reviews">
-                        {menuDetails.rating || "0"} (
-                        {menuDetails.reviews_count || "0"} reviews)
-                      </h6>
-                    </div>
-                  </li>
-                </ul> */}
               </div>
 
               <div className="item-list-2 my-2">
                 <div className="price">
                   <span className="text-style text-soft">Price</span>
-                  <div className="d-flex justify-content-between align-items-center">
+                  <div className="flex justify-between items-center">
                     <h3 className="sub-title mb-0">
                       {menuDetails.offer > 0 ? (
                         <>
@@ -443,7 +335,7 @@ function ProductDetail() {
                             menuDetails.portions[0]?.price *
                               (1 - menuDetails.offer / 100)
                           )}
-                          <del className="ms-2 text-muted">
+                          <del className="ml-2 text-[#6c757d]">
                             ₹{menuDetails.portions[0]?.price}
                           </del>
                         </>
@@ -452,62 +344,58 @@ function ProductDetail() {
                       )}
                     </h3>
                     {menuDetails.offer > 0 && (
-                      <span className="text-success small fw-bold ms-3">
+                      <span className="text-[#198754] text-sm font-bold ml-3">
                         {menuDetails.offer}% Off
                       </span>
                     )}
                   </div>
                 </div>
                 {cartItem && !isCrossOutlet && (
-                  <div className="dz-stepper border-1 rounded-stepper">
-                    <div className="input-group bootstrap-touchspin bootstrap-touchspin-injected">
-                      <span className="input-group-btn input-group-prepend">
-                        <button
-                          className="btn btn-primary bootstrap-touchspin-down"
-                          type="button"
-                          onClick={() => {
-                            if (cartItem.quantity === 1) {
-                              removeFromCart(
-                                Number(menuId),
-                                cartItem.portionId
-                              );
-                            } else {
-                              updateQuantity(
-                                Number(menuId),
-                                cartItem.portionId,
-                                cartItem.quantity - 1
-                              );
-                            }
-                          }}
-                        >
-                          -
-                        </button>
-                      </span>
+                  <div className="dz-stepper border rounded-stepper">
+                    <div className="flex items-center">
+                      <button
+                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-l-lg hover:bg-[var(--primary-dark)] transition-colors"
+                        type="button"
+                        onClick={() => {
+                          if (cartItem.quantity === 1) {
+                            removeFromCart(
+                              Number(menuId),
+                              cartItem.portionId
+                            );
+                          } else {
+                            updateQuantity(
+                              Number(menuId),
+                              cartItem.portionId,
+                              cartItem.quantity - 1
+                            );
+                          }
+                        }}
+                      >
+                        -
+                      </button>
                       <input
                         readOnly
-                        className="stepper form-control"
+                        className="stepper w-16 text-center border-y border-[var(--border-color)] py-2"
                         type="text"
                         value={cartItem.quantity}
                         name="demo3"
                       />
-                      <span className="input-group-btn input-group-append">
-                        <button
-                          className="btn btn-primary bootstrap-touchspin-up"
-                          type="button"
-                          onClick={() => {
-                            if (cartItem.quantity < 20) {
-                              updateQuantity(
-                                Number(menuId),
-                                cartItem.portionId,
-                                cartItem.quantity + 1
-                              );
-                            }
-                          }}
-                          disabled={cartItem.quantity >= 20}
-                        >
-                          +
-                        </button>
-                      </span>
+                      <button
+                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-r-lg hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        type="button"
+                        onClick={() => {
+                          if (cartItem.quantity < 20) {
+                            updateQuantity(
+                              Number(menuId),
+                              cartItem.portionId,
+                              cartItem.quantity + 1
+                            );
+                          }
+                        }}
+                        disabled={cartItem.quantity >= 20}
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
                 )}
@@ -515,14 +403,14 @@ function ProductDetail() {
 
               {menuDetails.ingredients && (
                 <div className="mb-3">
-                  <h6 className="text-style text-soft mb-2">Ingredients</h6>
+                  <h6 className="text-style text-soft mb-2 text-base font-semibold">Ingredients</h6>
                   <p>{menuDetails.ingredients}</p>
                 </div>
               )}
 
               {menuDetails.description && (
                 <div className="mb-3">
-                  <h6 className="text-style text-soft mb-2">Description</h6>
+                  <h6 className="text-style text-soft mb-2 text-base font-semibold">Description</h6>
                   <p>{menuDetails.description}</p>
                 </div>
               )}
@@ -530,16 +418,16 @@ function ProductDetail() {
           </div>
         </div>
 
-        <div className="footer fixed p-b55">
-          <div className="container">
+        <div className="footer fixed pb-[55px]">
+          <div className="max-w-[1200px] mx-auto px-4">
             <button
               onClick={isCrossOutlet ? undefined : handleAddToCart}
-              className="btn btn-primary text-start w-100 rounded-3xl"
+              className={`w-full text-left rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] transition-colors ${
+                isCrossOutlet || !menuDetails.portions?.length
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               disabled={isCrossOutlet || !menuDetails.portions?.length}
-              style={{
-                opacity: isCrossOutlet ? 0.5 : 1,
-                cursor: isCrossOutlet ? "not-allowed" : "pointer",
-              }}
               title={
                 isCrossOutlet
                   ? `Switch to ${crossOutletName} to order`
@@ -549,7 +437,7 @@ function ProductDetail() {
               }
             >
               <i
-                className={`fa-solid ${isCrossOutlet ? "fa-lock" : "fa-cart-shopping"} me-2`}
+                className={`fa-solid ${isCrossOutlet ? "fa-lock" : "fa-cart-shopping"} mr-2`}
               ></i>
               Add to cart
             </button>

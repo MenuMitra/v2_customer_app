@@ -80,62 +80,82 @@ export const CartProvider = ({ children }) => {
     comment,
     immediate = false
   ) => {
+    console.log('=== CartContext addToCart called ===');
+    console.log('menuItem:', menuItem);
+    console.log('portionId:', portionId);
+    console.log('quantity:', quantity);
+    console.log('comment:', comment);
+    
     // Check if user is authenticated
     const authData = localStorage.getItem("auth");
     if (!authData || !user) {
+      console.log('User not authenticated, showing auth offcanvas');
       setShowAuthOffcanvas(true);
       return;
     }
 
     setCartItems((prevItems) => {
+      console.log('Previous cart items:', prevItems);
+      
       const existingItemIndex = prevItems.findIndex(
         (item) =>
           item.menuId === menuItem.menuId && item.portionId === portionId
       );
 
+      console.log('Existing item index:', existingItemIndex);
+
       // Get the selected portion details
-      const selectedPortion = menuItem.portions.find(
+      const selectedPortion = menuItem.portions?.find(
         (p) => p.portion_id === portionId
       );
+
+      console.log('Selected portion:', selectedPortion);
 
       // Validate price - ensure it's a valid number
       const validPrice = selectedPortion?.price 
         ? parseFloat(selectedPortion.price) || 0 
         : 0;
 
+      console.log('Valid price:', validPrice);
+
       if (existingItemIndex !== -1) {
         const updatedItems = [...prevItems];
         if (quantity === 0) {
+          console.log('Removing item from cart');
           updatedItems.splice(existingItemIndex, 1);
         } else {
+          console.log('Updating existing item');
           updatedItems[existingItemIndex] = {
             ...updatedItems[existingItemIndex],
             quantity: quantity,
             comment: comment,
             outlet_id: outletId,
-            price: validPrice, // Use validated price
+            price: validPrice,
             offer: menuItem.offer || null,
           };
         }
+        console.log('Updated cart items:', updatedItems);
         return updatedItems;
       } else if (quantity > 0) {
-        return [
-          ...prevItems,
-          {
-            menuId: menuItem.menuId,
-            menuName: menuItem.menuName,
-            portionId: portionId,
-            portionName: selectedPortion?.portion_name,
-            price: validPrice, // Use validated price
-            quantity: quantity,
-            comment: comment,
-            outlet_id: outletId,
-            menu_cat_id: menuItem.menu_cat_id || menuItem.category_id,
-            category_name: menuItem.category_name,
-            offer: menuItem.offer || null,
-          },
-        ];
+        const newItem = {
+          menuId: menuItem.menuId,
+          menuName: menuItem.menuName,
+          portionId: portionId,
+          portionName: selectedPortion?.portion_name,
+          price: validPrice,
+          quantity: quantity,
+          comment: comment,
+          outlet_id: outletId,
+          menu_cat_id: menuItem.menu_cat_id || menuItem.category_id,
+          category_name: menuItem.category_name,
+          offer: menuItem.offer || null,
+        };
+        console.log('Adding new item to cart:', newItem);
+        const newCartItems = [...prevItems, newItem];
+        console.log('New cart items:', newCartItems);
+        return newCartItems;
       }
+      console.log('No changes to cart');
       return prevItems;
     });
   };

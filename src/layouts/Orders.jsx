@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AuthPrompt from "../components/Auth/AuthPrompt";
@@ -16,24 +16,17 @@ const NoOrders = ({ message }) => {
   const navigate = useNavigate();
 
   return (
-    <div
-      className="d-flex align-items-center justify-content-center"
-      style={{ minHeight: "calc(100vh - 400px)" }}
-    >
+    <div className="flex items-center justify-center min-h-[calc(100vh-400px)]">
       <div className="text-center">
-                  <div className="mb-4">
-                    <i
-                      className="fa-solid fa-clock-rotate-left"
-                      style={{ fontSize: 80, opacity: 0.5, color: "#6c757d" }}
-                    ></i>
-                  </div>
-        <h5 className="mb-3">{message}</h5>
-        <p className="text-muted mb-4">
+        <div className="mb-4">
+          <i className="fa-solid fa-clock-rotate-left text-[80px] opacity-50 text-[#6c757d]"></i>
+        </div>
+        <h5 className="mb-3 text-lg font-semibold">{message}</h5>
+        <p className="text-[#6c757d] mb-4">
           Check back later for your order history
         </p>
         <button
-          className="btn btn-primary px-4 py-3"
-          style={{ borderRadius: 12, fontWeight: 500 }}
+          className="px-4 py-3 bg-[var(--primary)] text-white rounded-3xl font-medium hover:bg-green-900 transition-colors"
           onClick={() => navigate("/")}
         >
           Browse Menu
@@ -565,23 +558,22 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
   return (
     <>
       <div className="page-content">
-        <div className="container pb">
+        <div className="max-w-[1200px] mx-auto px-4 pb-4">
           {/* Show ongoing orders section */}
           {!ongoingError && ongoingOrdersData?.length > 0 && (
             <div className="mb-4">
-              <h6 className="mb-3">Ongoing Orders</h6>
+              <h6 className="mb-3 text-base font-semibold">Ongoing Orders</h6>
               <div className="orders-list">
                 {ongoingOrdersData.map((order) => (
                   <div
                     key={order.id}
-                    className="order-item mb-3"
+                    className="order-item mb-3 cursor-pointer"
                     onClick={() => navigate(`/order-detail/${order.orderId}`)}
-                    style={{ cursor: "pointer" }}
                   >
-                    <div className="border border-warning shadow-sm p-3 rounded">
-                      <div className="d-flex align-items-center justify-content-between w-100">
+                    <div className="border border-[#ffc107] shadow-sm p-3 rounded-lg">
+                      <div className="flex items-center justify-between w-full">
                         {/* Left side with icon and order details */}
-                        <div className="d-flex align-items-center">
+                        <div className="flex items-center">
                           {order.status === "placed" ? (
                             <Timer orderTime={order.time} />
                           ) : (
@@ -589,25 +581,24 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               <i className="fa-solid fa-bag-shopping text-white"></i>
                             </span>
                           )}
-                          <div className="ms-3">
-                            <h6 className="mb-0">Order #{order.orderNumber}</h6>
-                            <span className="text-soft">
+                          <div className="ml-3">
+                            <h6 className="mb-0 font-semibold">Order #{order.orderNumber}</h6>
+                            <span className="text-soft text-sm">
                               {order.itemCount} Items {order.status}
                             </span>
                           </div>
                         </div>
 
                         {/* Right side with dine-in status and cancel button */}
-                        <div className="d-flex flex-column align-items-end">
-                          <span className="text-soft mb-2">{order.orderType?.toUpperCase()}</span>
+                        <div className="flex flex-col items-end">
+                          <span className="text-soft mb-2 text-sm">{order.orderType?.toUpperCase()}</span>
                           {order.status === "placed" && (
                             <button
-                              className="btn btn-sm text-white"
+                              className="px-3 py-1.5 text-sm text-white bg-[#FF0000] rounded hover:bg-[#cc0000] transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleCancelOrder(order.orderId, order.orderNumber);
                               }}
-                              style={{ backgroundColor: "#FF0000" }}
                             >
                               Cancel Order
                             </button>
@@ -623,13 +614,13 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
 
           <div className="default-tab style-1">
             <ul
-              className="nav nav-tabs d-flex flex-nowrap overflow-auto w-120 justify-content-between"
+              className="nav nav-tabs flex flex-nowrap overflow-auto w-full justify-between"
               id="myTab3"
               role="tablist"
             >
-              <li className="nav-item flex-shrink-0 w-33" role="presentation">
+              <li className="nav-item flex-shrink-0 w-1/3" role="presentation">
                 <button
-                  className="nav-link active w-100"
+                  className="nav-link active w-full text-base flex items-center justify-center py-3"
                   id="completed-tab"
                   data-bs-toggle="tab"
                   data-bs-target="#completed-tab-pane"
@@ -637,25 +628,16 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                   role="tab"
                   aria-controls="completed-tab-pane"
                   aria-selected="true"
-                  style={{
-                    fontSize: "14px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
                 >
-                  <i
-                    className="fa-solid fa-circle-check me-2"
-                    style={{ color: "#27ae60", fontSize: "16px" }}
-                  ></i>
-                  <span style={{ fontSize: "13px", fontWeight: 500 }}>
+                  <i className="fa-solid fa-circle-check mr-2 text-[#27ae60] text-lg"></i>
+                  <span className="text-[15px] font-medium">
                     Completed
                   </span>
                 </button>
               </li>
-              <li className="nav-item flex-shrink-0 w-33" role="presentation">
+              <li className="nav-item flex-shrink-0 w-1/3" role="presentation">
                 <button
-                  className="nav-link d-flex align-items-center justify-content-center w-100"
+                  className="nav-link flex items-center justify-center w-full text-base py-3"
                   id="cancelled-tab"
                   data-bs-toggle="tab"
                   data-bs-target="#cancelled-tab-pane"
@@ -663,25 +645,16 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                   role="tab"
                   aria-controls="cancelled-tab-pane"
                   aria-selected="false"
-                  style={{
-                    fontSize: "14px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
                 >
-                  <i
-                    className="fa-solid fa-ban me-2"
-                    style={{ color: "#e74c3c", fontSize: "16px" }}
-                  ></i>
-                  <span style={{ fontSize: "13px", fontWeight: 500 }}>
+                  <i className="fa-solid fa-ban mr-2 text-[#e74c3c] text-lg"></i>
+                  <span className="text-[15px] font-medium">
                     Cancelled
                   </span>
                 </button>
               </li>
-              <li className="nav-item flex-shrink-0 w-33" role="presentation">
+              <li className="nav-item flex-shrink-0 w-1/3" role="presentation">
                 <button
-                  className="nav-link w-100"
+                  className="nav-link w-full text-base flex items-center justify-center py-3"
                   id="pending-tab"
                   data-bs-toggle="tab"
                   data-bs-target="#pending-tab-pane"
@@ -689,18 +662,9 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                   role="tab"
                   aria-controls="pending-tab-pane"
                   aria-selected="false"
-                  style={{
-                    fontSize: "14px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
                 >
-                  <i
-                    className="fa-solid fa-clock me-2"
-                    style={{ color: "black", fontSize: "16px" }}
-                  ></i>
-                  <span style={{ fontSize: "13px", fontWeight: 500 }}>
+                  <i className="fa-solid fa-clock mr-2 text-black text-lg"></i>
+                  <span className="text-[15px] font-medium">
                     Pending
                   </span>
                 </button>
@@ -718,9 +682,9 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                 <div className="accordion style-3" id="accordionExamplePending">
                   {Object.keys(pendingOrdersByDate).length > 0 ? (
                     <>
-                      <div className="d-flex justify-content-end align-items-center mb-3">
+                      <div className="flex justify-end items-center mb-3">
                         <button
-                          className="btn btn-sm btn-link text-dark p-0"
+                          className="text-sm p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors"
                           onClick={
                             Object.values(expandedPendingDates).some((e) => e)
                               ? handleCollapseAllPending
@@ -734,7 +698,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               : "Expand All"}
                           </span>
                           <i
-                            className={`ms-2 fas ${
+                            className={`ml-2 fas ${
                               Object.values(expandedPendingDates).some((e) => e)
                                 ? "fa-chevron-up"
                                 : "fa-chevron-down"
@@ -749,10 +713,9 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                             id={"headingPending" + dateKey.replace(/\s/g, "")}
                           >
                             <button
-                              className={
-                                "btn btn-link w-100 d-flex justify-content-between align-items-center p-0 " +
-                                (!expandedPendingDates[dateKey] ? "collapsed" : "")
-                              }
+                              className={`w-full flex justify-between items-center p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors ${
+                                !expandedPendingDates[dateKey] ? "collapsed" : ""
+                              }`}
                               type="button"
                               data-bs-toggle="collapse"
                               data-bs-target={"#collapsePending" + dateKey.replace(/\s/g, "")}
@@ -760,10 +723,10 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               aria-controls={"collapsePending" + dateKey.replace(/\s/g, "")}
                               onClick={() => togglePendingDateExpansion(dateKey)}
                             >
-                              <span className="flex-grow-1 text-start">{dailyData.date}</span>
-                              <span className="me-2">{dailyData.orderCount}</span>
+                              <span className="flex-grow text-left">{dailyData.date}</span>
+                              <span className="mr-2">{dailyData.orderCount}</span>
                               <i
-                                className={`ms-2 fas ${
+                                className={`ml-2 fas ${
                                   expandedPendingDates[dateKey]
                                     ? "fa-chevron-up"
                                     : "fa-chevron-down"
@@ -830,9 +793,9 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                     0 ? (
                     <>
                       {/* Expand/Collapse All for Completed Orders */}
-                      <div className="d-flex justify-content-end align-items-center mb-3">
+                      <div className="flex justify-end items-center mb-3">
                         <button
-                          className="btn btn-sm btn-link text-dark p-0"
+                          className="text-sm p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors"
                           onClick={
                             Object.values(expandedCompletedDates).some((e) => e)
                               ? handleCollapseAllCompleted
@@ -850,7 +813,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               : "Expand All"}
                           </span>
                           <i
-                            className={`ms-2 fas ${
+                            className={`ml-2 fas ${
                               Object.values(expandedCompletedDates).some(
                                 (e) => e
                               )
@@ -868,12 +831,11 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               id={"heading" + dateKey.replace(/\s/g, "")}
                             >
                               <button
-                                className={
-                                  "btn btn-link w-100 d-flex justify-content-between align-items-center p-0 " +
-                                  (!expandedCompletedDates[dateKey]
+                                className={`w-full flex justify-between items-center p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors ${
+                                  !expandedCompletedDates[dateKey]
                                     ? "collapsed"
-                                    : "")
-                                }
+                                    : ""
+                                }`}
                                 type="button"
                                 data-bs-toggle="collapse"
                                 data-bs-target={
@@ -889,14 +851,14 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                   toggleCompletedDateExpansion(dateKey)
                                 }
                               >
-                                <span className="flex-grow-1 text-start">
+                                <span className="flex-grow text-left">
                                   {dailyOrderData.date}
                                 </span>
-                                <span className="me-2">
+                                <span className="mr-2">
                                   {dailyOrderData.orderCount}
                                 </span>
                                 <i
-                                  className={`ms-2 fas ${
+                                  className={`ml-2 fas ${
                                     expandedCompletedDates[dateKey]
                                       ? "fa-chevron-up"
                                       : "fa-chevron-down"
@@ -958,7 +920,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
               >
                 <div className="accordion style-3" id="accordionExample2">
                   {isLoadingOrderHistory ? (
-                    <div className="text-center py-4">
+                    <div className="text-center py-4 text-[#6c757d]">
                       Loading order history...
                     </div>
                   ) : orderHistoryError ? (
@@ -967,9 +929,9 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                     0 ? (
                     <>
                       {/* Expand/Collapse All for Cancelled Orders */}
-                      <div className="d-flex justify-content-end align-items-center mb-3">
+                      <div className="flex justify-end items-center mb-3">
                         <button
-                          className="btn btn-sm btn-link text-dark p-0"
+                          className="text-sm p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors"
                           onClick={
                             Object.values(expandedCancelledDates).some((e) => e)
                               ? handleCollapseAllCancelled
@@ -987,7 +949,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               : "Expand All"}
                           </span>
                           <i
-                            className={`ms-2 fas ${
+                            className={`ml-2 fas ${
                               Object.values(expandedCancelledDates).some(
                                 (e) => e
                               )
@@ -1007,25 +969,24 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               }
                             >
                               <button
-                                className={
-                                  "btn btn-link w-100 d-flex justify-content-between align-items-center p-0 " +
-                                  (!expandedCancelledDates[dateKey]
+                                className={`w-full flex justify-between items-center p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors ${
+                                  !expandedCancelledDates[dateKey]
                                     ? "collapsed"
-                                    : "")
-                                }
+                                    : ""
+                                }`}
                                 type="button"
                                 onClick={() =>
                                   toggleCancelledDateExpansion(dateKey)
                                 }
                               >
-                                <span className="flex-grow-1 text-start">
+                                <span className="flex-grow text-left">
                                   {dailyOrderData.date}
                                 </span>
-                                <span className="me-2">
+                                <span className="mr-2">
                                   {dailyOrderData.orderCount}
                                 </span>
                                 <i
-                                  className={`ms-2 fas ${
+                                  className={`ml-2 fas ${
                                     expandedCancelledDates[dateKey]
                                       ? "fa-chevron-up"
                                       : "fa-chevron-down"

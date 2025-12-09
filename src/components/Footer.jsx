@@ -1,5 +1,4 @@
-import React from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useOutlet } from "../contexts/OutletContext";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -83,20 +82,7 @@ function Footer() {
             <span className="relative inline-block">
               <i className="fa-solid fa-cart-shopping"></i>
               {cartCount > 0 && (
-                <span
-                  className="absolute badge rounded-full flex items-center justify-center border border-white"
-                  style={{
-                    bottom: "14px",
-                    left: "15px",
-                    fontSize: "0.6rem",
-                    minWidth: 13,
-                    height: 13,
-                    backgroundColor: "#F44336",
-                    color: "white",
-                    padding: "0 4px",
-                    zIndex: 2,
-                  }}
-                >
+                <span className="absolute bottom-[14px] left-[15px] text-[0.6rem] min-w-[13px] h-[13px] bg-[#F44336] text-white px-1 py-0 z-[2] rounded-full flex items-center justify-center border border-white">
                   {/* {cartCount} */}
                 </span>
               )}

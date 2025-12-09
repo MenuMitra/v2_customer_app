@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,16 +12,8 @@ function Profile() {
   const { handleLogout, user, isAuthenticated, setShowAuthOffcanvas } =
     useAuth();
   const { clearCart } = useCart();
-  // const { isDarkMode } = useTheme();
   const navigate = useNavigate();
-  // const { openModal } = useModal();
   const { outletCode, sectionId, tableId } = useOutlet();
-
-  const iconStyle = {
-    // color: "#000",
-    opacity: "0.7",
-    minWidth: "20px",
-  };
 
   const onLogoutClick = (e) => {
     e.preventDefault();
@@ -46,22 +38,20 @@ function Profile() {
     <>
       <Header />
 
-      <div className="page-content pb-2 ">
-        <div className="container profile-area">
+      <div className="page-content pb-2">
+        <div className="max-w-[1200px] mx-auto px-4 profile-area">
           <div
-            className="profile rounded-4 mx-1 mt-3"
+            className={`profile rounded-2xl mx-1 mt-3 ${!isAuthenticated ? "cursor-pointer" : ""}`}
             onClick={!isAuthenticated ? handleLoginClick : undefined}
-            style={!isAuthenticated ? { cursor: "pointer" } : {}}
           >
-            <div className="d-flex align-items-center mb-0 ">
-              <div className="about-profile ">
+            <div className="flex items-center mb-0">
+              <div className="about-profile">
                 <h5 className="sub-title mb-2">
                   {isAuthenticated ? `Hello, ${user?.name}` : "Hello User"}
                 </h5>
                 {!isAuthenticated && (
                   <button
-                    className="btn btn-light position-absolute top-0 end-0 m-3 fw-semibold rounded-3xl px-3 py-2 border-2 border-white shadow-none"
-                    style={{ zIndex: 10 }}
+                    className="absolute top-0 right-0 m-3 font-semibold rounded-[50px] px-3 py-2 border-2 border-white shadow-none bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors z-10"
                     onClick={handleLoginClick}
                   >
                     Login
@@ -71,77 +61,77 @@ function Profile() {
             </div>
           </div>
           <div className="profile-content border-0">
-            <div className="row g-2">
-              <div className="col-6">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
                 <Link
                   to="/orders"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-clock-rotate-left me-2 text-dark" />
+                  <i className="fa-solid fa-clock-rotate-left mr-2 text-[#212529]" />
                   My Orders
                 </Link>
               </div>
-              <div className="col-6">
+              <div>
                 <Link
                   to="/search"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-magnifying-glass me-2 text-dark" />
+                  <i className="fa-solid fa-magnifying-glass mr-2 text-[#212529]" />
                   Search
                 </Link>
               </div>
-              <div className="col-6">
+              <div>
                 <Link
                   to="/savings"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-piggy-bank me-2 text-dark" />
+                  <i className="fa-solid fa-piggy-bank mr-2 text-[#212529]" />
                   Savings
                 </Link>
               </div>
-              <div className="col-6">
+              <div>
                 <Link
                   to="/all-outlets"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-store me-2 text-dark" />
+                  <i className="fa-solid fa-store mr-2 text-[#212529]" />
                   All Outlets
                 </Link>
               </div>
-              <div className="col-6">
+              <div>
                 <Link
                   to="/favourites"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-heart me-2 text-dark" />
+                  <i className="fa-solid fa-heart mr-2 text-[#212529]" />
                   Favourites
                 </Link>
               </div>
-              <div className="col-6">
+              <div>
                 <Link
                   to="/menu"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-utensils me-2 text-dark" />
+                  <i className="fa-solid fa-utensils mr-2 text-[#212529]" />
                   Menu
                 </Link>
               </div>
-              <div className="col-6">
+              <div>
                 <Link
                   to="/categories"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-list me-2 text-dark" />
+                  <i className="fa-solid fa-list mr-2 text-[#212529]" />
                   Category
                 </Link>
               </div>
               
-              <div className="col-6 mx-auto">
+              <div>
                 <Link
                   to="/checkout"
-                  className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
-                  <i className="fa-solid fa-shopping-cart me-2 text-dark" />
+                  <i className="fa-solid fa-shopping-cart mr-2 text-[#212529]" />
                   Checkout
                 </Link>
               </div>
@@ -149,14 +139,14 @@ function Profile() {
           </div>
           {isAuthenticated && (
             <div className="account-section mt-4">
-              <h5 className="mb-3">Account</h5>
-              <div className="row g-2">
-                <div className="col-10 mx-auto">
+              <h5 className="mb-3 text-lg font-semibold">Account</h5>
+              <div className="grid grid-cols-1 gap-2">
+                <div className="w-5/6 mx-auto">
                   <Link
                     to="/edit-profile"
-                    className="btn btn-light w-100 d-flex align-items-center justify-content-center py-3"
+                    className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                   >
-                    <i className="fa-solid fa-user me-2 text-dark" />
+                    <i className="fa-solid fa-user mr-2 text-[#212529]" />
                     Edit Profile
                   </Link>
                 </div>
@@ -165,25 +155,15 @@ function Profile() {
           )}
         </div>
       </div>
-      <div className="d-flex flex-column align-items-center my-4">
+      <div className="flex flex-col items-center my-4 pb-24">
         {isAuthenticated && (
-          <a
-            href="#"
+          <button
             onClick={(e) => { e.preventDefault(); setShowLogoutConfirm(true); }}
-            className="btn btn-outline-danger d-flex align-items-center gap-2 mb-5"
-            style={{ color: "#8B0000", borderColor: "#f5c2c7", borderWidth: "2px", backgroundColor: "transparent" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#f8d7da"; // light red
-              e.currentTarget.style.borderColor = "#dc3545"; // danger red
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-              e.currentTarget.style.borderColor = "#f5c2c7"; // light border
-            }}
+            className="flex items-center gap-2 mb-5 px-4 py-2 text-[#8B0000] border-2 border-[#f5c2c7] bg-transparent hover:bg-[#f8d7da] hover:border-[#dc3545] transition-colors rounded-lg"
           >
-            <i className="fa-solid fa-power-off" style={{ fontSize: 16, color: "#8B0000" }} />
-            <span style={{ color: "#8B0000" }}>Logout</span>
-          </a>
+            <i className="fa-solid fa-power-off text-base text-[#8B0000]" />
+            <span className="text-[#8B0000]">Logout</span>
+          </button>
         )}
         <MenuMitra />
       </div>

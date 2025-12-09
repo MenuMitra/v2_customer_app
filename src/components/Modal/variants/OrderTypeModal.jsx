@@ -1,4 +1,3 @@
-import React from 'react';
 import BaseModal from '../BaseModal';
 import { useOutlet } from '../../../contexts/OutletContext';
 import { useModal } from '../../../contexts/ModalContext';
@@ -43,23 +42,27 @@ export const OrderTypeModal = () => {
       size="modal-dialog-centered"
     >
       <div className="p-3">
-        <div className="row g-3">
-          {orderTypes.map((type) => (
-            <div key={type.id} className="col-6">
+        <div className="grid grid-cols-2 gap-3">
+          {orderTypes.map((type) => {
+            const isSelected = orderSettings.order_type === type.id;
+            return (
               <button 
-                className={`btn ${orderSettings.order_type === type.id ? 'btn-primary' : 'btn-outline-primary'} w-100 h-100 py-3 d-flex flex-column align-items-center justify-content-center`}
+                key={type.id}
+                className={`
+                  w-full h-full py-3 px-4 flex flex-col items-center justify-center
+                  rounded-xl min-h-[100px] transition-all duration-300 ease-in-out
+                  ${isSelected 
+                    ? 'bg-primary text-white border-2 border-primary' 
+                    : 'bg-white text-primary border-2 border-primary hover:bg-primary/10'
+                  }
+                `}
                 onClick={() => handleOrderTypeSelect(type.id)}
-                style={{
-                  borderRadius: '12px',
-                  minHeight: '100px',
-                  transition: 'all 0.3s ease'
-                }}
               >
-                <span className="mb-2" style={{ fontSize: '24px' }}>{type.icon}</span>
-                <span style={{ fontSize: '14px', fontWeight: '500' }}>{type.title}</span>
+                <span className="mb-2 text-2xl">{type.icon}</span>
+                <span className="text-sm font-medium">{type.title}</span>
               </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </BaseModal>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import PropTypes from "prop-types";
 import Skeleton from "react-loading-skeleton";
@@ -39,6 +39,19 @@ const CategorySwiper = ({
   if (isLoading) {
     return (
       <div className={`categories-box p-0 m-0 ${containerClassName || ""}`}>
+        <style>{`
+          .swiper-slide-auto {
+            width: auto !important;
+          }
+          .swiper-wrapper {
+            transform: translate3d(0, 0, 0) !important;
+            will-change: transform;
+            gap: 0;
+          }
+          .categorie-swiper {
+            padding: 0 8px !important;
+          }
+        `}</style>
         <div className="swiper-btn-center-lr">
           <Swiper
             spaceBetween={2}
@@ -55,35 +68,21 @@ const CategorySwiper = ({
           >
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <SwiperSlide key={item} className="swiper-slide-auto">
-                <div
-                  className="category-pill cursor-pointer d-inline-flex align-items-center rounded-pill border"
-                  style={{
-                    backgroundColor: "#e9ecef",
-                    boxShadow: "0px 1px 2px rgba(0, 0, 0, 0.05)",
-                    borderColor: "#dee2e6",
-                    padding: "6px 12px",
-                    height: "32px",
-                  }}
-                >
-                  <div className="d-flex align-items-center">
+                <div className="cursor-pointer inline-flex items-center rounded-full border h-8 px-3 py-1.5 bg-[#e9ecef] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] border-[#dee2e6]">
+                  <div className="flex items-center">
                     <Skeleton
                       width={40}
                       height={16}
                       baseColor="#E9ECEF"
                       highlightColor="#F8F9FA"
-                      style={{
-                        borderRadius: "12px",
-                      }}
+                      className="rounded-xl leading-none inline-block"
                     />
                     <Skeleton
                       width={20}
                       height={16}
                       baseColor="#E9ECEF"
                       highlightColor="#F8F9FA"
-                      style={{
-                        borderRadius: "12px",
-                        marginLeft: "6px",
-                      }}
+                      className="rounded-xl ml-1.5 leading-none inline-block"
                     />
                   </div>
                 </div>
@@ -97,6 +96,19 @@ const CategorySwiper = ({
 
   return (
     <div className={`categories-box p-0 m-0 ${containerClassName || ""}`} style={containerStyle}>
+      <style>{`
+        .swiper-slide-auto {
+          width: auto !important;
+        }
+        .swiper-wrapper {
+          transform: translate3d(0, 0, 0) !important;
+          will-change: transform;
+          gap: 0;
+        }
+        .categorie-swiper {
+          padding: 0 8px !important;
+        }
+      `}</style>
       <div className="swiper-btn-center-lr">
         <Swiper
           spaceBetween={2}
@@ -111,95 +123,44 @@ const CategorySwiper = ({
           resistance={true}
           resistanceRatio={0.85}
         >
-          {customCategories.map((category) => (
-            <SwiperSlide key={category.menuCatId} className="swiper-slide-auto">
-              <div
-                onClick={() => handleClick(category)}
-                className={`
-                  category-pill 
-                  cursor-pointer 
-                  d-inline-flex 
-                  align-items-center 
-                  rounded-pill 
-                  border 
-                  ${currentId === category.menuCatId ? "active" : ""}
-                `}
-              >
-                <span className="category-text">
-                  {category.categoryName}
-                  <span className="count">({category.menuCount || 0})</span>
-                </span>
-              </div>
-            </SwiperSlide>
-          ))}
+          {customCategories.map((category) => {
+            const isActive = currentId === category.menuCatId;
+            return (
+              <SwiperSlide key={category.menuCatId} className="swiper-slide-auto">
+                <div
+                  onClick={() => handleClick(category)}
+                  className={`
+                    cursor-pointer 
+                    inline-flex 
+                    items-center 
+                    rounded-full 
+                    border 
+                    h-8 
+                    px-3 
+                    py-1.5 
+                    text-sm
+                    transition-all
+                    duration-200
+                    ease-in-out
+                    ${isActive 
+                      ? 'bg-[#e9ecef] border-[#ced4da] font-medium shadow-[0_1px_2px_rgba(0,0,0,0.05)]' 
+                      : 'bg-[#e9ecef] border-[#dee2e6] shadow-[0_1px_2px_rgba(0,0,0,0.05)] hover:bg-white hover:border-[#ced4da] hover:shadow-[0_1px_3px_rgba(0,0,0,0.1)]'
+                    }
+                  `}
+                >
+                  <span className="text-[#212529] flex items-center gap-1.5">
+                    {category.categoryName}
+                    <span className="text-[#6c757d] text-[13px]">({category.menuCount || 0})</span>
+                  </span>
+                </div>
+              </SwiperSlide>
+            );
+          })}
         </Swiper>
       </div>
     </div>
   );
 };
-
-// Update the styles to match Google Images search suggestions
-const styles = `
-  .swiper-slide-auto {
-    width: auto !important;
-  }
-
-  .category-pill {
-    height: 32px;
-    padding: 6px 12px;
-    background-color: #e9ecef;
-    border-color: #dee2e6 !important;
-    transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    font-size: 14px;
-  }
-
-  .category-pill:hover {
-    background-color: #ffffff;
-    border-color: #ced4da !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .category-pill.active {
-    background-color: #e9ecef;
-    border-color: #ced4da !important;
-    font-weight: 500;
-  }
-
-  .category-text {
-    color: #212529;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .count {
-    color: #6c757d;
-    font-size: 13px;
-  }
-
-  .swiper-wrapper {
-    transform: translate3d(0, 0, 0) !important;
-    will-change: transform;
-    // padding: 4px 0;
-    gap: 0;
-  }
-
-  /* Skeleton specific styles */
-  .category-pill .react-loading-skeleton {
-    line-height: 1;
-    display: inline-block;
-  }
-
-  .categorie-swiper {
-    padding: 0 8px !important;
-  }
-`;
-
-// Add the styles to the document
-const styleSheet = document.createElement("style");
-styleSheet.innerText = styles;
-document.head.appendChild(styleSheet);
 
 CategorySwiper.propTypes = {
   onCategoryClick: PropTypes.func,

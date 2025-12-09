@@ -1,4 +1,3 @@
-import React from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
 const AuthPrompt = ({
@@ -44,7 +43,7 @@ const AuthPrompt = ({
   const finalTitle = variantConfig.title || title;
   const finalSubtitle = variantConfig.subtitle || subtitle;
 
-  // Default styles
+  // Default styles (only for custom overrides)
   const defaultIconStyle = {
     fontSize: 80,
     opacity: 0.5,
@@ -70,30 +69,36 @@ const AuthPrompt = ({
   };
 
   return (
-    <div
-      className={`d-flex align-items-center justify-content-center ${containerClassName}`}
-      style={{ minHeight }}
-    >
-      <div className="text-center">
-        <div className="mb-4">
-          <i
-            className={finalIconClassName}
-            style={iconStyle}
-            aria-hidden="true"
-          ></i>
+    <>
+      <style>{`
+        .auth-prompt-container {
+          min-height: ${minHeight};
+        }
+      `}</style>
+      <div
+        className={`auth-prompt-container flex items-center justify-center ${containerClassName}`}
+      >
+        <div className="text-center">
+          <div className="mb-4">
+            <i
+              className={finalIconClassName}
+              style={iconStyle}
+              aria-hidden="true"
+            ></i>
+          </div>
+          <h5 className="mb-3">{finalTitle}</h5>
+          <p className="text-dark mb-4">{finalSubtitle}</p>
+          <button
+            className="px-4 py-3 border-2 border-[var(--primary)] text-[var(--primary)] bg-transparent rounded-3xl font-medium hover:bg-[var(--primary)] hover:text-white transition-colors"
+            style={buttonStyle}
+            onClick={handleLogin}
+            aria-label="Open login"
+          >
+            {buttonLabel}
+          </button>
         </div>
-        <h5 className="mb-3">{finalTitle}</h5>
-        <p className="text-dark mb-4">{finalSubtitle}</p>
-        <button
-          className="btn btn-outline-primary px-4 py-3 rounded-3xl"
-          style={buttonStyle}
-          onClick={handleLogin}
-          aria-label="Open login"
-        >
-          {buttonLabel}
-        </button>
       </div>
-    </div>
+    </>
   );
 };
 

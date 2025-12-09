@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useCacheData } from '../contexts/CacheDataContext';
 
 /**
@@ -28,61 +28,50 @@ const CacheStatus = () => {
     return null;
   }
 
+  const gradientClass = dataSource === 'cache' 
+    ? 'bg-gradient-to-br from-[#26A69A] to-[#00796B]' 
+    : 'bg-gradient-to-br from-[#5C6BC0] to-[#3949AB]';
+
   return (
-    <div 
-      className="position-fixed bottom-0 end-0 m-3 z-index-999"
-      style={{ zIndex: 1050 }}
-    >
+    <div className="fixed bottom-0 right-0 m-3 z-[1050]">
       <div 
-        className="card border-0 shadow-sm"
-        style={{ 
-          maxWidth: expanded ? '300px' : '180px',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          transition: 'all 0.3s ease'
-        }}
+        className={`bg-white border-0 shadow-sm rounded-xl overflow-hidden transition-all duration-300 ease-in-out ${
+          expanded ? 'max-w-[300px]' : 'max-w-[180px]'
+        }`}
       >
         <div 
-          className="card-header py-2 px-3 d-flex justify-content-between align-items-center"
+          className={`py-2 px-3 flex justify-between items-center cursor-pointer text-white text-[0.8rem] ${gradientClass}`}
           onClick={toggleExpanded}
-          style={{ 
-            cursor: 'pointer',
-            background: dataSource === 'cache' 
-              ? 'linear-gradient(135deg, #26A69A 0%, #00796B 100%)' 
-              : 'linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%)',
-            color: 'white',
-            fontSize: '0.8rem'
-          }}
         >
-          <div className="d-flex align-items-center">
-            <i className={`fas ${dataSource === 'cache' ? 'fa-database' : 'fa-cloud-download-alt'} me-2`}></i>
+          <div className="flex items-center">
+            <i className={`fas ${dataSource === 'cache' ? 'fa-database' : 'fa-cloud-download-alt'} mr-2`}></i>
             <span>{dataSource === 'cache' ? 'Cached Data' : 'Fresh Data'}</span>
           </div>
           <i className={`fas ${expanded ? 'fa-chevron-down' : 'fa-chevron-up'}`}></i>
         </div>
         
         {expanded && (
-          <div className="card-body p-2" style={{ fontSize: '0.8rem' }}>
+          <div className="p-2 text-[0.8rem]">
             <div className="mb-2">
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Last Updated:</span>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Last Updated:</span>
                 <span>{formatTime(timestamp)}</span>
               </div>
-              <div className="d-flex justify-content-between">
-                <span className="text-muted">Cache Duration:</span>
+              <div className="flex justify-between">
+                <span className="text-gray-500">Cache Duration:</span>
                 <span>5 minutes</span>
               </div>
             </div>
             
-            <div className="d-grid">
+            <div className="grid">
               <button 
-                className="btn btn-sm btn-outline-secondary w-100"
+                className="w-full py-1.5 px-3 text-sm border border-gray-400 text-gray-600 rounded hover:bg-gray-100 transition-colors duration-200"
                 onClick={(e) => {
                   e.stopPropagation();
                   window.location.reload();
                 }}
               >
-                <i className="fas fa-sync-alt me-1"></i> Manual Refresh
+                <i className="fas fa-sync-alt mr-1"></i> Manual Refresh
               </button>
             </div>
           </div>

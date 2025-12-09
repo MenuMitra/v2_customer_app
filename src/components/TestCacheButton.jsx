@@ -1,4 +1,3 @@
-import React from 'react';
 import { useCacheData } from '../contexts/CacheDataContext';
 import { useOutlet } from '../contexts/OutletContext';
 
@@ -43,52 +42,50 @@ const TestCacheButton = () => {
     alert('Cache cleared. The next request will fetch fresh data.');
   };
 
+  // Get gradient class based on data source
+  const getGradientClass = () => {
+    if (dataSource === 'cache') {
+      return 'bg-gradient-to-br from-[#26A69A] to-[#00796B]';
+    } else if (dataSource === 'fresh') {
+      return 'bg-gradient-to-br from-[#5C6BC0] to-[#3949AB]';
+    } else {
+      return 'bg-gradient-to-br from-[#9E9E9E] to-[#616161]';
+    }
+  };
+
+  const getIconClass = () => {
+    if (dataSource === 'cache') {
+      return 'fa-database';
+    } else if (dataSource === 'fresh') {
+      return 'fa-cloud-download-alt';
+    } else {
+      return 'fa-question-circle';
+    }
+  };
+
   return (
-    <div className="d-flex flex-column align-items-center my-3">
+    <div className="flex flex-col items-center my-3">
       {/* Data source indicator */}
       <div className="mb-2">
-        <span className="badge rounded-pill px-3 py-2 me-2" style={{
-          background: dataSource === 'cache' 
-            ? 'linear-gradient(135deg, #26A69A 0%, #00796B 100%)' 
-            : dataSource === 'fresh' 
-              ? 'linear-gradient(135deg, #5C6BC0 0%, #3949AB 100%)'
-              : 'linear-gradient(135deg, #9E9E9E 0%, #616161 100%)',
-          color: 'white'
-        }}>
-          <i className={`fas me-1 ${
-            dataSource === 'cache' 
-              ? 'fa-database' 
-              : dataSource === 'fresh' 
-                ? 'fa-cloud-download-alt'
-                : 'fa-question-circle'
-          }`}></i>
+        <span className={`inline-flex items-center rounded-full px-3 py-2 mr-2 text-white ${getGradientClass()}`}>
+          <i className={`fas mr-1 ${getIconClass()}`}></i>
           Data Source: {dataSource === 'cache' ? 'Cache' : dataSource === 'fresh' ? 'Fresh API' : 'Unknown'}
         </span>
       </div>
       
-      <div className="btn-group">
+      <div className="flex gap-2">
         <button 
           onClick={handleForceFetch}
-          className="btn btn-sm btn-primary me-2"
-          style={{
-            background: 'linear-gradient(135deg, #FF7043 0%, #F4511E 100%)',
-            border: 'none',
-            borderRadius: '20px',
-            padding: '8px 16px'
-          }}
+          className="bg-gradient-to-br from-[#FF7043] to-[#F4511E] text-white border-0 rounded-full px-4 py-2 text-sm hover:opacity-90 transition-opacity"
         >
-          <i className="fas fa-sync-alt me-2"></i>
+          <i className="fas fa-sync-alt mr-2"></i>
           Force Refresh Data
         </button>
         <button 
           onClick={handleClearCache}
-          className="btn btn-sm btn-outline-secondary"
-          style={{
-            borderRadius: '20px',
-            padding: '8px 16px'
-          }}
+          className="border border-gray-400 text-gray-700 bg-white rounded-full px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
         >
-          <i className="fas fa-trash-alt me-2"></i>
+          <i className="fas fa-trash-alt mr-2"></i>
           Clear Cache
         </button>
       </div>

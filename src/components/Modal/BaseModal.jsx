@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 
 const getLayoutOffsets = () => {
@@ -22,7 +22,7 @@ const BaseModal = ({
   children, 
   footer,
   onClose,
-  size = 'modal-dialog-centered' // default size
+  size = 'modal-dialog-centered'
 }) => {
   const [layoutOffsets, setLayoutOffsets] = useState(getLayoutOffsets());
 
@@ -68,55 +68,61 @@ const BaseModal = ({
     ? Math.max(layoutOffsets.viewport - (layoutOffsets.header + layoutOffsets.footer + 64), 240)
     : undefined;
 
+  // Calculate padding dynamically
+  const paddingTop = layoutOffsets.header + 16;
+  const paddingBottom = layoutOffsets.footer + 16;
+
   return (
-    <div 
-      className="fixed inset-0 flex items-center justify-center overflow-y-auto bg-black/50 z-[2000] box-border px-4"
-      style={{
-        paddingTop: layoutOffsets.header + 16,
-        paddingBottom: layoutOffsets.footer + 16,
-      }}
-      onClick={handleBackdropClick}
-      aria-modal="true" 
-      role="dialog"
-    >
+    <>
+      <style>{`
+        .modal-backdrop-custom {
+          padding-top: ${paddingTop}px;
+          padding-bottom: ${paddingBottom}px;
+        }
+        .modal-content-custom {
+          max-height: ${contentMaxHeight ? `${contentMaxHeight}px` : 'calc(100vh - 120px)'};
+        }
+      `}</style>
       <div 
-        className={`w-full m-0 ${size === 'modal-dialog-centered' ? 'max-w-lg' : ''}`}
-        role="document"
+        className="modal-backdrop-custom fixed inset-0 flex items-center justify-center overflow-y-auto bg-black/50 z-[2000] box-border px-4"
+        onClick={handleBackdropClick}
+        aria-modal="true" 
+        role="dialog"
       >
         <div 
-          className="w-full bg-white rounded-lg shadow-xl overflow-y-auto"
-          style={{
-            maxHeight: contentMaxHeight ? `${contentMaxHeight}px` : 'calc(100vh - 120px)',
-          }}
+          className={`w-full m-0 ${size === 'modal-dialog-centered' ? 'max-w-lg' : ''}`}
+          role="document"
         >
-          {title && (
-            <div className="flex items-center justify-between p-4 border-b border-gray-200">
-              <h5 className="text-lg font-semibold text-gray-900 m-0">{title}</h5>
-              <button 
-                className="text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-0 text-2xl leading-none p-0 w-8 h-8 flex items-center justify-center" 
-                onClick={onClose}
-                type="button"
-                aria-label="Close"
-              >
-                <i className="fa-solid fa-xmark"></i>
-              </button>
+          <div 
+            className="modal-content-custom w-full bg-white rounded-lg shadow-xl overflow-y-auto"
+          >
+            {title && (
+              <div className="flex items-center justify-between p-4 border-b border-gray-200">
+                <h5 className="text-lg font-semibold text-gray-900 m-0">{title}</h5>
+                <button 
+                  className="text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-0 text-2xl leading-none p-0 w-8 h-8 flex items-center justify-center cursor-pointer" 
+                  onClick={onClose}
+                  type="button"
+                  aria-label="Close"
+                >
+                  <i className="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            )}
+            <div className="p-4">
+              {children}
             </div>
-          )}
-          <div className="p-4">
-            {children}
+            {footer && (
+              <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
+                {footer}
+              </div>
+            )}
           </div>
-          {footer && (
-            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
-              {footer}
-            </div>
-          )}
         </div>
       </div>
-    </div>
+    </>
   );
 };
-
-export default BaseModal;
 
 BaseModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
@@ -126,3 +132,5 @@ BaseModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   size: PropTypes.string
 };
+
+export default BaseModal;

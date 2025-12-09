@@ -1,6 +1,4 @@
-import React from 'react';
 // Adjust the path below to where your logo is actually stored
-import logo from '../assets/logo.png';
 import logo2 from '../assets/mm-logo.png';
 
 
@@ -33,16 +31,14 @@ const SOCIAL_LINKS = [
 
 const MenuMitra = () => {
   const renderLogo = () => (
-    <div className="d-flex flex-column align-items-center mb-4">
-      <a href="https://menumitra.com" target="_blank" rel="noopener noreferrer" className="text-decoration-none d-flex align-items-center">
+    <div className="flex flex-col items-center mb-2 pb-2">
+      <a href="https://menumitra.com" target="_blank" rel="noopener noreferrer" className="no-underline flex items-center">
         <img 
           src={logo2} 
           alt="MenuMitra Logo" 
-          width="32" 
-          height="32"
-          className="img-fluid" 
+          className="w-8 h-8 max-w-full" 
         />
-        <div className="text-dark fw-semibold ms-2 fs-5">
+        <div className="text-gray-900 font-semibold ml-2 text-xl">
           MenuMitra
         </div>
       </a>
@@ -50,26 +46,18 @@ const MenuMitra = () => {
   );
 
   const renderSocialLinks = () => (
-    <div className="d-flex justify-content-center gap-3 mb-3">
-      {SOCIAL_LINKS.map(({ platform, url, icon, color }) => (
+    <div className="flex justify-center gap-3 mb-3">
+      {SOCIAL_LINKS.map(({ platform, url, icon }) => (
         <a
           key={platform}
           href={url}
-          className="text-decoration-none"
+          className="no-underline"
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Visit MenuMitra on ${platform}`}
         >
-          <div 
-            className="rounded-circle d-flex align-items-center justify-content-center border"
-            style={{ 
-              width: '40px', 
-              height: '40px', 
-              borderColor: '#ddd',
-              backgroundColor: '#fff'
-            }}
-          >
-            <i className={icon} style={{ fontSize: '20px', color: color }}></i>
+          <div className="rounded-full flex items-center justify-center border border-[#ddd] bg-white w-10 h-10 hover:shadow-md transition-shadow duration-200">
+            <i className={`${icon} text-xl social-icon-${platform}`}></i>
           </div>
         </a>
       ))}
@@ -78,17 +66,25 @@ const MenuMitra = () => {
 
   const renderFooter = () => (
     <div className="text-center">
-      <p className="text-muted mb-0 small">version 2.1.1</p>
-      <p className="text-muted mb-0 small">13 Aug 2025</p>
+      <p className="text-gray-500 mb-0 text-sm">version 2.1.1</p>
+      <p className="text-gray-500 mb-0 text-sm">13 Aug 2025</p>
     </div>
   );
 
   return (
-    <div className="border-top py-3 px-3 bg-light rounded-4">
-      {renderLogo()}
-      {renderSocialLinks()}
-      {renderFooter()}
-    </div>
+    <>
+      <style>{`
+        .social-icon-google { color: #4285F4; }
+        .social-icon-facebook { color: #3c74ee; }
+        .social-icon-instagram { color: #E4405F; }
+        .social-icon-youtube { color: #FF0000; }
+      `}</style>
+      <div className="border-t border-gray-200  py-3 px-3 pb-3 bg-gray-100 rounded-2xl">
+        {renderLogo()}
+        {renderSocialLinks()}
+        {renderFooter()}
+      </div>
+    </>
   );
 };
 

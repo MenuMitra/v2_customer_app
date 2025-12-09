@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Header from "../components/Header";
@@ -37,8 +37,8 @@ function Categories() {
 
   // Error component
   const ErrorMessage = ({ message }) => (
-    <div className="alert alert-danger mx-3" role="alert">
-      <i className="fas fa-exclamation-circle me-2"></i>
+    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mx-3" role="alert">
+      <i className="fas fa-exclamation-circle mr-2"></i>
       {message}
     </div>
   );
@@ -50,61 +50,54 @@ function Categories() {
 
     return (
       <>
+        <style>{`
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+          .skeleton-shimmer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 1.5s infinite;
+          }
+        `}</style>
         {skeletons.map((_, index) => (
           <div 
             key={`skeleton-${index}`} 
-            className={`${isList ? 'col-12' : 'col-6 col-md-4 col-lg-3'} mb-3`}
+            className={`${isList ? 'w-full' : 'w-1/2 md:w-1/3 lg:w-1/4'} mb-3 px-2`}
             role="status" 
             aria-busy="true" 
             aria-label="Loading categories"
           >
             <div 
-              className="card h-100 border-0 rounded-4 shadow-sm"
-              style={{
-                background: 'linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%)',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: isList ? '88px' : '140px',
-                marginBottom: '1rem',
-              }}
+              className={`h-full border-0 rounded-2xl shadow-sm bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden ${
+                isList ? 'min-h-[88px]' : 'min-h-[140px]'
+              } mb-4`}
             >
               {/* Shimmer effect overlay */}
               <div className="skeleton-shimmer" />
               
-              <div className={`card-body d-flex ${isList ? 'align-items-center' : 'flex-column align-items-center text-center'} p-3 p-md-4`}>
+              <div className={`p-3 md:p-4 flex ${isList ? 'items-center' : 'flex-col items-center text-center'}`}>
                 {/* Icon skeleton */}
                 <div 
-                  className={isList ? 'me-3' : 'mb-3'} 
-                  style={{
-                    width: isList ? '32px' : '36px',
-                    height: isList ? '32px' : '36px',
-                    borderRadius: '50%',
-                    background: '#e0e0e0',
-                  }} 
+                  className={`${isList ? 'mr-3' : 'mb-3'} ${isList ? 'w-8 h-8' : 'w-9 h-9'} rounded-full bg-gray-300`}
                   aria-hidden="true"
                 />
                 
-                <div className={isList ? 'flex-grow-1' : ''}>
+                <div className={isList ? 'flex-grow' : ''}>
                   {/* Title skeleton */}
                   <div 
-                    className="mb-2" 
-                    style={{
-                      width: isList ? '70%' : '80%',
-                      height: '18px',
-                      borderRadius: '4px',
-                      background: '#e0e0e0',
-                    }} 
+                    className={`mb-2 h-[18px] rounded bg-gray-300 ${isList ? 'w-[70%]' : 'w-[80%]'}`}
                     aria-hidden="true"
                   />
                   
                   {/* Count skeleton */}
                   <div 
-                    style={{
-                      width: isList ? '72px' : '88px',
-                      height: '22px',
-                      borderRadius: '12px',
-                      background: '#e0e0e0',
-                    }} 
+                    className={`h-[22px] rounded-xl bg-gray-300 ${isList ? 'w-[72px]' : 'w-[88px]'}`}
                     aria-hidden="true"
                   />
                 </div>
@@ -118,93 +111,55 @@ function Categories() {
 
   // View toggle component
   const ViewToggle = () => (
-    <div className="d-flex justify-content-end align-items-center mb-4">
-      <div className="bg-light rounded-pill p-1 shadow-sm" role="group" aria-label="View mode">
+    <div className="flex justify-end items-center mb-4">
+      <div className="bg-gray-100 rounded-full p-1 shadow-sm" role="group" aria-label="View mode">
         <button
           type="button"
-          className={`btn btn-sm rounded-3xl px-3 py-2 me-1 ${
+          className={`px-3 py-2 mr-1 rounded-full text-sm transition-all duration-300 focus:outline-none hover:-translate-y-px ${
             viewMode === 'grid' 
-              ? 'text-white shadow-sm' 
-              : 'text-muted'
+              ? 'text-white shadow-sm bg-gradient-to-br from-[#FF7043] to-[#F4511E]' 
+              : 'text-gray-500 hover:bg-black/5'
           }`}
           onClick={() => setViewMode('grid')}
-          style={{
-            background: viewMode === 'grid' 
-              ? 'linear-gradient(135deg, #FF7043 0%, #F4511E 100%)' 
-              : 'transparent',
-            border: 'none',
-            transition: 'all 0.3s ease',
-          }}
         >
           <i className="fas fa-th-large"></i>
         </button>
       </div>
-      <style>
-        {`
-          .btn:focus {
-            box-shadow: none !important;
-          }
-          .btn:hover {
-            transform: translateY(-1px);
-          }
-          .btn:not(.text-white):hover {
-            background: rgba(0,0,0,0.05) !important;
-          }
-        `}
-      </style>
     </div>
   );
 
   // Category Card Component
   const CategoryCard = ({ category, index, isList }) => {
-    const gradients = {
-      0: 'linear-gradient(135deg, rgba(255, 112, 67, 0.65) 0%, rgba(244, 81, 30, 0.65) 100%)', // Warm Orange
-      1: 'linear-gradient(135deg, rgba(38, 166, 154, 0.65) 0%, rgba(0, 121, 107, 0.65) 100%)', // Teal
-      2: 'linear-gradient(135deg, rgba(92, 107, 192, 0.65) 0%, rgba(57, 73, 171, 0.65) 100%)', // Indigo
-      3: 'linear-gradient(135deg, rgba(126, 87, 194, 0.65) 0%, rgba(81, 45, 168, 0.65) 100%)', // Deep Purple
-    };
+    const gradients = [
+      'bg-gradient-to-br from-[rgba(255,112,67,0.65)] to-[rgba(244,81,30,0.65)]', // Warm Orange
+      'bg-gradient-to-br from-[rgba(38,166,154,0.65)] to-[rgba(0,121,107,0.65)]', // Teal
+      'bg-gradient-to-br from-[rgba(92,107,192,0.65)] to-[rgba(57,73,171,0.65)]', // Indigo
+      'bg-gradient-to-br from-[rgba(126,87,194,0.65)] to-[rgba(81,45,168,0.65)]', // Deep Purple
+    ];
 
-    const icons = {
-      0: 'fa-utensils',
-      1: 'fa-hamburger',
-      2: 'fa-pizza-slice',
-      3: 'fa-coffee',
-    };
+    const icons = [
+      'fa-utensils',
+      'fa-hamburger',
+      'fa-pizza-slice',
+      'fa-coffee',
+    ];
 
     return (
-      <div className={isList ? 'col-12' : 'col-6 col-md-4 col-lg-3'}>
+      <div className={isList ? 'w-full px-2' : 'w-1/2 md:w-1/3 lg:w-1/4 px-2'}>
         <div 
           onClick={(e) => handleCategoryClick(e, category)}
-          className="card border-0 rounded-4 shadow-sm cursor-pointer mb-3"
-          style={{
-            background: gradients[index % 4],
-            cursor: 'pointer',
-            transition: 'all 0.3s ease',
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-3px)';
-            e.currentTarget.style.boxShadow = '0 8px 20px rgba(0,0,0,0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,.075)';
-          }}
+          className={`border-0 rounded-2xl shadow-sm cursor-pointer mb-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${gradients[index % 4]}`}
         >
-          <div className="card-body">
-            <div className={`d-flex ${isList ? 'align-items-center' : 'flex-column align-items-center text-center'}`}>
-              <div className={`icon-wrapper ${isList ? 'me-3' : 'mb-3'}`}>
-                <i className={`fas ${icons[index % 4]} fa-${isList ? '1x' : '2x'} text-white opacity-90`}></i>
+          <div className="p-4">
+            <div className={`flex ${isList ? 'items-center' : 'flex-col items-center text-center'}`}>
+              <div className={isList ? 'mr-3' : 'mb-3'}>
+                <i className={`fas ${icons[index % 4]} ${isList ? 'text-xl' : 'text-3xl'} text-white opacity-90`}></i>
               </div>
-              <div className={isList ? 'flex-grow-1' : ''}>
-                <h6 className="text-white mb-2"
-                  style={{
-                    fontSize: '1rem',
-                    fontWeight: '600',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.2)'
-                  }}>
+              <div className={isList ? 'flex-grow' : ''}>
+                <h6 className="text-white mb-2 text-base font-semibold shadow-text">
                   {category.category_name}
                 </h6>
-                <span className="badge bg-white bg-opacity-25 text-white px-2 py-1 rounded-pill">
+                <span className="inline-block bg-white/25 text-white px-2 py-1 rounded-full text-sm">
                   {category.menu_count} Items
                 </span>
               </div>
@@ -224,35 +179,42 @@ function Categories() {
 
   return (
     <div>
+      <style>{`
+        .shadow-text {
+          text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+        }
+      `}</style>
       <Header />
-      <div className="page-content p-b60">
-        <div className="container">
+      <div className="page-content pb-16">
+        <div className="container mx-auto px-4">
           {/* Test cache controls - Remove in production */}
           {/* <TestCacheButton /> */}
           
           <QueryErrorBoundary>
             {/* Optional: Add refresh button */}
-            {/* <div className="d-flex justify-content-between align-items-center mb-4">
+            {/* <div className="flex justify-between items-center mb-4">
               <ViewToggle />
               {!isLoading && (
                 <button 
-                  className="btn btn-light btn-sm"
+                  className="px-3 py-2 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 transition-colors"
                   onClick={() => refetch()}
                 >
-                  <i className="fas fa-sync-alt me-1"></i>
+                  <i className="fas fa-sync-alt mr-1"></i>
                   Refresh
                 </button>
               )}
             </div> */}
 
             {/* Search bar */}
-            <div className="row mb-3">
-              <div className="col-12">
-                <div className="input-group">
-                  <span className="input-group-text bg-white"><i className="fas fa-search"></i></span>
+            <div className="flex mb-3">
+              <div className="w-full">
+                <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden bg-white">
+                  <span className="flex items-center justify-center px-3 bg-white">
+                    <i className="fas fa-search text-gray-500"></i>
+                  </span>
                   <input
                     type="search"
-                    className="form-control"
+                    className="flex-1 px-3 py-2 border-0 outline-none focus:ring-0"
                     placeholder="Search categories..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -263,13 +225,13 @@ function Categories() {
             </div>
 
             {/* Categories display */}
-            <div className="row">
+            <div className="flex flex-wrap -mx-2">
               {isLoading ? (
                 <CategorySkeleton isList={viewMode === 'list'} />
               ) : error ? (
-                <div className="col-12">
-                  <div className="alert alert-danger" role="alert">
-                    <i className="fas fa-exclamation-circle me-2"></i>
+                <div className="w-full px-2">
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded" role="alert">
+                    <i className="fas fa-exclamation-circle mr-2"></i>
                     {error.message || 'Failed to load categories'}
                   </div>
                 </div>
@@ -283,9 +245,9 @@ function Categories() {
                   />
                 ))
               ) : (
-                <div className="col-12 text-center py-5">
-                  <i className="fas fa-folder-open fa-3x text-muted mb-3 d-block"></i>
-                  <h5 className="text-muted">No categories found</h5>
+                <div className="w-full text-center py-12">
+                  <i className="fas fa-folder-open text-5xl text-gray-400 mb-3 block"></i>
+                  <h5 className="text-gray-500 text-lg">No categories found</h5>
                 </div>
               )}
             </div>

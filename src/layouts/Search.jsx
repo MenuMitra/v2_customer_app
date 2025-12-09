@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import HorizontalMenuCard from "../components/HorizontalMenuCard";
-import { useAuth } from "../contexts/AuthContext"; // Assuming you have AuthContext
-import { debounce } from "lodash"; // Make sure to install lodash
+import { useAuth } from "../contexts/AuthContext";
+import { debounce } from "lodash";
 import { useOutlet } from "../contexts/OutletContext";
 import QuickFilters from "../components/QuickFilters";
 import apiService from "../api/apiService";
@@ -11,13 +11,6 @@ import { useQuery } from "@tanstack/react-query";
 import AuthPrompt from "../components/Auth/AuthPrompt";
 
 function Search() {
-  // Add this at the start of the component, with other useEffects
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.textContent = styles;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
 
   const [error, setError] = useState(null);
   const [searchInputValue, setSearchInputValue] = useState("");
@@ -120,28 +113,44 @@ function Search() {
 
   return (
     <>
+      <style>{`
+        /* Remove the clear (x) button from search inputs */
+        input[type="search"]::-webkit-search-decoration,
+        input[type="search"]::-webkit-search-cancel-button,
+        input[type="search"]::-webkit-search-results-button,
+        input[type="search"]::-webkit-search-results-decoration,
+        input[type="search"]::-webkit-clear-button {
+          -webkit-appearance: none;
+          appearance: none;
+          display: none;
+        }
+        
+        input[type="search"]::-ms-clear,
+        input[type="search"]::-ms-reveal {
+          display: none;
+          width: 0;
+          height: 0;
+        }
+
+        input[type="search"] {
+          -moz-appearance: none;
+          appearance: none;
+        }
+      `}</style>
       <Header />
       <div className="page-content">
-        <div className="container">
-          <div className="serach-area">
-            <div className="d-flex align-items-center mb-4">
-              <div className="w-100">
-                <div className="mb-0 input-group input-group-icon">
-                  <div className="input-group-text">
-                    <div
-                      className="input-icon search-icon"
-                      style={{ cursor: "not-allowed", opacity: 0.5 }}
-                    >
-                      <i
-                        className="fas fa-search"
-                        style={{ fontSize: "20px", color: "#7D8FAB" }}
-                      ></i>
-                    </div>
+        <div className="max-w-[1200px] mx-auto px-4">
+          <div className="relative z-[1]">
+            <div className="flex items-center mb-4">
+              <div className="w-full">
+                <div className="mb-0 flex items-center border border-[var(--border-color)] rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-center px-3 bg-[#f8f9fa] cursor-not-allowed opacity-50">
+                    <i className="fas fa-search text-[20px] text-[#7D8FAB]"></i>
                   </div>
                   <input
                     ref={searchInputRef}
                     type="search"
-                    className="form-control main-in px-0 bs-0"
+                    className="flex-1 px-3 py-2 border-0 outline-none"
                     placeholder="Search menu items..."
                     onChange={handleSearchChange}
                     value={searchInputValue}
@@ -150,25 +159,16 @@ function Search() {
                     data-search-input
                   />
                   {searchInputValue && (
-                    <div className="input-group-text px-4">
+                    <div className="flex items-center px-4">
                       <button
                         type="button"
-                        className="btn btn-link p-0 border-0"
+                        className="p-0 border-0 bg-transparent text-[#6c757d] text-base leading-none cursor-pointer hover:text-[#495057] transition-colors"
                         onClick={() => {
                           setSearchInputValue("");
                           setSearchResults([]);
                           if (searchInputRef.current) {
                             searchInputRef.current.focus();
                           }
-                        }}
-                        style={{
-                          color: "#6c757d",
-                          fontSize: "16px",
-                          lineHeight: 1,
-                          padding: "0",
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
                         }}
                         title="Clear search"
                       >
@@ -181,29 +181,21 @@ function Search() {
             </div>
             <QuickFilters
               onFilterChange={handleQuickFilterChange}
-              menuList={searchResults} // Pass the original search results
+              menuList={searchResults}
             />
 
             {isLoading || isFetching ? (
               <div className="text-center py-4">
-                <div className="spinner-border text-primary" role="status">
-                  <span className="visually-hidden">Loading...</span>
+                <div className="inline-block w-8 h-8 border-4 border-[var(--primary)] border-t-transparent rounded-full animate-spin" role="status">
+                  <span className="sr-only">Loading...</span>
                 </div>
               </div>
             ) : (error || searchError) &&
               searchError?.response?.status !== 404 ? (
               <div className="text-center py-4">
                 <div className="empty-search-state">
-                  <i
-                    className="fas fa-exclamation-circle"
-                    style={{
-                      fontSize: "64px",
-                      color: "#dc3545",
-                      opacity: "0.5",
-                      marginBottom: "1rem",
-                    }}
-                  ></i>
-                  <p className="mt-3 text-muted">
+                  <i className="fas fa-exclamation-circle text-[64px] text-[#dc3545] opacity-50 mb-4"></i>
+                  <p className="mt-3 text-[#6c757d]">
                     Error:{" "}
                     {error?.message ||
                       searchError?.message ||
@@ -220,7 +212,7 @@ function Search() {
                 onLogin={() => {
                   if (searchInputRef.current) searchInputRef.current.focus();
                 }}
-                containerClassName="w-100"
+                containerClassName="w-full"
                 minHeight="calc(100vh - 300px)"
               />
             ) : displayResults.length === 0 ||
@@ -235,7 +227,7 @@ function Search() {
                   setSearchResults([]);
                   if (searchInputRef.current) searchInputRef.current.focus();
                 }}
-                containerClassName="w-100"
+                containerClassName="w-full"
                 minHeight="calc(100vh - 300px)"
               />
             ) : (
@@ -308,96 +300,5 @@ function Search() {
     </>
   );
 }
-
-const styles = `
-  .input-icon.search-icon.disabled {
-    pointer-events: none;
-  }
-  
-  .empty-search-state {
-    padding: 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin-top: 10rem;
-  }
-  
-  .empty-search-state i {
-    margin-bottom: 1rem;
-  }
-  
-  .empty-search-state p {
-    font-size: 1rem;
-    color: #6c757d;
-    margin: 0;
-    max-width: 80%;
-    text-align: center;
-  }
-  
-  .recent-search-list i {
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Remove the clear (x) button from search inputs - Comprehensive solution */
-  input[type="search"]::-webkit-search-decoration,
-  input[type="search"]::-webkit-search-cancel-button,
-  input[type="search"]::-webkit-search-results-button,
-  input[type="search"]::-webkit-search-results-decoration,
-  input[type="search"]::-webkit-clear-button {
-    -webkit-appearance: none;
-    appearance: none;
-    display: none;
-  }
-  
-  /* For Edge/IE */
-  input[type="search"]::-ms-clear,
-  input[type="search"]::-ms-reveal {
-    display: none;
-    width: 0;
-    height: 0;
-  }
-
-  /* For Firefox */
-  input[type="search"] {
-    -moz-appearance: none;
-  }
-
-  /* Global override */
-  input[type="search"] {
-    appearance: none;
-  }
-
-  /* Additional safety measure */
-  .main-in::-webkit-search-cancel-button {
-    display: none !important;
-    -webkit-appearance: none !important;
-  }
-
-  /* QuickFilters styles */
-  .basic-dropdown {
-    position: relative;
-    z-index: 1050; /* Higher z-index to ensure visibility */
-  }
-
-  .basic-dropdown .dropdown-menu {
-    z-index: 1051; /* Even higher z-index for the dropdown menu */
-  }
-
-  .basic-dropdown .dropdown-menu.show {
-    display: block;
-    margin-top: 5px;
-  }
-
-  /* Ensure the search container doesn't overlap */
-  .serach-area {
-    position: relative;
-    z-index: 1;
-  }
-`;
 
 export default Search;

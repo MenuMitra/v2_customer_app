@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import { useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Autoplay, EffectFade } from 'swiper/modules';
 import PropTypes from 'prop-types';
@@ -26,48 +26,20 @@ const CodeSandboxBannerSwiper = ({
   };
 
   return (
-    <div className="codesandbox-banner-swiper">
-      <style jsx>{`
-        .codesandbox-banner-swiper {
-          position: relative;
-          width: 100%;
-          height: 250px;
-          margin: 20px 0;
-          border-radius: 20px;
-          overflow: hidden;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
+    <div className="codesandbox-banner-swiper relative w-full h-[250px] my-5 rounded-[20px] overflow-hidden shadow-[0_10px_30px_rgba(0,0,0,0.2)] md:h-[200px] md:my-[15px] md:rounded-[15px] max-[480px]:h-[250px] max-[480px]:my-2.5 max-[480px]:rounded-xl">
+      <style>{`
+        /* Swiper container - full size */
         .codesandbox-banner-swiper .swiper {
           width: 100%;
           height: 100%;
         }
 
-        .codesandbox-banner-swiper .swiper-slide {
-          position: relative;
-          background-position: center;
-          background-size: cover;
-          background-repeat: no-repeat;
-          cursor: pointer;
-          transition: transform 0.3s ease;
-        }
-
-        .codesandbox-banner-swiper .banner-slide {
-          width: 100%;
-          height: 100%;
-          background-position: center;
-          background-size: cover;
-          background-repeat: no-repeat;
-          position: relative;
-        }
-
+        /* Swiper slide hover effect */
         .codesandbox-banner-swiper .swiper-slide:hover {
           transform: scale(1.02);
         }
 
-        /* Removed banner overlay styles - no text overlay */
-
-        /* Navigation Buttons */
+        /* Navigation Buttons - Base styles */
         .codesandbox-banner-swiper .swiper-button-next,
         .codesandbox-banner-swiper .swiper-button-prev {
           color: white;
@@ -80,40 +52,22 @@ const CodeSandboxBannerSwiper = ({
           backdrop-filter: blur(10px);
         }
 
+        /* Navigation Buttons - Hover */
         .codesandbox-banner-swiper .swiper-button-next:hover,
         .codesandbox-banner-swiper .swiper-button-prev:hover {
           background: rgba(0, 0, 0, 0.8);
           transform: scale(1.1);
         }
 
+        /* Navigation Buttons - Arrow icons */
         .codesandbox-banner-swiper .swiper-button-next:after,
         .codesandbox-banner-swiper .swiper-button-prev:after {
           font-size: 20px;
           font-weight: bold;
         }
 
-        /* Removed pagination styles */
-
-        /* Mobile Responsive */
+        /* Tablet Navigation Buttons */
         @media (max-width: 768px) {
-          .codesandbox-banner-swiper {
-            height: 200px;
-            margin: 15px 0;
-            border-radius: 15px;
-          }
-
-          .banner-title {
-            font-size: 1.8rem;
-          }
-
-          .banner-subtitle {
-            font-size: 1rem;
-          }
-
-          .banner-description {
-            font-size: 0.9rem;
-          }
-
           .codesandbox-banner-swiper .swiper-button-next,
           .codesandbox-banner-swiper .swiper-button-prev {
             width: 40px;
@@ -125,29 +79,10 @@ const CodeSandboxBannerSwiper = ({
           .codesandbox-banner-swiper .swiper-button-prev:after {
             font-size: 16px;
           }
-
-          /* Removed banner overlay mobile styles */
         }
 
+        /* Mobile Navigation Buttons */
         @media (max-width: 480px) {
-          .codesandbox-banner-swiper {
-            height: 250px;
-            margin: 10px 0;
-            border-radius: 12px;
-          }
-
-          .banner-title {
-            font-size: 1.5rem;
-          }
-
-          .banner-subtitle {
-            font-size: 0.9rem;
-          }
-
-          .banner-description {
-            font-size: 0.8rem;
-          }
-
           .codesandbox-banner-swiper .swiper-button-next,
           .codesandbox-banner-swiper .swiper-button-prev {
             width: 35px;
@@ -159,8 +94,6 @@ const CodeSandboxBannerSwiper = ({
           .codesandbox-banner-swiper .swiper-button-prev:after {
             font-size: 14px;
           }
-
-          /* Removed banner overlay mobile styles */
         }
 
         /* Touch optimizations */
@@ -203,7 +136,6 @@ const CodeSandboxBannerSwiper = ({
           nextEl: nextRef.current,
         }}
         speed={800}
-        // Touch parameters for better responsiveness
         touchRatio={1}
         touchAngle={45}
         threshold={5}
@@ -213,12 +145,10 @@ const CodeSandboxBannerSwiper = ({
         touchReleaseOnEdges={false}
         simulateTouch={true}
         resistanceRatio={0.85}
-        // Additional parameters for smooth experience
         watchSlidesProgress={true}
         preventInteractionOnTransition={false}
         allowSlideNext={true}
         allowSlidePrev={true}
-        // Accessibility
         a11y={{
           enabled: true,
           prevSlideMessage: 'Previous banner',
@@ -227,16 +157,19 @@ const CodeSandboxBannerSwiper = ({
           lastSlideMessage: 'This is the last banner',
         }}
       >
-        {banners.map((banner) => (
+        {banners.map((banner, index) => (
           <SwiperSlide 
             key={banner.banner_id || banner.id}
+            className="relative bg-center bg-cover bg-no-repeat cursor-pointer transition-transform duration-300 ease-in-out"
             onClick={() => handleBannerClick(banner)}
           >
+            <style>{`
+              .banner-slide-${index} {
+                background-image: url(${banner.bgImage || banner.image});
+              }
+            `}</style>
             <div 
-              className="banner-slide"
-              style={{
-                backgroundImage: `url(${banner.bgImage || banner.image})`,
-              }}
+              className={`banner-slide banner-slide-${index} w-full h-full bg-center bg-cover bg-no-repeat relative`}
               alt={`${banner.title || banner.heading || banner.subtitle || 'Banner'} - ${banner.description || banner.subtitle || ''}`}
               title={`${banner.title || banner.heading || banner.subtitle || 'Banner'}`}
               role="img"
@@ -246,8 +179,6 @@ const CodeSandboxBannerSwiper = ({
           </SwiperSlide>
         ))}
       </Swiper>
-
-   
     </div>
   );
 };

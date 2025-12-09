@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 
 function SearchBar({ onSearch, menuItems = [] }) {
@@ -49,12 +49,11 @@ function SearchBar({ onSearch, menuItems = [] }) {
   };
 
   return (
-    <div className="search-box mb-4">
-      <div className="mb-3 input-group input-radius">
-        <span className="input-group-text">
+    <div className="mb-4">
+      <div className="mb-3 flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden">
+        <span className="flex items-center justify-center px-3 py-2 bg-gray-50 border-r border-gray-300">
           <svg
-            width={24}
-            height={24}
+            className="w-6 h-6"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
@@ -68,18 +67,17 @@ function SearchBar({ onSearch, menuItems = [] }) {
         <input
           type="text"
           placeholder="Search beverages or foods"
-          className="form-control main-in ps-0 bs-0"
+          className="flex-1 px-3 py-2 border-0 outline-none focus:ring-0"
           value={searchQuery}
           onChange={handleSearch}
         />
         {searchQuery && (
           <span 
-            className="input-group-text" 
+            className="flex items-center justify-center px-3 py-2 bg-gray-50 border-l border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors" 
             onClick={handleClear}
-            style={{ cursor: 'pointer' }}
             title="Clear search"
           >
-            <i class="fa-regular fa-circle-xmark" style={{color:"red"}}></i>
+            <i className="fa-regular fa-circle-xmark text-red-500"></i>
           </span>
         )}
       </div>

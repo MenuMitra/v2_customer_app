@@ -46,7 +46,7 @@ function App() {
     setShouldClearCart(true);
   }, []);
 
-  console.log("Router basename:", import.meta.env.BASE_URL);
+  
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,4 +1,3 @@
-import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 // Import all necessary Swiper styles
@@ -12,11 +11,11 @@ const OfferBanner = () => {
   const { menuItems, isLoading } = useMenuItems();
   const offerMenus = menuItems.filter((item) => item.offer > 0);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (offerMenus.length === 0) return <div>No offers available.</div>;
+  if (isLoading) return <div className="text-center py-4 text-[#6c757d]">Loading...</div>;
+  if (offerMenus.length === 0) return <div className="text-center py-4 text-[#6c757d]">No offers available.</div>;
 
   return (
-    <div className="offer-banner-container" style={{ position: 'relative' }}>
+    <div className="offer-banner-container relative">
       <Swiper
         modules={[Autoplay]}
         slidesPerView={1}
@@ -35,14 +34,11 @@ const OfferBanner = () => {
             slidesPerView: 1.5,
           }
         }}
-        style={{
-          width: '100%',
-          height: '100%',
-        }}
+        className="w-full h-full"
       >
         {offerMenus.map((menu) => (
           <SwiperSlide key={menu.menuId}>
-            <div style={{ padding: '10px' }}>
+            <div className="p-2.5">
               <HorizontalMenuCard
                 image={menu.image}
                 title={menu.menuName}

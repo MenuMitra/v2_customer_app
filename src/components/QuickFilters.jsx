@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const QuickFilters = ({ onFilterChange, menuList }) => {
   const [activeFilters, setActiveFilters] = useState({
@@ -89,6 +89,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
       }
     };
 
+
     document.addEventListener("click", handleClickOutside);
     return () => {
       document.removeEventListener("click", handleClickOutside);
@@ -103,50 +104,46 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
     switch (type) {
       case "veg":
         return {
-          icon: <i className="fa-solid fa-circle text-success" />, // green dot
-          border: "border-success",
-          textColor: "text-success",
+          icon: <i className="fa-solid fa-circle text-green-600" />,
+          border: "border-green-600",
+          textColor: "text-green-600",
           categoryIcon: (
-            <i className="fa-solid fa-utensils text-success me-1" />
+            <i className="fa-solid fa-utensils text-green-600 mr-1" />
           ),
         };
       case "nonveg":
         return {
           icon: (
-            <i
-              className="fa-solid fa-play fa-rotate-270"
-              style={{ color: "#FF2D2D" }}
-            />
-          ), // red triangle with custom color
-          border: "border-danger",
-          textColor: "text-danger",
+            <i className="fa-solid fa-play fa-rotate-270 text-[#FF2D2D]" />
+          ),
+          border: "border-red-600",
+          textColor: "text-red-600",
           categoryIcon: (
-            <i className="fa-solid fa-utensils" style={{ color: "#FF2D2D" }} />
+            <i className="fa-solid fa-utensils text-[#FF2D2D]" />
           ),
         };
       case "egg":
         return {
-          icon: <i className="fa-solid fa-egg gray-text" />, // egg icon
-          border: "gray-text",
-          // textColor: "gray-text",
-          categoryIcon: <i className="fa-solid fa-utensils me-1" />,
+          icon: <i className="fa-solid fa-egg text-gray-500" />,
+          border: "text-gray-500",
+          categoryIcon: <i className="fa-solid fa-utensils mr-1" />,
         };
       case "vegan":
         return {
-          icon: <i className="fa-solid fa-leaf text-success" />, // leaf icon
-          border: "border-success",
-          textColor: "text-success",
+          icon: <i className="fa-solid fa-leaf text-green-600" />,
+          border: "border-green-600",
+          textColor: "text-green-600",
           categoryIcon: (
-            <i className="fa-solid fa-utensils text-success me-1" />
+            <i className="fa-solid fa-utensils text-green-600 mr-1" />
           ),
         };
       default:
         return {
-          icon: <i className="fa-solid fa-circle text-success" />, // default green dot
-          border: "border-success",
-          textColor: "text-success",
+          icon: <i className="fa-solid fa-circle text-green-600" />,
+          border: "border-green-600",
+          textColor: "text-green-600",
           categoryIcon: (
-            <i className="fa-solid fa-utensils text-success me-1" />
+            <i className="fa-solid fa-utensils text-green-600 mr-1" />
           ),
         };
     }
@@ -157,7 +154,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
     {
       id: "all",
       label: "All",
-      icon: <i className="fa-solid fa-utensils text-success" />,
+      icon: <i className="fa-solid fa-utensils text-green-600" />,
     },
     { id: "veg", label: "Veg", icon: getFoodTypeStyles("veg").icon },
     { id: "nonveg", label: "Nonveg", icon: getFoodTypeStyles("nonveg").icon },
@@ -180,36 +177,27 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
       id: "all",
       label: "All",
       icon: (
-        <span
-          style={{
-            position: "relative",
-            display: "inline-block",
-            width: 24,
-            height: 20,
-          }}
-        >
-          {/* Green filter icon */}
+        <span className="relative inline-block w-6 h-5">
           <svg
             width="22"
             height="20"
             viewBox="0 0 22 20"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            style={{ verticalAlign: "middle" }}
+            className="align-middle"
           >
             <path
               d="M2 3.5C2 2.11929 3.11929 1 4.5 1H17.5C18.8807 1 20 2.11929 20 3.5C20 4.09544 19.7625 4.66812 19.3416 5.08902L13.5 10.9306V17C13.5 17.5523 13.0523 18 12.5 18H9.5C8.94772 18 8.5 17.5523 8.5 17V10.9306L2.65837 5.08902C2.23747 4.66812 2 4.09544 2 3.5Z"
               fill="#22A45D"
             />
           </svg>
-          {/* White X in green circle at bottom right */}
           <svg
             width="13"
             height="13"
             viewBox="0 0 13 13"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            style={{ position: "absolute", right: -2, bottom: -2 }}
+            className="absolute -right-0.5 -bottom-0.5"
           >
             <circle cx="6.5" cy="6.5" r="6.5" fill="#22A45D" />
             <path
@@ -226,30 +214,21 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
       id: "low",
       label: "Low",
       icon: (
-        <i
-          className="fa-solid fa-pepper-hot"
-          style={{ color: "#22A45D", fontSize: 18 }}
-        ></i>
+        <i className="fa-solid fa-pepper-hot text-[#22A45D] text-[18px]"></i>
       ),
     },
     {
       id: "medium",
       label: "Medium",
       icon: (
-        <i
-          className="fa-solid fa-pepper-hot"
-          style={{ color: "#FFA500", fontSize: 18 }}
-        ></i>
+        <i className="fa-solid fa-pepper-hot text-[#FFA500] text-[18px]"></i>
       ),
     },
     {
       id: "high",
       label: "High",
       icon: (
-        <i
-          className="fa-solid fa-pepper-hot"
-          style={{ color: "#FF2D2D", fontSize: 18 }}
-        ></i>
+        <i className="fa-solid fa-pepper-hot text-[#FF2D2D] text-[18px]"></i>
       ),
     },
   ];
@@ -271,24 +250,15 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
     switch (type.toLowerCase()) {
       case "type":
         return (
-          <i
-            className="fa-solid fa-filter"
-            style={{ color: "#22A45D", fontSize: 18, marginRight: 6 }}
-          ></i>
+          <i className="fa-solid fa-filter text-[#22A45D] text-[18px] mr-1.5"></i>
         );
       case "price":
         return (
-          <i
-            className="fa-solid fa-indian-rupee-sign"
-            style={{ color: "#22A45D", fontSize: 18, marginRight: 6 }}
-          ></i>
+          <i className="fa-solid fa-indian-rupee-sign text-[#22A45D] text-[18px] mr-1.5"></i>
         );
       case "spicy":
         return (
-          <i
-            className="fa-solid fa-pepper-hot"
-            style={{ color: "#22A45D", fontSize: 18, marginRight: 6 }}
-          ></i>
+          <i className="fa-solid fa-pepper-hot text-[#22A45D] text-[18px] mr-1.5"></i>
         );
       default:
         return null;
@@ -298,27 +268,15 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
   // Modify the getButtonLabel function
   const getButtonLabel = (type, options, activeValue) => {
     if (!activeValue || activeValue === "all") {
-      // Return "All" instead of the type name when "all" is selected
       const allOption = options.find(opt => opt.id === "all");
       return allOption?.label || type;
     }
     const selectedOption = options.find((opt) => opt.id === activeValue);
-    // Use buttonLabel if available, otherwise fall back to label
     return selectedOption?.buttonLabel || selectedOption?.label || type;
   };
 
   const handleDropdownToggle = (dropdownName, isOpen) => {
     if (isOpen) {
-      // Close other dropdowns
-      Object.keys(dropdownRefs).forEach((key) => {
-        if (key !== dropdownName && dropdownRefs[key].current) {
-          const dropdown =
-            dropdownRefs[key].current.querySelector(".dropdown-menu");
-          if (dropdown.classList.contains("show")) {
-            dropdown.classList.remove("show");
-          }
-        }
-      });
       setOpenDropdown(dropdownName);
     } else {
       setOpenDropdown(null);
@@ -327,106 +285,66 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
 
   const renderFilterDropdown = (type, options, activeValue) => {
     const dropdownType = type.toLowerCase();
+    const isActive = activeValue && activeValue !== "all";
 
     return (
       <div
-        className="card border-0 bg-transparent"
+        className="bg-transparent"
         ref={dropdownRefs[dropdownType]}
       >
-        <div className="card-body p-0">
-          <div className="basic-dropdown">
-            <div className="dropdown">
-              <button
-                type="button"
-                className={`btn rounded-3xl d-flex align-items-center gap-2 px-3 py-2 ${
-                  activeValue && activeValue !== "all"
-                    ? "filter-active"
-                    : "filter-default"
+        <div className="p-0">
+          <div className="relative dropdown">
+            <button
+              type="button"
+              className={`rounded-full flex items-center gap-2 px-3 py-2 w-[120px] transition-all duration-200 text-sm font-medium ${
+                isActive
+                  ? "bg-[#F7FBF9] border-[1.5px] border-[#22A45D] shadow-[0_2px_8px_rgba(34,164,93,0.12)]"
+                  : "bg-white border-[1.5px] border-[#eaeaea] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+              }`}
+              aria-expanded={openDropdown === dropdownType}
+              onClick={(e) => {
+                e.preventDefault();
+                handleDropdownToggle(dropdownType, openDropdown !== dropdownType);
+              }}
+            >
+              {getButtonIcon(type)}
+              <span className={`overflow-hidden text-ellipsis whitespace-nowrap inline-block max-w-[72px] ${
+                isActive ? "text-[#22A45D]" : "text-[#555555]"
+              }`}>
+                {getButtonLabel(type, options, activeValue)}
+              </span>
+              <i 
+                className={`fas fa-chevron-down ml-1 text-[10px] opacity-60 transition-transform duration-200 ${
+                  openDropdown === dropdownType ? "rotate-180" : "rotate-0"
                 }`}
-                style={{
-                  border: activeValue && activeValue !== "all"
-                    ? "1.5px solid #22A45D"
-                    : "1.5px solid #eaeaea",
-                  width: "120px", // fixed size to avoid overlap
-                  transition: "all 0.2s ease",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  boxShadow: activeValue && activeValue !== "all"
-                    ? "0 2px 8px rgba(34, 164, 93, 0.12)"
-                    : "0 1px 2px rgba(0, 0, 0, 0.04)",
-                }}
-                data-bs-toggle="dropdown"
-                aria-expanded={openDropdown === dropdownType}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleDropdownToggle(dropdownType, openDropdown !== dropdownType);
-                }}
-              >
-                {getButtonIcon(type)}
-                <span style={{
-                  color: activeValue && activeValue !== "all"
-                    ? "#22A45D"
-                    : "#555555",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  display: "inline-block",
-                  maxWidth: "72px" // keep room for icon and chevron
-                }}>
-                  {getButtonLabel(type, options, activeValue)}
-                </span>
-                <i 
-                  className="fas fa-chevron-down ms-1" 
-                  style={{ 
-                    fontSize: "10px",
-                    opacity: 0.6,
-                    transform: openDropdown === dropdownType ? "rotate(180deg)" : "rotate(0)",
-                    transition: "transform 0.2s ease"
-                  }}
-                />
-              </button>
+              />
+            </button>
 
-              <div
-                className={`dropdown-menu shadow-sm border-0 mt-2 ${
-                  openDropdown === dropdownType ? "show" : ""
-                }`}
-                style={{
-                  borderRadius: "16px",
-                  padding: "6px",
-                  minWidth: "160px",
-                  animation: "dropdownFade 0.2s ease",
-                }}
-              >
-                {options.map((option) => (
-                  <a
-                    key={option.id}
-                    className={`dropdown-item rounded-pill ${
-                      activeValue === option.id ? "active" : ""
-                    }`}
-                    style={{
-                      padding: "8px 16px",
-                      margin: "2px 0",
-                      display: "flex",
-                      alignItems: "center",
-                      color: activeValue === option.id ? "#22A45D" : "#555555",
-                      backgroundColor: activeValue === option.id ? "#F0F9F4" : "transparent",
-                      transition: "all 0.15s ease",
-                    }}
-                    href="javascript:void(0);"
-                    onClick={() => {
-                      handleFilterClick(dropdownType, option.id);
-                      setOpenDropdown(null); // Close dropdown after selection
-                    }}
-                  >
-                    <span className="me-2" style={{ opacity: 0.9 }}>{option.icon}</span>
-                    <span style={{ 
-                      fontWeight: activeValue === option.id ? "500" : "400"
-                    }}>
-                      {option.label}
-                    </span>
-                  </a>
-                ))}
-              </div>
+            <div
+              className={`absolute z-10 bg-white shadow-sm rounded-2xl mt-2 p-1.5 min-w-[160px] ${
+                openDropdown === dropdownType ? "block animate-dropdown-fade" : "hidden"
+              }`}
+            >
+              {options.map((option) => (
+                <a
+                  key={option.id}
+                  className={`block rounded-full py-2 px-4 my-0.5 flex items-center transition-all duration-150 cursor-pointer hover:bg-gray-100 hover:text-[#22A45D] ${
+                    activeValue === option.id 
+                      ? "text-[#22A45D] bg-[#F0F9F4]" 
+                      : "text-[#555555] bg-transparent"
+                  }`}
+                  href="javascript:void(0);"
+                  onClick={() => {
+                    handleFilterClick(dropdownType, option.id);
+                    setOpenDropdown(null);
+                  }}
+                >
+                  <span className="mr-2 opacity-90">{option.icon}</span>
+                  <span className={activeValue === option.id ? "font-medium" : "font-normal"}>
+                    {option.label}
+                  </span>
+                </a>
+              ))}
             </div>
           </div>
         </div>
@@ -434,44 +352,29 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
     );
   };
 
-  // Add these styles to your CSS
-  const styles = `
-    .filter-active {
-      background-color: #F7FBF9 !important;
-    }
-
-    .filter-default {
-      background-color: white !important;
-    }
-
-    .dropdown-item:hover {
-      background-color: #F8F8F8 !important;
-      color: #22A45D !important;
-    }
-
-    @keyframes dropdownFade {
-      from {
-        opacity: 0;
-        transform: translateY(-5px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-  `;
-
-  // Add the styles to the document
-  const styleSheet = document.createElement("style");
-  styleSheet.innerText = styles;
-  document.head.appendChild(styleSheet);
-
   return (
-    <div className="d-flex gap-2 flex-wrap">
-      {renderFilterDropdown("Type", typeOptions, activeFilters.type)}
-      {renderFilterDropdown("Price", priceOptions, activeFilters.price)}
-      {renderFilterDropdown("Spicy", spicyOptions, activeFilters.spicy)}
-    </div>
+    <>
+      <style>{`
+        @keyframes dropdownFade {
+          from {
+            opacity: 0;
+            transform: translateY(-5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-dropdown-fade {
+          animation: dropdownFade 0.2s ease;
+        }
+      `}</style>
+      <div className="flex gap-2 flex-wrap">
+        {renderFilterDropdown("Type", typeOptions, activeFilters.type)}
+        {renderFilterDropdown("Price", priceOptions, activeFilters.price)}
+        {renderFilterDropdown("Spicy", spicyOptions, activeFilters.spicy)}
+      </div>
+    </>
   );
 };
 

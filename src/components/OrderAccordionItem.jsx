@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import Timer from "./Timer";
 import html2canvas from "html2canvas";
@@ -349,105 +348,76 @@ const OrderAccordionItem = ({
   return (
     <>
       {showTimer && (
-        <div className="d-flex justify-content-center align-items-center mb-2">
+        <div className="flex justify-center items-center mb-2">
           <Timer initialSeconds={remainingSeconds} />
         </div>
       )}
       <div
-        className="order-item mb-3"
+        className="order-item mb-3 cursor-pointer"
         onClick={handleViewDetails}
-        style={{ cursor: "pointer" }}
       >
-        <div className="border rounded shadow-sm p-3">
-          <div className="d-flex align-items-center justify-content-between w-100">
-            <div
-              className="d-flex flex-column align-items-start"
-              style={{ minHeight: 70 }}
-            >
-              <div className="d-flex align-items-center gap-2 mb-0">
-                <h6 className="mb-0">#{orderNumber}</h6>
+        <div className="border border-gray-300 rounded-lg shadow-sm p-3">
+          <div className="flex items-center justify-between w-full">
+            <div className="flex flex-col items-start min-h-[70px]">
+              <div className="flex items-center gap-2 mb-0">
+                <h6 className="mb-0 text-base font-semibold">#{orderNumber}</h6>
                 {status === 'cooking' && (
-                  <span style={{fontWeight: 700, color: '#999999', fontSize: '13px', marginLeft: 6}}>
+                  <span className="font-bold text-[#999999] text-[13px] ml-1.5">
                     (COOKING)
                   </span>
                 )}
                 {/* Status badge next to order number (other statuses kept as is) */}
                 {paymentStatus === "Paid" ? (
-                  <span
-                    className="badge bg-success text-white"
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      borderRadius: "6px",
-                    }}
-                  >
-                    <i className="bi bi-check-circle-fill me-1"></i>Paid
+                  <span className="inline-flex items-center px-2 py-1 bg-green-500 text-white text-[11px] font-medium rounded-md">
+                    <i className="bi bi-check-circle-fill mr-1"></i>Paid
                   </span>
                 ) : status === "cancelled" ? (
-                  <span
-                    className="badge bg-danger text-white"
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      borderRadius: "6px",
-                    }}
-                  >
-                    <i className="bi bi-x-circle-fill me-1"></i>Cancelled
+                  <span className="inline-flex items-center px-2 py-1 bg-red-500 text-white text-[11px] font-medium rounded-md">
+                    <i className="bi bi-x-circle-fill mr-1"></i>Cancelled
                   </span>
                 ) : status === "udhari_pending" ? (
-                  <span
-                    className="badge bg-warning text-dark"
-                    style={{
-                      fontSize: "11px",
-                      fontWeight: 500,
-                      borderRadius: "6px",
-                    }}
-                  >
-                    {/* <i className="fa fa-hourglass-half me-1"></i>Udhari Pending */}
+                  <span className="inline-flex items-center px-2 py-1 bg-yellow-500 text-gray-900 text-[11px] font-medium rounded-md">
+                    {/* <i className="fa fa-hourglass-half mr-1"></i>Udhari Pending */}
                   </span>
                 ) : null}
               </div>
-              <p
-                className="mb-0 text-dark font-weight-bold "
-                style={{ fontSize: "14px " }}
-              >
+              <p className="mb-0 text-gray-900 font-bold text-sm">
                 {outletName}
               </p>
-              <p className="mb-0" style={{ fontSize: "14px", color: "#999999", fontWeight: 500 }}>
+              <p className="mb-0 text-sm text-[#999999] font-medium">
                 {/* Capitalize DINE-IN and normal dark grey text for details */}
                 {(orderType && orderType.toLowerCase() === "dine-in") ? "DINE-IN" : orderType} • {itemCount} Menu
               </p>
             </div>
-            <div className="text-end">
-              <p className="mb-0" style={{ fontSize: "14px", color: "#999999", fontWeight: 500 }}>
+            <div className="text-right">
+              <p className="mb-0 text-sm text-[#999999] font-medium">
                 {orderTime}
               </p>
-              <p className="mb-0" style={{ fontSize: "14px", color: "#999999", fontWeight: 500 }}>
+              <p className="mb-0 text-sm text-[#999999] font-medium">
                 {/* Section and table, normal dark grey */}
                 {sectionName && displayTableNumber ? (
                   <>
-                    <i className="bi bi-geo-alt-fill me-2"></i> {sectionName} - {displayTableNumber}
+                    <i className="bi bi-geo-alt-fill mr-2"></i> {sectionName} - {displayTableNumber}
                   </>
                 ) : sectionName ? (
                   <>
-                    <i className="bi bi-geo-alt-fill me-2"></i> {sectionName}
+                    <i className="bi bi-geo-alt-fill mr-2"></i> {sectionName}
                   </>
                 ) : displayTableNumber ? (
                   <>
-                    <i className="bi bi-geo-alt-fill me-2"></i> {displayTableNumber}
+                    <i className="bi bi-geo-alt-fill mr-2"></i> {displayTableNumber}
                   </>
                 ) : null}
               </p>
-              <h6 className="mb-2" style={{ color: "#219150", fontWeight: 600 }}>
+              <h6 className="mb-2 text-[#219150] font-semibold">
                 ₹{totalAmount}
               </h6>
               {/* {status !== "Cancelled" && (
                 <button
-                  className="btn btn-sm btn-outline-secondary"
+                  className="px-3 py-1.5 text-xs border border-gray-400 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                   onClick={handleDownloadInvoice}
-                  style={{ borderRadius: "8px", fontSize: "12px" }}
                 >
-                  <i className="bi bi-download me-1"></i> Invoice
+                  <i className="bi bi-download mr-1"></i> Invoice
                 </button>
               )} */}
             </div>

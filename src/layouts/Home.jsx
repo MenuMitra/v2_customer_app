@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import CategorySwiper from "../components/CategorySwiper/CategorySwiper";
@@ -7,87 +7,16 @@ import CodeSandboxBannerSwiper from "../components/BannerSwiper/CodeSandboxBanne
 import VerticalMenuCard from "../components/VerticalMenuCard";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
-import HorizontalMenuCard from "../components/HorizontalMenuCard";
 import { useMenuItems } from "../hooks/useMenuItems";
 import { useOutlet } from "../contexts/OutletContext";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import { OrderTypeModal } from "../components/Modal/variants/OrderTypeModal";
 import { useModal } from "../contexts/ModalContext";
-import OutletInfoBanner from "../components/OutletInfoBanner";
-import SearchBar from "../components/SearchBar";
 import apiService from "../api/apiService";
-import OfferBanner from "./OfferBanner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCachedBanners } from "../hooks/useCachedBanners";
 import { ENV } from "../config";
-// Helper function to get auth data
-const getAuthData = () => {
-  const authData = localStorage.getItem("auth");
-  return authData ? JSON.parse(authData) : null;
-};
-
-// Helper to extract outlet params from the path
-function extractOutletParamsFromPath(pathname) {
-  const segments = pathname.split("/").filter(Boolean);
-  if (segments.length < 3) return null;
-  const [o, s, t] = segments.slice(-3);
-  const oMatch = o.match(/^o(\d+)$/);
-  const sMatch = s.match(/^s(\d+)$/);
-  const tMatch = t.match(/^t(\d+)$/);
-  if (oMatch && sMatch && tMatch) {
-    return {
-      outletCode: oMatch[1],
-      sectionId: sMatch[1],
-      tableId: tMatch[1],
-    };
-  }
-  return null;
-}
-
-// Update the bannerData array
-const bannerData = [
-  {
-    id: 1,
-    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
-    title: "Special Offer",
-    discount: "20% OFF",
-    textColor: "#FFFFFF", // Changed to white for better visibility on image
-    description: "*on Selected Items"
-  },
-  {
-    id: 2,
-    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
-    title: "Lunch Special",
-    discount: "30% OFF",
-    textColor: "#FFFFFF",
-    description: "*12PM to 3PM"
-  },
-  {
-    id: 3,
-    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
-    title: "Happy Hours",
-    discount: "25% OFF",
-    textColor: "#FFFFFF",
-    description: "*on Beverages"
-  },
-  {
-    id: 4,
-    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
-    title: "Weekend Special",
-    discount: "40% OFF",
-    textColor: "#FFFFFF",
-    description: "*Saturday & Sunday"
-  },
-  {
-    id: 5,
-    imageUrl: `${ENV.V2_COMMON_BASE}/v2/media/menu_images/mm_images_70143.jpg`,
-    title: "First Order",
-    discount: "50% OFF",
-    textColor: "#FFFFFF",
-    description: "*New Customers Only"
-  }
-];
 
 
 
@@ -99,13 +28,12 @@ function Home() {
   const { getUserId } = useAuth();
   const { openModal } = useModal();
   const navigate = useNavigate();
-  const location = useLocation();
 
   // Essential state that can't be derived
-  const [favoriteMenuIds, setFavoriteMenuIds] = useState(new Set());
+  const [favoriteMenuIds] = useState(new Set());
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [visibleMenuCount, setVisibleMenuCount] = useState(10);
-  const [activeMenuFilter, setActiveMenuFilter] = useState("all");
+  const [activeMenuFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState(""); // New: track search query
   const [isSearching, setIsSearching] = useState(false);
 
@@ -114,7 +42,7 @@ function Home() {
   const userId = getUserId();
 
   // Fetch banner data with cache
-  const { banners = [], isLoading: bannersLoading, error: bannersError, dataSource } = useCachedBanners({
+  const { banners = [], isLoading: bannersLoading, error: bannersError } = useCachedBanners({
     outletId,
     userId,
     enabled: !!outletId
@@ -171,7 +99,7 @@ function Home() {
 
       return { previousData };
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // Rollback on error
       queryClient.setQueryData(
         ["specialMenus", outletId, userId],
@@ -268,53 +196,12 @@ function Home() {
     setVisibleMenuCount(10);
   }, [selectedCategoryId, activeMenuFilter, searchQuery]);
 
-  // Helper for lazy loading
-  const getVisibleMenus = () => {
-    return filteredMenus.slice(0, visibleMenuCount);
-  };
-
   const handleLoadMoreMenus = () => {
     setVisibleMenuCount((prev) => prev + 10);
   };
 
   const handleCategoryClick = (category) => {
     setSelectedCategoryId(category.menuCatId);
-  };
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-
-    if (hour >= 5 && hour < 12) {
-      return "Good Morning";
-    } else if (hour >= 12 && hour < 17) {
-      return "Good Afternoon";
-    } else if (hour >= 17 && hour < 21) {
-      return "Good Evening";
-    } else {
-      return "Good Night";
-    }
-  };
-
-  // Update greeting when component mounts and every minute
-  useEffect(() => {
-    const updateGreeting = () => {
-      // setGreeting(getGreeting());
-    };
-
-    // Set initial greeting
-    updateGreeting();
-
-    // Update greeting every minute
-    const interval = setInterval(updateGreeting, 60000);
-
-    // Cleanup interval on unmount
-    return () => clearInterval(interval);
-  }, []);
-
-  // Add these handler functions in Home.jsx
-  const handleAddToCart = (menuId) => {
-    console.log("Adding to cart:", menuId);
-    // Will implement cart functionality later
   };
 
   // Update the handleFavoriteClick function
@@ -331,44 +218,12 @@ function Home() {
     }
   };
 
-  const handleQuantityChange = (menuId, newQuantity) => {
-    console.log("Quantity changed:", menuId, newQuantity);
-    // Will implement quantity change functionality later
-  };
-
-  // Helper function to check if item is in cart and get its quantity
-  const getCartItemQuantity = (menuId) => {
-    const cartItem = cartItems.find((item) => item.menuId === menuId);
-    return cartItem ? cartItem.quantity : 0;
-  };
-
-  // // Special menus query remains unchanged
-  // const {
-  //   data: specialMenuItems = [],
-  //   isLoading: isSpecialMenusLoading,
-  //   error: specialMenusError,
-  // } = useQuery({
-  //   queryKey: ["specialMenus", outletId, userId],
-  //   queryFn: async () => {
-  //     if (!outletId) return [];
-  //     const data = await apiService.menus.getSpecialMenus({ outletId, userId });
-  //     return data?.special_menu_list || [];
-  //   },
-  //   enabled: !!outletId,
-  // });
-
   // Only show modal on outlet-only URL if no order type is set
   useEffect(() => {
     if (isOutletOnlyUrl && !orderSettings.order_type) {
       openModal("orderType");
     }
-  }, [isOutletOnlyUrl, orderSettings.order_type]);
-
-  // Handler functions remain the same but are simplified
-  const handleSearch = (searchResults) => {
-    setSearchQuery(searchResults.query || ""); // Store the query
-    setIsSearching(!!searchResults.length);
-  };
+  }, [isOutletOnlyUrl, orderSettings.order_type, openModal]);
 
 
   return (
@@ -376,8 +231,8 @@ function Home() {
       <div className="page-wraper">
         <Header />
         <div className="page-content">
-          <div className=" pt-0">
-            <div className="container mx-auto px-4 pb-24 pt-0">
+          <div className="pt-0">
+            <div className="max-w-[1200px] mx-auto px-4 pb-24 pt-0">
 
               {/* Modern Banner Swiper with Cache Status */}
               {!hideBanners && (
@@ -393,16 +248,15 @@ function Home() {
                 ) : bannersError ? (
                   // Error state
                   <div className="text-center p-4">
-                    <p className="text-gray-500">Failed to load banners</p>
+                    <p className="text-[#6c757d]">Failed to load banners</p>
                   </div>
                 ) : banners.length === 0 ? (
                   // No banners state
                   <div className="text-center p-4">
-                    <p className="text-gray-500">No banners available</p>
+                    <p className="text-[#6c757d]">No banners available</p>
                   </div>
                 ) : (
                   <div>
-
                     <CodeSandboxBannerSwiper
                       banners={banners.map(banner => ({
                         id: banner.banner_id,
@@ -427,14 +281,12 @@ function Home() {
                 className="title-bar flex justify-between items-center cursor-pointer"
                 onClick={() => navigate("/categories")}
               >
-                <span className="title mb-0 text-lg">
+                <span className="title mb-0 text-lg font-semibold">
                   {isSearching ? "Search Results" : "Categories"}
                 </span>
                 <span className="text-[12px] text-[#888] inline-flex items-center gap-[2px]">
                   See all{" "}
-                  <i
-                    className="fas fa-chevron-right text-[12px]"
-                  ></i>
+                  <i className="fas fa-chevron-right text-[12px]"></i>
                 </span>
               </div>
 
@@ -444,31 +296,26 @@ function Home() {
                 isLoading={isLoading}
                 onCategoryClick={handleCategoryClick}
               />
-              <div class="title-bar mt-0">
-                <span class="title mb-0 text-lg">Menus</span>
+              <div className="title-bar mt-0">
+                <span className="title mb-0 text-lg font-semibold">Menus</span>
               </div>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 {isLoading ? (
                   // Skeleton for VerticalMenuCards
                   [...Array(6)].map((_, index) => (
-                    <div className="col-span-1" key={`skeleton-${index}`}>
-                      <div
-                        className="rounded-2xl overflow-hidden bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
-                      >
+                    <div key={`skeleton-${index}`}>
+                      <div className="rounded-2xl overflow-hidden bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
                         {/* Image Skeleton */}
                         <div className="relative pt-[75%]">
-                          <Skeleton
-                            height="100%"
-                            width="100%"
-                            baseColor="#C8C8C8"
-                            highlightColor="#E0E0E0"
-                            style={{
-                              position: "absolute",
-                              top: 0,
-                              left: 0,
-                              borderRadius: "16px 16px 0 0",
-                            }}
-                          />
+                          <div className="absolute top-0 left-0 w-full h-full">
+                            <Skeleton
+                              height="100%"
+                              width="100%"
+                              baseColor="#C8C8C8"
+                              highlightColor="#E0E0E0"
+                              className="rounded-t-2xl"
+                            />
+                          </div>
                           {/* Discount Badge Skeleton */}
                           <div className="absolute top-2.5 left-2.5 z-10">
                             <Skeleton
@@ -524,7 +371,7 @@ function Home() {
                 ) : isSearching ? (
                   filteredMenus.length > 0 ? (
                     visibleMenus.map((menuItem) => (
-                      <div className="col-span-1" key={menuItem.menuId}>
+                      <div key={menuItem.menuId}>
                         <VerticalMenuCard
                           image={
                             menuItem.image ? (
@@ -549,18 +396,18 @@ function Home() {
                     ))
                   ) : (
                     <div className="col-span-2 text-center py-4">
-                      <p className="text-gray-500">No results found</p>
+                      <p className="text-[#6c757d]">No results found</p>
                     </div>
                   )
                 ) : (
                   visibleMenus.map((menuItem) => (
-                    <div className="col-span-1" key={menuItem.menuId}>
+                    <div key={menuItem.menuId}>
                       <VerticalMenuCard
                         image={
                           menuItem.image ? (
                             menuItem.image
                           ) : (
-                            <i className="fa-solid fa-utensils text-[55px] opacity-50 text-gray-500"></i>
+                            <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]"></i>
                           )
                         }
                         title={menuItem.menuName}
@@ -586,7 +433,7 @@ function Home() {
               {filteredMenus.length > visibleMenuCount && (
                 <div className="text-center mb-20">
                   <button
-                    className="px-4 py-2 border border-blue-500 text-blue-500 rounded-3xl hover:bg-blue-500 hover:text-white transition-colors"
+                    className="px-6 py-2.5 bg-[#177a26] border-[#007bff] text-[#ffffff] rounded-3xl hover:bg-[#159428] hover:text-white transition-all duration-300 font-medium"
                     onClick={handleLoadMoreMenus}
                   >
                     Load More
@@ -601,31 +448,30 @@ function Home() {
         <Footer />
 
         <div
-          className="pwa-offcanvas fixed bottom-0 left-0 w-full z-50 bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] transition-transform duration-300 transform translate-y-full data-[open=true]:translate-y-0"
+          className="pwa-offcanvas fixed bottom-0 left-0 w-full z-50 bg-white shadow-[0_-5px_20px_rgba(0,0,0,0.1)] transition-transform duration-300 transform translate-y-full data-[open=true]:translate-y-0 hidden"
           id="pwa-install-prompt"
-          style={{ display: "none" }} // Kept for logic control, though classes handle transition? JS likely toggles display.
         >
-          <div className="container mx-auto px-4">
+          <div className="max-w-[1200px] mx-auto px-4">
             <div className="p-4 text-sm text-center">
               <img className="w-12 h-12 mx-auto mb-3" src="assets/images/icon.png" alt="" />
               <h6 className="font-semibold text-lg mb-2">W3Grocery on Your Home Screen</h6>
-              <p className="mb-4 text-gray-600">
+              <p className="mb-4 text-[#6c757d]">
                 Install W3Grocery Pre-Build Grocery Mobile App Template to your
                 home screen for easy access, just like any other app
               </p>
-              <button type="button" className="pwa-btn px-4 py-2 bg-blue-600 text-white rounded-3xl text-sm font-medium hover:bg-blue-700 transition-colors">
+              <button type="button" className="pwa-btn px-4 py-2 bg-[#007bff] text-white rounded-[50px] text-sm font-medium hover:bg-[#0056b3] transition-colors">
                 Add to Home Screen
               </button>
               <button
                 type="button"
-                className="pwa-close px-4 py-2 bg-gray-200 text-gray-800 rounded-3xl text-sm font-medium hover:bg-gray-300 transition-colors ml-3"
+                className="pwa-close px-4 py-2 bg-[#e9ecef] text-[#212529] rounded-[50px] text-sm font-medium hover:bg-[#dde0e3] transition-colors ml-3"
               >
                 Maybe later
               </button>
             </div>
           </div>
         </div>
-        <div className="offcanvas-backdrop pwa-backdrop fade" />
+        <div className="offcanvas-backdrop pwa-backdrop opacity-0 invisible transition-opacity duration-150" />
         {/* PWA Offcanvas End */}
         {/* Show OrderTypeModal if outletOnly */}
         {isOutletOnlyUrl && <OrderTypeModal />}

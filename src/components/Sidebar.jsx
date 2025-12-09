@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useSidebar } from "../contexts/SidebarContext";
 import { useAuth } from "../contexts/AuthContext";
@@ -9,7 +9,6 @@ import "../assets/css/style.css";
 import ThemeColorOffcanvas from "./ThemeColorOffcanvas";
 import ConfirmLogoutModal from "./ConfirmLogoutModal";
 import MenuMitra from "./MenuMitra";
-import axios from "axios";
 import FeedbackButton from "./FeedbackButton";
 
 function Sidebar() {
@@ -49,7 +48,6 @@ function Sidebar() {
     e.preventDefault();
     clearCart();
     handleLogout();
-    console.log("Logout successful, attempting navigation to /");
     setTimeout(() => {
       navigate("/");
     }, 0);
@@ -267,7 +265,7 @@ function Sidebar() {
               <div className="custom-switch">
                 <input
                   type="checkbox"
-                  className="switch-input theme-btn"
+                  className="switch-input"
                   id="toggle-dark-menu"
                   checked={isDarkMode}
                   onChange={toggleTheme}
@@ -281,17 +279,7 @@ function Sidebar() {
           </div>
         </li>
       </ul>
-
-
-
-      {/* <a
-      href="javascript:void(0);"
-      onClick={() => alert('Delete Cookie clicked!')}
-      className="btn btn-primary btn-sm cookie-btn"
-    >
-      Delete Cookie
-    </a> */}
-      <div className="mt-auto px-3 pb-3">
+      <div className="mt-auto px-3 pb-4">
         <MenuMitra />
       </div>
       <ThemeColorOffcanvas

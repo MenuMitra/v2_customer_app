@@ -13,13 +13,8 @@ export const AddToCartModal = () => {
   const { user, setShowAuthOffcanvas, getAccessToken } = useAuth();
   const { outletId } = useOutlet();
 
-  // First, fix the initial states
-  const [selectedPortion, setSelectedPortion] = useState(null); // Start with null instead of assuming a portion ID
-
-  // Initialize quantities with empty object
+  const [selectedPortion, setSelectedPortion] = useState(null);
   const [quantities, setQuantities] = useState({});
-
-  // Initialize menuDetails
   const [menuDetails, setMenuDetails] = useState({
     portions: []
   });
@@ -43,14 +38,6 @@ export const AddToCartModal = () => {
     (item) => item.menuId === modalConfig.data?.menuId
   );
 
-  // Find existing cart item for current portion
-  const getCurrentCartItem = (portionId) => {
-    return cartItems.find(
-      (item) =>
-        item.menuId === modalConfig.data?.menuId && item.portionId === portionId
-    );
-  };
-
   // Update quantity when portion changes
   const handlePortionChange = (portionId) => {
     setSelectedPortion(portionId);
@@ -71,13 +58,12 @@ export const AddToCartModal = () => {
   useEffect(() => {
     const authData = localStorage.getItem("auth");
     if (!authData || !user) {
-      closeModal("addToCart"); // Close the cart modal
-      setShowAuthOffcanvas(true); // Show auth modal
+      closeModal("addToCart");
+      setShowAuthOffcanvas(true);
       return;
     }
   }, [user, closeModal, setShowAuthOffcanvas]);
 
-  // Remove the problematic useEffect (lines 80-95) and replace with this:
   useEffect(() => {
     // Handle increment/decrement action from VerticalMenuCard
     if (modalConfig.data?.action && selectedPortion) {
@@ -91,7 +77,6 @@ export const AddToCartModal = () => {
           [selectedPortion]: newQuantity,
         }));
         
-        // Update cart immediately
         if (modalConfig.data) {
           addToCart(
             modalConfig.data,
@@ -107,7 +92,6 @@ export const AddToCartModal = () => {
           [selectedPortion]: newQuantity,
         }));
         
-        // Update cart immediately
         if (modalConfig.data) {
           addToCart(
             modalConfig.data,
@@ -118,28 +102,24 @@ export const AddToCartModal = () => {
         }
       }
       
-      // Clear the action to prevent re-triggering
       modalConfig.data.action = null;
     }
-  }, [modalConfig.data?.action, selectedPortion]); // Remove quantities from dependencies
+  }, [modalConfig.data?.action, selectedPortion]);
 
-  // Update the handleQuantityChange function to remove the action logic:
   const handleQuantityChange = (newQuantity) => {
-    // Check if user is authenticated
     const authData = localStorage.getItem("auth");
     if (!authData || !user) {
-      closeModal("addToCart"); // Close the cart modal
-      setShowAuthOffcanvas(true); // Show auth modal
+      closeModal("addToCart");
+      setShowAuthOffcanvas(true);
       return;
     }
 
-    const finalQuantity = Math.max(0, newQuantity);
+    const finalQuantity = Math.max(0, newQuantity || 0);
     setQuantities((prev) => ({
       ...prev,
       [selectedPortion]: finalQuantity,
     }));
 
-    // Only update cart immediately if item is already in cart (existing behavior)
     if (isInCart && modalConfig.data) {
       addToCart(
         modalConfig.data,
@@ -150,7 +130,6 @@ export const AddToCartModal = () => {
     }
   };
 
-  // Update comment handler to work with selected portion
   const handleCommentChange = (newComment) => {
     setComments((prev) => ({
       ...prev,
@@ -158,7 +137,6 @@ export const AddToCartModal = () => {
     }));
   };
 
-  // Update suggestion handler
   const handleSuggestionClick = (suggestionText) => {
     const currentComment = comments[selectedPortion] || "";
     const currentSuggestions = currentComment
@@ -167,19 +145,16 @@ export const AddToCartModal = () => {
     const isSelected = currentSuggestions.includes(suggestionText);
 
     if (isSelected) {
-      // Remove the suggestion
       const filteredSuggestions = currentSuggestions.filter(
         (s) => s !== suggestionText
       );
       const newComment = filteredSuggestions.join(", ");
       handleCommentChange(newComment);
     } else {
-      // Check if we've reached the maximum number of suggestions (4)
       if (currentSuggestions.length >= 4) {
-        return; // Don't add more suggestions if we've reached the limit
+        return;
       }
 
-      // Add the suggestion
       const newComment = currentComment
         ? `${currentComment}, ${suggestionText}`
         : suggestionText;
@@ -187,46 +162,67 @@ export const AddToCartModal = () => {
     }
   };
 
-  // Update handleAddToCart to only add the selected portion
   const handleAddToCart = () => {
-    // Check if user is authenticated
     const authData = localStorage.getItem("auth");
     if (!authData || !user) {
-      closeModal("addToCart"); // Close the cart modal
-      setShowAuthOffcanvas(true); // Show auth modal
+      closeModal("addToCart");
+      setShowAuthOffcanvas(true);
       return;
     }
 
-    // Only add/update the selected portion if we have valid data
-    if (selectedPortion && quantities[selectedPortion] > 0) {
-      // Ensure modalConfig.data has all required fields
+    const currentQuantity = quantities[selectedPortion] || 0;
+    
+    console.log('=== Add to Cart Debug ===');
+    console.log('Selected Portion:', selectedPortion);
+    console.log('Current Quantity:', currentQuantity);
+    console.log('All Quantities:', quantities);
+    console.log('Menu Details Portions:', menuDetails.portions);
+    console.log('Modal Config Portions:', modalConfig.data?.portions);
+
+    if (selectedPortion && currentQuantity > 0) {
+      // Use menuDetails.portions if available, otherwise fall back to modalConfig.data.portions
+      const portionsToUse = menuDetails.portions?.length > 0 
+        ? menuDetails.portions 
+        : modalConfig.data?.portions || [];
+
+      console.log('Portions to use:', portionsToUse);
+
       const menuItemData = {
         ...modalConfig.data,
         menuId: modalConfig.data.menuId || modalConfig.data.menu_id,
         menuName: modalConfig.data.menuName || modalConfig.data.menu_name,
         menu_cat_id: modalConfig.data.menu_cat_id || modalConfig.data.category_id,
         category_name: modalConfig.data.category_name,
-        offer: modalConfig.data.offer, // This will be undefined if not present
-        portions: menuDetails.portions || modalConfig.data.portions, // Use updated portions if available
+        offer: modalConfig.data.offer,
+        portions: portionsToUse,
       };
+
+      console.log('Menu Item Data:', menuItemData);
+      console.log('Calling addToCart with:', {
+        portionId: Number(selectedPortion),
+        quantity: currentQuantity,
+        comment: comments[selectedPortion] || ""
+      });
 
       addToCart(
         menuItemData,
         Number(selectedPortion),
-        quantities[selectedPortion],
+        currentQuantity,
         comments[selectedPortion] || ""
       );
+      
+      console.log('=== Add to Cart Complete ===');
+    } else {
+      console.log('Cannot add - Invalid portion or quantity');
     }
 
     closeModal("addToCart");
   };
 
-  // Add a function to check if any portion has quantity > 0
   const hasValidQuantity = () => {
     return Object.values(quantities).some((quantity) => quantity > 0);
   };
 
-  // Update the useEffect to properly handle the API response
   useEffect(() => {
     const fetchMenuDetails = async () => {
       try {
@@ -253,27 +249,28 @@ export const AddToCartModal = () => {
             price: parseFloat(portion.price) || 0
           }));
 
-          // Set the first portion as selected if none is selected
+          let firstPortionId = null;
           if (!selectedPortion && newPortions.length > 0) {
-            setSelectedPortion(newPortions[0].portion_id);
+            firstPortionId = newPortions[0].portion_id;
+            setSelectedPortion(firstPortionId);
           }
 
-          // Initialize quantities for new portions
           setQuantities(prev => {
-            const newQuantities = { ...prev };
+            const newQuantities = {};
             newPortions.forEach(portion => {
-              if (!(portion.portion_id in newQuantities)) {
-                const cartItem = cartItems.find(
-                  item => item.menuId === modalConfig.data?.menuId && 
-                         item.portionId === portion.portion_id
-                );
-                newQuantities[portion.portion_id] = cartItem?.quantity || 1;
-              }
+              const cartItem = cartItems.find(
+                item => item.menuId === (modalConfig.data?.menuId || modalConfig.data?.menu_id) && 
+                       item.portionId === portion.portion_id
+              );
+              // Always set quantity - either from cart or default to 1
+              newQuantities[portion.portion_id] = cartItem?.quantity || 1;
             });
+            
+            console.log('Initialized quantities:', newQuantities);
+            console.log('First portion ID:', firstPortionId || selectedPortion);
             return newQuantities;
           });
 
-          // Update menuDetails
           setMenuDetails(prev => ({
             ...prev,
             portions: newPortions
@@ -287,15 +284,13 @@ export const AddToCartModal = () => {
     if (modalConfig.data?.menuId || modalConfig.data?.menu_id) {
       fetchMenuDetails();
     }
-  }, [modalConfig.data, cartItems, getAccessToken, outletId]); // Remove selectedPortion from dependencies
+  }, [modalConfig.data, cartItems, getAccessToken, outletId]);
 
-  // Add state for dropdown
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  // Add click outside listener to close dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isDropdownOpen && !event.target.closest(".position-relative")) {
+      if (isDropdownOpen && !event.target.closest(".relative")) {
         setIsDropdownOpen(false);
       }
     };
@@ -304,7 +299,6 @@ export const AddToCartModal = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isDropdownOpen]);
 
-  // Update renderPortionSelection to always show UI without loading or error states
   const renderPortionSelection = () => {
     const portions = menuDetails?.portions || [];
 
@@ -316,7 +310,6 @@ export const AddToCartModal = () => {
       );
     }
 
-    // Find the selected portion object
     const selectedPortionObj = portions.find(p => p.portion_id === selectedPortion);
 
     return (
@@ -453,13 +446,13 @@ export const AddToCartModal = () => {
             </span>
           </div>
           <textarea
-            className={`w-full rounded-lg p-3 text-base transition-all duration-200 ${
+            className={`w-full rounded-lg p-3 text-base transition-all duration-200 pr-[60px] min-h-[60px] max-h-[120px] resize-y ${
               comments[selectedPortion]?.length < 5 && comments[selectedPortion]?.length > 0
                 ? "border-red-600"
                 : comments[selectedPortion]?.length > 50
                 ? "border-red-600"
                 : "border-gray-200"
-            } border focus:outline-none focus:ring-0`}
+            } border focus:outline-none focus:ring-0 focus:border-green-600`}
             value={comments[selectedPortion] || ""}
             onChange={(e) => handleCommentChange(e.target.value)}
             placeholder={`Add instructions for ${
@@ -467,38 +460,7 @@ export const AddToCartModal = () => {
                 (p) => p.portion_id === selectedPortion
               )?.portion_name || 'selected'
             } portion...`}
-            style={{
-              paddingRight: "60px",
-              minHeight: "60px",
-              maxHeight: "120px",
-              resize: "vertical"
-            }}
-            onFocus={(e) => {
-              if (comments[selectedPortion]?.length <= 50) {
-                e.target.style.border = "1.5px solid #28a745";
-              }
-            }}
-            onBlur={(e) => {
-              e.target.style.border =
-                comments[selectedPortion]?.length < 5 ||
-                comments[selectedPortion]?.length > 50
-                  ? "1.5px solid #dc3545"
-                  : "1.5px solid #e9ecef";
-            }}
           />
-
-          {/* {comments[selectedPortion] && (
-            <button
-              onClick={() => handleCommentChange("")}
-              className="position-absolute end-0 top-0 mt-2 me-2 btn btn-light btn-sm rounded-pill"
-              style={{
-                fontSize: "12px",
-                zIndex: 2
-              }}
-            >
-              Clear
-            </button>
-          )} */}
         </div>
 
         {/* Validation message */}
@@ -523,22 +485,22 @@ export const AddToCartModal = () => {
           <button
             type="button"
             onClick={() =>
-              handleQuantityChange(quantities[selectedPortion] - 1)
+              handleQuantityChange((quantities[selectedPortion] || 0) - 1)
             }
             className={`w-10 h-10 rounded-3xl bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center mr-5 transition-all duration-200 ${
-              quantities[selectedPortion] <= 0 ? 'opacity-50' : 'opacity-100'
+              (quantities[selectedPortion] || 0) <= 0 ? 'opacity-50' : 'opacity-100'
             }`}
-            disabled={quantities[selectedPortion] <= 0}
+            disabled={(quantities[selectedPortion] || 0) <= 0}
           >
             –
           </button>
           <span className="text-xl font-normal text-[#23232b] min-w-[24px] text-center flex-1">
-            {quantities[selectedPortion]}
+            {quantities[selectedPortion] || 0}
           </span>
           <button
             type="button"
             onClick={() =>
-              handleQuantityChange(quantities[selectedPortion] + 1)
+              handleQuantityChange((quantities[selectedPortion] || 0) + 1)
             }
             className="w-10 h-10 rounded-3xl bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center ml-5 transition-all duration-200"
           >

@@ -1,16 +1,13 @@
-import React from 'react'
-
 function OutletNotFound() {
   return (
-    <div className="container min-vh-100 d-flex align-items-center justify-content-center">
-      <div className="text-center p-4 rounded-4">
+    <div className="container mx-auto min-h-screen flex items-center justify-center">
+      <div className="text-center p-4 rounded-2xl">
         <img 
           src="/src/assets/images/scanQr.gif" 
           alt="Scan QR Code" 
-          className="img-fluid mb-4 rounded-4"
-          style={{ maxWidth: '200px', height: '200px' }}
+          className="w-full max-w-[200px] h-[200px] mb-4 rounded-2xl mx-auto"
         />
-        <h5 className="mt-3">Outlet having issue. 
+        <h5 className="mt-3 text-lg font-medium">Outlet having issue. 
         <br />
         Rescan the QR Code again!</h5>
       </div>

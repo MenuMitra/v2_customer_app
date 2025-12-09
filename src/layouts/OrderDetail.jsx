@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { useOutlet } from "../contexts/OutletContext";
 import axios from "axios";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import toast from "react-hot-toast";
 import MenuMitra from "../assets/logo.png";
 import FeedbackButton from "../components/FeedbackButton";
-import {ENV} from '../config';
+import { ENV } from '../config';
 
 function OrderDetail() {
   const { orderId } = useParams();
@@ -79,60 +78,19 @@ function OrderDetail() {
     }
   };
 
-  // Enhanced status badge style with better color coding
-  const getStatusBadgeStyle = (status) => {
-    const statusColors = {
-      placed: {
-        backgroundColor: "#FFF8E1",
-        color: "#FFA000",
-        border: "1px solid #FFE082",
-        padding: "6px 15px",
-        fontSize: "12px",
-        fontWeight: "500",
-      },
-      cooking: {
-        backgroundColor: "#E8F5E9",
-        color: "#027335",
-        border: "1px solid #A5D6A7",
-        padding: "6px 15px",
-        fontSize: "12px",
-        fontWeight: "500",
-      },
-      served: {
-        backgroundColor: "#E3F2FD",
-        color: "#1565C0",
-        border: "1px solid #90CAF9",
-        padding: "6px 15px",
-        fontSize: "12px",
-        fontWeight: "500",
-      },
-      cancelled: {
-        backgroundColor: "#FFEBEE",
-        color: "#C62828",
-        border: "1px solid #FFCDD2",
-        padding: "6px 15px",
-        fontSize: "12px",
-        fontWeight: "500",
-      },
-      paid: {
-        backgroundColor: "#E0F2F1",
-        color: "#00796B",
-        border: "1px solid #80CBC4",
-        padding: "6px 15px",
-        fontSize: "12px",
-        fontWeight: "500",
-      },
+  // Enhanced status badge style with better color coding - returns Tailwind classes
+  const getStatusBadgeClasses = (status) => {
+    const statusClasses = {
+      placed: "bg-[#FFF8E1] text-[#FFA000] border border-[#FFE082]",
+      cooking: "bg-[#E8F5E9] text-[#027335] border border-[#A5D6A7]",
+      served: "bg-[#E3F2FD] text-[#1565C0] border border-[#90CAF9]",
+      cancelled: "bg-[#FFEBEE] text-[#C62828] border border-[#FFCDD2]",
+      paid: "bg-[#E0F2F1] text-[#00796B] border border-[#80CBC4]",
     };
 
     return (
-      statusColors[status.toLowerCase()] || {
-        backgroundColor: "#FAFAFA",
-        color: "#616161",
-        border: "1px solid #E0E0E0",
-        padding: "6px 15px",
-        fontSize: "12px",
-        fontWeight: "500",
-      }
+      statusClasses[status.toLowerCase()] ||
+      "bg-[#FAFAFA] text-[#616161] border border-[#E0E0E0]"
     );
   };
 
@@ -512,7 +470,7 @@ function OrderDetail() {
       <>
         <Header />
         <div className="page-content bottom-content">
-          <div className="container">Loading...</div>
+          <div className="max-w-[1200px] mx-auto px-4 text-center py-8 text-[#6c757d]">Loading...</div>
         </div>
         <Footer />
       </>
@@ -524,7 +482,7 @@ function OrderDetail() {
       <>
         <Header />
         <div className="page-content bottom-content">
-          <div className="container">Error: {error}</div>
+          <div className="max-w-[1200px] mx-auto px-4 text-center py-8 text-[#dc3545]">Error: {error}</div>
         </div>
         <Footer />
       </>
@@ -534,38 +492,34 @@ function OrderDetail() {
   return (
     <>
       <Header />
-      <div
-        className="page-content bottom-content"
-        // Remove the inline background style since theme-dark will handle it
-      >
-        <div className="container pb-4">
-          {/* Order Header Card - Add dark theme compatible classes */}
+      <div className="page-content bottom-content">
+        <div className="max-w-[1200px] mx-auto px-4 pb-4">
+          {/* Order Header Card */}
           <div className="card">
             <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-2">
+              <div className="flex items-center justify-between mb-2">
                 <div>
-                  <h5 className="mb-0 text-primary">
+                  <h5 className="mb-0 text-[var(--primary)]">
                    Order  #{orderDetails.order_details.order_number}
                   </h5>
                 </div>
                 <span
-                  className={`badge rounded-pill ${getStatusClass(
+                  className={`px-[15px] py-1.5 text-xs font-medium rounded-full ${getStatusClass(
+                    orderDetails.order_details.order_status
+                  )} ${getStatusBadgeClasses(
                     orderDetails.order_details.order_status
                   )}`}
-                  style={getStatusBadgeStyle(
-                    orderDetails.order_details.order_status
-                  )}
                 >
                   {orderDetails.order_details.order_status?.toUpperCase()}
                 </span>
               </div>
-              <div className="d-flex align-items-center justify-content-between">
+              <div className="flex items-center justify-between">
                 <span className="text-soft">
-                  <i className="fa-regular fa-clock me-2"></i>
+                  <i className="fa-regular fa-clock mr-2"></i>
                   {`${orderDetails.order_details.date} ${orderDetails.order_details.time}`}
                 </span>
                 <span className="text-soft">
-                  <i className="fa-solid fa-location-dot me-2"></i>
+                  <i className="fa-solid fa-location-dot mr-2"></i>
                   {orderDetails.order_details.order_type?.toUpperCase()}
                 </span>
               </div>
@@ -574,8 +528,8 @@ function OrderDetail() {
 
           {/* Order Items Card */}
           <div className="card mt-3">
-            <div className="card-header border-0 pb-0 border-bottom pb-3">
-              <h5 className="card-title text-primary">
+            <div className="card-header border-0 pb-0 border-b pb-3">
+              <h5 className="card-title text-[var(--primary)]">
                 Order Items ({orderDetails.order_details.menu_count})
               </h5>
             </div>
@@ -584,16 +538,14 @@ function OrderDetail() {
               {orderDetails.menu_details.map((menu, index) => (
                 <div
                   key={index}
-                  className="d-flex align-items-center justify-content-between py-3"
-                  style={{
-                    borderBottom:
-                      index !== orderDetails.menu_details.length - 1
-                        ? "1px solid var(--border-color)"
-                        : "none",
-                  }}
+                  className={`flex items-center justify-between py-3 ${
+                    index !== orderDetails.menu_details.length - 1
+                      ? "border-b border-[var(--border-color)]"
+                      : ""
+                  }`}
                 >
-                  <div className="d-flex align-items-center">
-                    <div className="food-type-icon me-3">
+                  <div className="flex items-center">
+                    <div className="food-type-icon mr-3">
                       {menu.menu_food_type.toLowerCase() === "veg" ? (
                         <VegIcon />
                       ) : (
@@ -601,29 +553,29 @@ function OrderDetail() {
                       )}
                     </div>
                     <div>
-                      <div className="d-flex align-items-center gap-2">
-                        <h6 className="mb-1 text-primary">{menu.menu_name}</h6>
+                      <div className="flex items-center gap-2">
+                        <h6 className="mb-1 text-[var(--primary)]">{menu.menu_name}</h6>
                         {menu.is_favourite === 1 && (
-                          <i className="fa-solid fa-heart text-danger"></i>
+                          <i className="fa-solid fa-heart text-[#dc3545]"></i>
                         )}
                       </div>
                       <p className="mb-0 text-soft">
                         Qty: {menu.quantity} × ₹{menu.price}
                         {menu.comment && (
-                          <span className="ms-2 text-soft">
+                          <span className="ml-2 text-soft">
                             • {menu.comment}
                           </span>
                         )}
                       </p>
                       {menu.offer > 0 && (
-                        <span className="badge bg-success-light text-success">
+                        <span className="inline-block px-2 py-1 text-xs rounded bg-[#d4edda] text-[#155724]">
                           {menu.offer}% OFF
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="text-end">
-                    <h6 className="mb-0 text-primary">₹{menu.net_price}</h6>
+                  <div className="text-right">
+                    <h6 className="mb-0 text-[var(--primary)]">₹{menu.net_price}</h6>
                   </div>
                 </div>
               ))}
@@ -632,10 +584,10 @@ function OrderDetail() {
 
           {/* Bill Details Card */}
           <div className="card mt-3">
-            <div className="card-header border-0 d-flex justify-content-between align-items-center pb-0">
-              <h5 className="card-title text-primary mb-0">Payment Details</h5>
+            <div className="card-header border-0 flex justify-between items-center pb-0">
+              <h5 className="card-title text-[var(--primary)] mb-0">Payment Details</h5>
               {orderDetails.order_details.payment_method && (
-                <span className="badge bg-primary-light text-primary">
+                <span className="inline-block px-3 py-1 text-xs rounded bg-[#e7f1ff] text-[var(--primary)]">
                   {orderDetails.order_details.payment_method}
                 </span>
               )}
@@ -644,9 +596,9 @@ function OrderDetail() {
               <div className="bg-transparent">
                 {/* Show original bill amount if coupon applied */}
                 {orderDetails.order_details.coupon_details && (
-                  <div className="d-flex justify-content-between px-0 border-0">
+                  <div className="flex justify-between px-0 border-0">
                     <span className="text-soft">Bill Amount</span>
-                    <strong className="text-primary">
+                    <strong className="text-[var(--primary)]">
                       ₹
                       {Number(
                         orderDetails.order_details.coupon_details
@@ -658,17 +610,14 @@ function OrderDetail() {
 
                 {/* Show Discount first */}
                 {orderDetails.order_details.discount_amount > 0 && (
-                  <div
-                    className="d-flex justify-content-between px-0"
-                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                  >
+                  <div className="flex justify-between px-0 py-1 mb-0">
                     <span>
                       Discount
                       {orderDetails.order_details.discount_percent > 0
                         ? ` (${orderDetails.order_details.discount_percent}%)`
                         : ""}
                     </span>
-                    <strong style={{ color: "#e74c3c" }}>
+                    <strong className="text-[#e74c3c]">
                       -₹
                       {Number(
                         orderDetails.order_details.discount_amount
@@ -680,14 +629,7 @@ function OrderDetail() {
                 {/* Show Coupon Details */}
                 {orderDetails.order_details.coupon_details && (
                   <>
-                    <div
-                      className="d-flex justify-content-between px-0"
-                      style={{
-                        paddingTop: 4,
-                        paddingBottom: 4,
-                        marginBottom: 0,
-                      }}
-                    >
+                    <div className="flex justify-between px-0 py-1 mb-0">
                       <span>
                         Coupon (
                         {orderDetails.order_details.coupon_details.coupon_code})
@@ -696,25 +638,18 @@ function OrderDetail() {
                           ? ` - Flat ₹${orderDetails.order_details.coupon_details.discount_value}`
                           : ` - ${orderDetails.order_details.coupon_details.discount_value}% off`}
                       </span>
-                      <strong style={{ color: "#e74c3c" }}>
+                      <strong className="text-[#e74c3c]">
                         -₹
                         {Number(
                           orderDetails.order_details.coupon_discount
                         ).toFixed(2)}
                       </strong>
                     </div>
-                    <div
-                      className="d-flex justify-content-between px-0"
-                      style={{
-                        paddingTop: 4,
-                        paddingBottom: 4,
-                        marginBottom: 0,
-                      }}
-                    >
-                      <span style={{ fontWeight: 500 }}>
+                    <div className="flex justify-between px-0 py-1 mb-0">
+                      <span className="font-medium">
                         After Total Discount
                       </span>
-                      <span style={{ fontWeight: 500 }}>
+                      <span className="font-medium">
                         ₹
                         {Number(
                           orderDetails.order_details.coupon_details
@@ -727,9 +662,9 @@ function OrderDetail() {
 
                 {/* If no coupon, show regular total */}
                 {!orderDetails.order_details.coupon_details && (
-                  <div className="d-flex justify-content-between px-0 border-0">
+                  <div className="flex justify-between px-0 border-0">
                     <span className="text-soft">Total</span>
-                    <strong className="text-primary">
+                    <strong className="text-[var(--primary)]">
                       ₹
                       {Number(
                         orderDetails.order_details.total_bill_amount
@@ -740,12 +675,9 @@ function OrderDetail() {
 
                 {/* Rest of the existing bill details */}
                 {orderDetails.order_details.special_discount > 0 && (
-                  <div
-                    className="d-flex justify-content-between px-0"
-                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                  >
+                  <div className="flex justify-between px-0 py-1 mb-0">
                     <span>Special Discount</span>
-                    <strong style={{ color: "#e74c3c" }}>
+                    <strong className="text-[#e74c3c]">
                       -₹
                       {Number(
                         orderDetails.order_details.special_discount
@@ -754,22 +686,16 @@ function OrderDetail() {
                   </div>
                 )}
                 {orderDetails.order_details.charges > 0 && (
-                  <div
-                    className="d-flex justify-content-between px-0"
-                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                  >
+                  <div className="flex justify-between px-0 py-1 mb-0">
                     <span>Extra Charges</span>
-                    <strong style={{ color: "#22A45D" }}>
+                    <strong className="text-[#22A45D]">
                       +₹{Number(orderDetails.order_details.charges).toFixed(2)}
                     </strong>
                   </div>
                 )}
-                <div
-                  className="d-flex justify-content-between px-0"
-                  style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                >
-                  <span style={{ fontWeight: 700 }}>Subtotal</span>
-                  <span style={{ fontWeight: 700 }}>
+                <div className="flex justify-between px-0 py-1 mb-0">
+                  <span className="font-bold">Subtotal</span>
+                  <span className="font-bold">
                     ₹
                     {(
                       Number(
@@ -783,15 +709,12 @@ function OrderDetail() {
                   </span>
                 </div>
                 {orderDetails.order_details.service_charges_amount > 0 && (
-                  <div
-                    className="d-flex justify-content-between px-0"
-                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                  >
+                  <div className="flex justify-between px-0 py-1 mb-0">
                     <span>
                       Service Charges (
                       {orderDetails.order_details.service_charges_percent}%)
                     </span>
-                    <strong style={{ color: "#22A45D" }}>
+                    <strong className="text-[#22A45D]">
                       +₹
                       {Number(
                         orderDetails.order_details.service_charges_amount
@@ -800,24 +723,18 @@ function OrderDetail() {
                   </div>
                 )}
                 {orderDetails.order_details.gst_amount > 0 && (
-                  <div
-                    className="d-flex justify-content-between px-0"
-                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                  >
+                  <div className="flex justify-between px-0 py-1 mb-0">
                     <span>GST ({orderDetails.order_details.gst_percent}%)</span>
-                    <strong style={{ color: "#22A45D" }}>
+                    <strong className="text-[#22A45D]">
                       +₹
                       {Number(orderDetails.order_details.gst_amount).toFixed(2)}
                     </strong>
                   </div>
                 )}
                 {orderDetails.order_details.tip > 0 && (
-                  <div
-                    className="d-flex justify-content-between px-0"
-                    style={{ paddingTop: 4, paddingBottom: 4, marginBottom: 0 }}
-                  >
+                  <div className="flex justify-between px-0 py-1 mb-0">
                     <span>Tip</span>
-                    <strong style={{ color: "#22A45D" }}>
+                    <strong className="text-[#22A45D]">
                       +₹{Number(orderDetails.order_details.tip).toFixed(2)}
                     </strong>
                   </div>
@@ -825,9 +742,9 @@ function OrderDetail() {
               </div>
               <hr className="opacity-15" />
               <div className="bg-transparent">
-                <div className="d-flex justify-content-between px-0 border-0">
-                  <h6 className="mb-0 text-dark fw-bold">Grand Total</h6>
-                  <h6 className="mb-0 text-primary fw-bold">
+                <div className="flex justify-between px-0 border-0">
+                  <h6 className="mb-0 text-[var(--text-dark)] font-bold">Grand Total</h6>
+                  <h6 className="mb-0 text-[var(--primary)] font-bold">
                     ₹
                     {Number(
                       orderDetails.order_details.final_grand_total
@@ -836,21 +753,11 @@ function OrderDetail() {
                 </div>
               </div>
 
-              {/* {orderDetails.order_details.order_payment_settle_type &&
-                orderDetails.order_details.order_payment_settle_type !==
-                  "null" && (
-                  <div style={{ marginTop: 4 }}>
-                    <span className="text-soft">
-                      Settlement Type:{" "}
-                      {orderDetails.order_details.order_payment_settle_type}
-                    </span>
-                  </div>
-                )} */}
             </div>
           </div>
 
           {/* Invoice and Feedback Buttons */}
-          <div className="d-flex justify-content-between align-items-center mt-3">
+          <div className="flex justify-between items-center mt-3">
             <div>
               <FeedbackButton orderNo={orderDetails.order_details.order_number} />
             </div>
@@ -858,10 +765,10 @@ function OrderDetail() {
               orderDetails.order_details.order_status?.toLowerCase()
             ) && (
               <button
-                className="btn btn-light btn-sm d-flex align-items-center"
+                className="px-4 py-2 bg-[#f8f9fa] text-[#212529] rounded-lg text-sm font-medium flex items-center hover:bg-[#e9ecef] transition-colors border border-[#dee2e6]"
                 onClick={handleDownloadInvoice}
               >
-                <i className="fa-solid fa-download me-2"></i>
+                <i className="fa-solid fa-download mr-2"></i>
                 Invoice
               </button>
             )}
@@ -876,8 +783,8 @@ function OrderDetail() {
                 <h5 className="card-title">Table Information</h5>
               </div>
               <div className="card-body pt-3">
-                <div className="d-flex align-items-center">
-                  <i className="fa-solid fa-table me-3 text-primary"></i>
+                <div className="flex items-center">
+                  <i className="fa-solid fa-table mr-3 text-primary"></i>
                   <div>
                     <h6 className="mb-1">Table {orderDetails.order_details.table_number.join(", ")}</h6>
                     <p className="mb-0 text-soft">{orderDetails.order_details.section_name}</p>
@@ -889,11 +796,11 @@ function OrderDetail() {
 
           {/* Customer & Restaurant Info */}
           {/* <div className="card dz-card mt-3">
-            <div className="card-header border-0 d-flex justify-content-between align-items-center">
+            <div className="card-header border-0 flex justify-between items-center">
               <h5 className="card-title mb-0">Contact Information</h5>
             </div>
             <div className="card-body pt-3">
-              <div className="d-flex align-items-center mb-3">
+              <div className="flex items-center mb-3">
                 <div>
                   <h6 className="mb-1">{orderDetails.order_details.user_name}</h6>
                   <p className="mb-0 text-soft">{orderDetails.order_details.user_mobile}</p>

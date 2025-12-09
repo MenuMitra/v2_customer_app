@@ -171,16 +171,23 @@ const VerticalMenuCard = ({
           )}
         </Link>
         {discount && (
-          <div
-            className="rainbow-off-label absolute top-0 left-0 py-[1px] px-2 pl-1.5 rounded-tl-[8px] rounded-br-[10px] text-xs font-bold text-white z-[2] min-w-[32px] text-center tracking-wide"
-            style={{
-              background: "linear-gradient(90deg, #a8e063, #f8ff00, #f7971e, #f857a6, #a8e063)",
-              backgroundSize: "300% 300%",
-              animation: "rainbow 3s ease infinite",
-            }}
-          >
-            {discount} Off
-          </div>
+          <>
+            <style>{`
+              @keyframes rainbow {
+                0% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+                100% { background-position: 0% 50%; }
+              }
+              .rainbow-off-label {
+                background: linear-gradient(90deg, #a8e063, #f8ff00, #f7971e, #f857a6, #a8e063);
+                background-size: 300% 300%;
+                animation: rainbow 3s ease infinite;
+              }
+            `}</style>
+            <div className="rainbow-off-label absolute top-0 left-0 py-[1px] px-2 pl-1.5 rounded-tl-[8px] rounded-br-[10px] text-xs font-bold text-white z-[2] min-w-[32px] text-center tracking-wide">
+              {discount} Off
+            </div>
+          </>
         )}
       </div>
       <div className="dz-content">
@@ -188,7 +195,7 @@ const VerticalMenuCard = ({
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <FoodTypeIcon foodType={menuItem?.menuFoodType} />
-            <span className="text-muted small text-xs">
+            <span className="text-[#6c757d] text-xs">
               {menuItem?.categoryName || "Category"}
             </span>
           </div>
@@ -199,10 +206,9 @@ const VerticalMenuCard = ({
           >
             <div className={`like-button ${isFavoriteBoolean ? "active" : ""}`}>
               <i
-                className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart text-base leading-none`}
-                style={{
-                  color: isFavoriteBoolean ? "#dc3545" : "#6c757d",
-                }}
+                className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart text-base leading-none ${
+                  isFavoriteBoolean ? "text-[#dc3545]" : "text-[#6c757d]"
+                }`}
               />
             </div>
           </a>
@@ -219,19 +225,18 @@ const VerticalMenuCard = ({
               <li className="spicy_index flex items-center">
                 {[...Array(3)].map((_, index) => {
                   const spicyIndex = Number(menuItem.spicyIndex);
-                  let color = "#E0E0E0"; // default: white/grey
+                  let colorClass = "text-[#E0E0E0]"; // default: white/grey
                   if (spicyIndex === 1) {
-                    color = index === 0 ? "#22A45D" : "#E0E0E0"; // green, rest white
+                    colorClass = index === 0 ? "text-[#22A45D]" : "text-[#E0E0E0]"; // green, rest white
                   } else if (spicyIndex === 2) {
-                    color = index < 2 ? "#FFA500" : "#E0E0E0"; // orange, last white
+                    colorClass = index < 2 ? "text-[#FFA500]" : "text-[#E0E0E0]"; // orange, last white
                   } else if (spicyIndex === 3) {
-                    color = "#FF2D2D"; // all red
+                    colorClass = "text-[#FF2D2D]"; // all red
                   }
                   return (
                     <i
                       key={index}
-                      className={`fa-solid fa-pepper-hot text-sm ${index < 2 ? 'mr-[2px]' : ''}`}
-                      style={{ color }}
+                      className={`fa-solid fa-pepper-hot text-sm ${index < 2 ? 'mr-[2px]' : ''} ${colorClass}`}
                     ></i>
                   );
                 })}
@@ -241,7 +246,7 @@ const VerticalMenuCard = ({
               {menuItem.offer > 0 ? (
                 <>
                   ₹{Math.round(menuItem.portions?.[0]?.price * (1 - menuItem.offer / 100))}
-                  <del className="ms-2 text-muted">
+                  <del className="ml-2 text-gray-500">
                     ₹{menuItem.portions?.[0]?.price}
                   </del>
                 </>
@@ -251,33 +256,32 @@ const VerticalMenuCard = ({
             </li>
           </ul>
         </div>
-        <div className="mt-2 min-h-[38px]">
-          {!cartItemsForMenu.length ? (
-            <a
-              className="btn btn-primary add-btn light w-100 rounded-3xl"
-              href="javascript:void(0);"
-              onClick={handleAddToCartClick}
-            >
-              <i className="fa-solid fa-cart-shopping me-2"></i>
-              Add to cart
-            </a>
-          ) : null}
+        <div className="mt-2 min-h-[38px] relative">
+          <a
+            className="bg-[var(--primary)] text-white py-2 px-3 sm:px-4 rounded-full w-full inline-flex items-center justify-center no-underline hover:bg-[#178027] transition-colors add-btn light text-xs sm:text-sm md:text-base"
+            href="javascript:void(0);"
+            onClick={handleAddToCartClick}
+            style={{ display: !cartItemsForMenu.length ? 'inline-flex' : 'none' }}
+          >
+            <i className="fa-solid fa-cart-shopping mr-1 sm:mr-2 text-xs sm:text-sm"></i>
+            <span className="whitespace-nowrap">Add to cart</span>
+          </a>
           <div
-            className={`dz-stepper border-1 rounded-stepper stepper-fill ${cartItemsForMenu.length ? "active" : ""
+            className={`dz-stepper  rounded-stepper stepper-fill ${cartItemsForMenu.length ? "active" : ""
               }`}
           >
-            <div className="input-group bootstrap-touchspin bootstrap-touchspin-injected flex items-center">
+            <div className="flex items-center justify-between gap-1 sm:gap-2">
               <button
-                className="btn btn-primary rounded-3xl p-2 w-[35px] h-[35px]"
+                className="bg-[var(--primary)] text-white rounded-full p-1.5 sm:p-2 w-[30px] h-[30px] sm:w-[35px] sm:h-[35px] flex items-center justify-center border-0 hover:bg-[var(--primary-dark)] transition-colors flex-shrink-0 text-sm sm:text-base"
                 type="button"
                 onClick={() => handleQuantityChange(false)}
               >
                 -
               </button>
 
-              <div className="flex items-center justify-center mx-2 flex-1">
+              <div className="flex items-center justify-center flex-1 min-w-0 px-1">
                 {cartItemsForMenu.length > 0 && menuItem?.portions ? (
-                  <div className="row g-0 w-100">
+                  <div className="flex gap-0 w-full">
                     {menuItem.portions
                       .map((portion) => {
                         const cartItem = cartItemsForMenu.find(
@@ -293,22 +297,22 @@ const VerticalMenuCard = ({
                       .map((portion, index, filteredArray) => (
                         <div
                           key={portion.portion_id}
-                          className={`col text-center ${index < filteredArray.length - 1 ? "border-end" : ""
+                          className={`flex-1 text-center ${index < filteredArray.length - 1 ? "border-r border-gray-300" : ""
                             }`}
                         >
-                          <div className="fw-bold">{portion.quantity}</div>
+                          <div className="font-bold text-sm sm:text-base">{portion.quantity}</div>
                         </div>
                       ))}
                   </div>
                 ) : (
-                  <div className="text-center w-100">
-                    <span className="fw-bold">0</span>
+                  <div className="text-center w-full">
+                    <span className="font-bold text-sm sm:text-base">0</span>
                   </div>
                 )}
               </div>
 
               <button
-                className="btn btn-primary rounded-3xl p-2 w-[35px] h-[35px]"
+                className="bg-[var(--primary)] text-white rounded-full p-1.5 sm:p-2 w-[30px] h-[30px] sm:w-[35px] sm:h-[35px] flex items-center justify-center border-0 hover:bg-[var(--primary-dark)] transition-colors flex-shrink-0 text-sm sm:text-base"
                 type="button"
                 onClick={() => handleQuantityChange(true)}
               >
@@ -318,8 +322,8 @@ const VerticalMenuCard = ({
           </div>
         </div>
         {menuComment && (
-          <div className="text-muted small mt-1 text-xs">
-            <i className="fas fa-comment-alt me-1"></i>
+          <div className="text-gray-500 mt-1 text-xs">
+            <i className="fas fa-comment-alt mr-1"></i>
             {menuComment}
           </div>
         )}

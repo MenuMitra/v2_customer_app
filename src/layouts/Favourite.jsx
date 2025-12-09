@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 // import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Header from "../components/Header";
@@ -103,7 +103,7 @@ function FavouriteContent() {
   // Removed unused navigateToLogin
 
   // Move useEffect to component top level
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoading && favoriteMenus.length > 0) {
       const grouped = groupByOutlet(favoriteMenus);
       const sortedEntries = Object.entries(grouped)
@@ -133,7 +133,7 @@ function FavouriteContent() {
   return (
     <div className="page-content">
       <div className="content-inner pt-0">
-        <div className="container p-b20">
+        <div className="container mx-auto px-4 pb-5">
           <div className="dashboard-area">
             {isLoading ? (
               <div className="text-center p-5">Loading...</div>
@@ -155,8 +155,7 @@ function FavouriteContent() {
                   entries.map(([outletName, menus]) => (
                     <div key={outletName} className="mb-4">
                       <div
-                        className="fw-bold text-uppercase mb-2 d-flex align-items-center justify-content-between"
-                        style={{ fontSize: 16, cursor: "pointer" }}
+                        className="font-bold uppercase mb-2 flex items-center justify-between text-base cursor-pointer"
                         onClick={() =>
                           setExpandedOutlet((prev) => ({
                             ...prev,
@@ -165,25 +164,14 @@ function FavouriteContent() {
                         }
                       >
                         <span>
-                          <i className="fa-solid fa-store me-2"></i>
+                          <i className="fa-solid fa-store mr-2"></i>
                           {outletName}
                         </span>
-                        <span
-                          style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: 28,
-                            height: 28,
-                            borderRadius: "50%",
-                            background: "#f5f5f5",
-                          }}
-                        >
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
                           <i
                             className={`fa-solid fa-chevron-${
                               expandedOutlet[outletName] ? "up" : "down"
-                            }`}
-                            style={{ fontSize: 18, color: "#888" }}
+                            } text-lg text-gray-600`}
                           ></i>
                         </span>
                       </div>
@@ -227,7 +215,7 @@ function FavouriteContent() {
                   ))
                 ) : (
                   <div className="text-center p-5">
-                    <p className="text-muted">No favorite items found</p>
+                    <p className="text-gray-500">No favorite items found</p>
                   </div>
                 );
               })()

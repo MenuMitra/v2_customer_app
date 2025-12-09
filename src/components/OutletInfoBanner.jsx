@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import { useModal } from "../contexts/ModalContext";
 import { useOutlet } from "../contexts/OutletContext";
 import { useNavigate } from "react-router-dom";
@@ -42,27 +42,26 @@ function OutletInfoBanner() {
   };
 
   // If we have an outlet code but no outlet details, fetch them
-  React.useEffect(() => {
+  useEffect(() => {
     if (outletCode && !outletName) {
       fetchOutletDetailsByCode(outletCode);
     }
   }, [outletCode, outletName, fetchOutletDetailsByCode]);
 
   return (
-    <div className="container py-2 shadow-lg">
-      <div className="d-flex align-items-center">
+    <div className="container mx-auto py-2 shadow-lg">
+      <div className="flex items-center">
         {/* Left side - Store Icon and Name */}
-        <div className="d-flex align-items-center flex-grow-1">
-          <div className="me-2 text-primary">
-            <i class="fa-solid fa-store"></i>
+        <div className="flex items-center flex-grow">
+          <div className="mr-2 text-primary">
+            <i className="fa-solid fa-store"></i>
           </div>
           <div
             onClick={handleOutletClick}
-            style={{ cursor: "pointer" }}
             role="button"
-            className="outlet-info"
+            className="outlet-info cursor-pointer"
           >
-            <h6 className="mb-0 text-dark fw-semibold">{outletName || "-"}</h6>
+            <h6 className="mb-0 text-gray-900 font-semibold">{outletName || "-"}</h6>
           </div>
         </div>
 
@@ -70,35 +69,32 @@ function OutletInfoBanner() {
         <div>
           {isOutletOnlyUrl ? (
             <button
-              className="btn btn-link p-0 d-flex align-items-center"
+              className="p-0 flex items-center no-underline bg-transparent border-0 hover:opacity-80 transition-opacity"
               onClick={handleOrderTypeClick}
-              style={{ textDecoration: "none" }}
             >
               <div className="text-primary">
                 {orderSettings.order_type ? (
-                  <span style={{ fontSize: "24px" }}>
+                  <span className="text-2xl">
                     {orderTypeIcons[orderSettings.order_type]}
                   </span>
                 ) : (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
+                    className="w-8 h-8 mr-2"
                     viewBox="0 0 15 24"
                     fill="currentColor"
-                    className="me-2"
                   >
                     <path d="M12 2C8.1 2 5 5.1 5 9c0 4 7 13 7 13s7-9 7-13c0-3.9-3.1-7-7-7zm0 4c1.7 0 3 1.3 3 3s-1.3 3-3 3-3-1.3-3-3 1.3-3 3-3z" />
                   </svg>
                 )}
               </div>
-              <div className="d-flex flex-column align-items-start ms-2">
-                <span className="fw-bold text-dark">
+              <div className="flex flex-col items-start ml-2">
+                <span className="font-bold text-gray-900">
                   {orderSettings.order_type
                     ? orderTypeNames[orderSettings.order_type]
                     : "Select Order Type"}
                 </span>
-                <small className="text-muted">
+                <small className="text-gray-500">
                   {orderSettings.order_type
                     ? "Tap to change"
                     : "Click to select"}
@@ -106,8 +102,8 @@ function OutletInfoBanner() {
               </div>
             </button>
           ) : (
-            <div className="d-flex align-items-center">
-              <span className="fw-normal text-light">
+            <div className="flex items-center">
+              <span className="font-normal text-gray-300">
                 {sectionName ? sectionName : "SectionName"}-
                 {tableNumber &&
                 Array.isArray(tableNumber) &&

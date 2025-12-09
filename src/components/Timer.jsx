@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 const Timer = ({ orderTime }) => {
   console.log('Timer component received orderTime:', orderTime);
@@ -68,8 +68,7 @@ const Timer = ({ orderTime }) => {
   // Checkmark SVG component
   const CheckmarkIcon = () => (
     <svg
-      width="24"
-      height="24"
+      className="w-6 h-6"
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -88,20 +87,17 @@ const Timer = ({ orderTime }) => {
     return '#E74C3C';                   // Red for < 30s
   };
 
+  // Get Tailwind color class based on time remaining
+  const getColorClass = (seconds) => {
+    if (seconds > 60) return 'text-[#00B67A]'; // Green for > 60s
+    if (seconds > 30) return 'text-[#FFA902]'; // Yellow/Orange for 30-60s
+    return 'text-[#E74C3C]';                   // Red for < 30s
+  };
+
   if (isCompleted) {
     return (
-      <div className="timer-container" style={{ position: 'relative', width: '48px', height: '48px' }}>
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
+      <div className="relative w-12 h-12">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
           <CheckmarkIcon />
         </div>
       </div>
@@ -114,13 +110,11 @@ const Timer = ({ orderTime }) => {
   const currentColor = getColor(seconds);
 
   return (
-    <div className="timer-container" style={{ position: 'relative', width: '48px', height: '48px' }}>
+    <div className="relative w-12 h-12">
       {/* SVG for circular progress */}
       <svg
-        width="48"
-        height="48"
+        className="w-12 h-12 -rotate-90 absolute"
         viewBox="0 0 100 100"
-        style={{ transform: 'rotate(-90deg)', position: 'absolute' }}
       >
         {/* Background circle */}
         <circle
@@ -145,17 +139,7 @@ const Timer = ({ orderTime }) => {
         />
       </svg>
       {/* Timer text */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontSize: '14px',
-          fontWeight: '600',
-          color: currentColor
-        }}
-      >
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-semibold ${getColorClass(seconds)}`}>
         {seconds}s
       </div>
     </div>

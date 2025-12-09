@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useToast } from "../components/Toast/useToast";
 import {ENV} from '../config';
@@ -121,34 +121,25 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
   const ratingLabels = ["Bad", "Poor", "Average", "Good", "Excellent"];
 
   return (
-    <div
-      className="modal show d-block"
-      tabIndex="-1"
-      style={{
-        background: "rgba(17, 25, 40, 0.35)",
-        backdropFilter: "blur(10px) saturate(160%)",
-        WebkitBackdropFilter: "blur(10px) saturate(160%)",
-      }}
-    >
-      <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content">
-          <div
-            className="modal-header d-flex align-items-center justify-content-between"
-            style={{ paddingRight: 8 }}
-          >
-            <h5 className="modal-title mb-0">Customer Feedback</h5>
+    <>
+      <style>{`
+        .feedback-modal-backdrop {
+          background: rgba(17, 25, 40, 0.35);
+          backdrop-filter: blur(10px) saturate(160%);
+          -webkit-backdrop-filter: blur(10px) saturate(160%);
+        }
+      `}</style>
+      <div
+        className="feedback-modal-backdrop fixed inset-0 flex items-center justify-center z-[1055]"
+        tabIndex="-1"
+      >
+      <div className="w-full max-w-[500px] mx-4">
+        <div className="bg-white rounded-lg shadow-lg">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 pr-2">
+            <h5 className="text-xl font-semibold mb-0">Customer Feedback</h5>
             <button
               type="button"
-              className="btn"
-              style={{
-                background: "none",
-                border: "none",
-                fontSize: 24,
-                color: "#222",
-                boxShadow: "none",
-                outline: "none",
-                padding: 0,
-              }}
+              className="bg-transparent border-0 text-2xl text-[#222] p-0 cursor-pointer hover:text-gray-600 transition-colors"
               onClick={onClose}
               aria-label="Close"
             >
@@ -156,24 +147,24 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
             </button>
           </div>
           <form onSubmit={handleSubmit}>
-            <div className="modal-body">
+            <div className="p-4">
 
-              <div className="mb-2">
-                <label className="form-label">Customer Name</label>
+              <div className="mb-3">
+                <label className="block mb-2 text-sm font-medium text-gray-700">Customer Name</label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   name="customer_name"
                   value={form.customer_name}
                   onChange={handleChange}
                   placeholder="Enter your name"
                 />
               </div>
-              <div className="mb-2">
-                <label className="form-label">Mobile</label>
+              <div className="mb-3">
+                <label className="block mb-2 text-sm font-medium text-gray-700">Mobile</label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                   name="mobile"
                   value={form.mobile}
                   onChange={handleChange}
@@ -191,12 +182,12 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
                   placeholder="Enter your order number"
                 />
               </div> */}
-              <div className="mb-2">
-                <label className="form-label">
-                  <span className="text-danger">*</span>Feedback
+              <div className="mb-3">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  <span className="text-red-600">*</span>Feedback
                 </label>
                 <textarea
-                  className="form-control"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-none"
                   name="feedback_description"
                   value={form.feedback_description}
                   onChange={handleChange}
@@ -205,61 +196,28 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
                   placeholder="Write your feedback here..."
                 />
               </div>
-              <div className="mb-2">
-                <label className="form-label">
-                  <span className="text-danger">*</span>Rating
+              <div className="mb-3">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  <span className="text-red-600">*</span>Rating
                 </label>
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 4,
-                    fontSize: 24,
-                    position: "relative",
-                  }}
-                >
+                <div className="flex gap-1 text-2xl relative">
                   {[1, 2, 3, 4, 5].map((n) => (
                     <div
                       key={n}
-                      style={{
-                        position: "relative",
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                      }}
+                      className="relative flex flex-col items-center"
                     >
                       {/* Show label above the selected star */}
                       {form.feedback_rating === n && (
-                        <span
-                          style={{
-                            position: "absolute",
-                            top: -22,
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                            fontSize: 12,
-                            color: "#666",
-                            fontWeight: 500,
-                            whiteSpace: "nowrap",
-                            pointerEvents: "none",
-                            zIndex: 1,
-                          }}
-                        >
+                        <span className="absolute -top-[22px] left-1/2 -translate-x-1/2 text-xs text-gray-600 font-medium whitespace-nowrap pointer-events-none z-10">
                           {ratingLabels[n - 1]}
                         </span>
                       )}
                       <i
-                        className={
+                        className={`${
                           n <= Number(form.feedback_rating)
-                            ? "fa-solid fa-star"
-                            : "fa-regular fa-star"
-                        }
-                        style={{
-                          color:
-                            n <= Number(form.feedback_rating)
-                              ? "#FFD600"
-                              : "#ccc",
-                          cursor: "pointer",
-                          transition: "color 0.2s",
-                        }}
+                            ? "fa-solid fa-star text-[#FFD600]"
+                            : "fa-regular fa-star text-[#ccc]"
+                        } cursor-pointer transition-colors duration-200`}
                         onClick={() =>
                           setForm((prev) => ({ ...prev, feedback_rating: n }))
                         }
@@ -270,10 +228,10 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
                 </div>
               </div>
             </div>
-            <div className="modal-footer">
+            <div className="flex justify-end gap-2 px-4 py-3 border-t border-gray-200">
               <button
                 type="button"
-                className="btn btn-secondary rounded-3xl"
+                className="px-4 py-2 bg-gray-500 text-white rounded-3xl hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={onClose}
                 disabled={loading}
               >
@@ -281,7 +239,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
               </button>
               <button
                 type="submit"
-                className="btn btn-primary rounded-3xl"
+                className="px-4 py-2 bg-primary text-white rounded-3xl hover:bg-primary-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Feedback"}
@@ -291,6 +249,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Autoplay } from 'swiper/modules';
 import PropTypes from 'prop-types';
@@ -111,7 +110,7 @@ function BannerSwiper({
   return (
     <>
       <style>{styles}</style>
-      <div className="m-b10">
+      <div className="mb-2.5">
         <div className="swiper-btn-center-lr">
           <Swiper
             modules={[Autoplay]}
@@ -139,20 +138,22 @@ function BannerSwiper({
               }
             }}
           >
-            {banners.map((banner) => (
+            {banners.map((banner, index) => (
               <SwiperSlide key={banner.id}>
+                <style>{`
+                  .banner-bg-${index} {
+                    background-image: url(${banner.bgImage});
+                  }
+                `}</style>
                 <div 
-                  className="card add-banner" 
-                  style={{
-                    backgroundImage: `url(${banner.bgImage})`,
-                  }}
+                  className={`card add-banner banner-bg-${index} cursor-pointer`}
                   onClick={() => onBannerClick?.(banner)}
                 >
                   <div className="circle-1"></div>
                   <div className="circle-2"></div>
                   <div className="card-body">
                     <div className="card-info">
-                      <span className="font-12 font-w500 text-dark">
+                      <span className="text-xs font-medium text-dark">
                         {banner.subtitle}
                       </span>
                       <h1 

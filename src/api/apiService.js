@@ -140,7 +140,6 @@ export const apiService = {
         return response.data?.detail || null;
       } catch (error) {
         // If no order exists, API returns error - this is expected behavior
-        console.log("No existing order found");
         return null;
       }
     },
@@ -253,7 +252,7 @@ export const apiService = {
     },
     
     cancelOrder: async ({ outletId, orderId, note }) => {
-      const response = await axiosInstance.post(`/${ENV.V2_COMMON_BASE}/user/cancel_order`, {
+      const response = await axiosInstance.post(`/user/cancel_order`, {
         outlet_id: outletId,
         order_id: orderId,
         note,
