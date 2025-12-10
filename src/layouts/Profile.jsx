@@ -51,7 +51,7 @@ function Profile() {
                 </h5>
                 {!isAuthenticated && (
                   <button
-                    className="absolute top-0 right-0 m-3 font-semibold rounded-[50px] px-3 py-2 border-2 border-white shadow-none bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors z-10"
+                    className="absolute top-2 right-2  font-semibold rounded-[50px] px-3 py-2 border-2 border-white shadow-none bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors z-10"
                     onClick={handleLoginClick}
                   >
                     Login
@@ -65,7 +65,7 @@ function Profile() {
               <div>
                 <Link
                   to="/orders"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full flex font-bold items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-clock-rotate-left mr-2 text-[#212529]" />
                   My Orders
@@ -74,7 +74,7 @@ function Profile() {
               <div>
                 <Link
                   to="/search"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-magnifying-glass mr-2 text-[#212529]" />
                   Search
@@ -83,7 +83,7 @@ function Profile() {
               <div>
                 <Link
                   to="/savings"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-piggy-bank mr-2 text-[#212529]" />
                   Savings
@@ -92,7 +92,7 @@ function Profile() {
               <div>
                 <Link
                   to="/all-outlets"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-store mr-2 text-[#212529]" />
                   All Outlets
@@ -101,7 +101,7 @@ function Profile() {
               <div>
                 <Link
                   to="/favourites"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-heart mr-2 text-[#212529]" />
                   Favourites
@@ -110,7 +110,7 @@ function Profile() {
               <div>
                 <Link
                   to="/menu"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-utensils mr-2 text-[#212529]" />
                   Menu
@@ -119,7 +119,7 @@ function Profile() {
               <div>
                 <Link
                   to="/categories"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-list mr-2 text-[#212529]" />
                   Category
@@ -129,7 +129,7 @@ function Profile() {
               <div>
                 <Link
                   to="/checkout"
-                  className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                 >
                   <i className="fa-solid fa-shopping-cart mr-2 text-[#212529]" />
                   Checkout
@@ -144,7 +144,7 @@ function Profile() {
                 <div className="w-5/6 mx-auto">
                   <Link
                     to="/edit-profile"
-                    className="w-full flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                    className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
                   >
                     <i className="fa-solid fa-user mr-2 text-[#212529]" />
                     Edit Profile

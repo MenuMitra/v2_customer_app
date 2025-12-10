@@ -321,7 +321,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
             </button>
 
             <div
-              className={`absolute z-10 bg-white shadow-sm rounded-2xl mt-2 p-1.5 min-w-[160px] ${
+              className={`absolute z-10 bg-white border-2 border-gray-300 shadow-sm rounded-2xl mt-2 p-1.5 min-w-[160px] ${
                 openDropdown === dropdownType ? "block animate-dropdown-fade" : "hidden"
               }`}
             >

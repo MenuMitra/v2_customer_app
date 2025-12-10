@@ -157,7 +157,7 @@ function EditProfile() {
               </div>
               <button 
                 type="submit" 
-                className="w-full py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2.5 px-4 bg-[var(--primary)] text-white rounded-3xl font-medium hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={isLoading}
               >
                 {isLoading ? (

@@ -136,6 +136,11 @@ function Search() {
           -moz-appearance: none;
           appearance: none;
         }
+
+        /* Search field highlighting */
+        .search-container:focus-within {
+          border-color: #66ccd4 !important;
+        }
       `}</style>
       <Header />
       <div className="page-content">
@@ -143,7 +148,7 @@ function Search() {
           <div className="relative z-[1]">
             <div className="flex items-center mb-4">
               <div className="w-full">
-                <div className="mb-0 flex items-center border border-[var(--border-color)] rounded-lg overflow-hidden">
+                <div className="search-container mb-0 flex items-center border-2 border-gray-300 rounded-lg overflow-hidden transition-colors duration-200">
                   <div className="flex items-center justify-center px-3 bg-[#f8f9fa] cursor-not-allowed opacity-50">
                     <i className="fas fa-search text-[20px] text-[#7D8FAB]"></i>
                   </div>

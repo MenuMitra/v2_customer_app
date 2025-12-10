@@ -50,8 +50,13 @@ function SearchBar({ onSearch, menuItems = [] }) {
 
   return (
     <div className="mb-4">
-      <div className="mb-3 flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden">
-        <span className="flex items-center justify-center px-3 py-2 bg-gray-50 border-r border-gray-300">
+      <style>{`
+        .search-container:focus-within {
+          border-color: #66ccd4 !important;
+        }
+      `}</style>
+      <div className="search-container mb-3 flex items-center border-2 border-gray-300 rounded-lg bg-white overflow-hidden transition-colors duration-200">
+        <span className="flex items-center justify-center px-3 py-2 bg-gray-50 border-r-2 border-gray-300">
           <svg
             className="w-6 h-6"
             viewBox="0 0 24 24"
@@ -73,7 +78,7 @@ function SearchBar({ onSearch, menuItems = [] }) {
         />
         {searchQuery && (
           <span 
-            className="flex items-center justify-center px-3 py-2 bg-gray-50 border-l border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors" 
+            className="flex items-center justify-center px-3 py-2 bg-gray-50 border-l-2 border-gray-300 cursor-pointer hover:bg-gray-100 transition-colors" 
             onClick={handleClear}
             title="Clear search"
           >

@@ -45,7 +45,8 @@ function OrdersContent() {
   const auth = JSON.parse(localStorage.getItem("auth")) || {};
   const userId = auth.userId;
 
-  // State for managing expansion of date accordions
+  // State for managing active tab and expansion of date accordions
+  const [activeTab, setActiveTab] = useState('completed');
   const [expandedCompletedDates, setExpandedCompletedDates] = useState({});
   const [expandedCancelledDates, setExpandedCancelledDates] = useState({});
   const [expandedPendingDates, setExpandedPendingDates] = useState({});
@@ -613,180 +614,142 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
           )}
 
           <div className="default-tab style-1">
-            <ul
-              className="nav nav-tabs flex flex-nowrap overflow-auto w-full justify-between"
-              id="myTab3"
-              role="tablist"
-            >
-              <li className="nav-item flex-shrink-0 w-1/3" role="presentation">
-                <button
-                  className="nav-link active w-full text-base flex items-center justify-center py-3"
-                  id="completed-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#completed-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="completed-tab-pane"
-                  aria-selected="true"
-                >
-                  <i className="fa-solid fa-circle-check mr-2 text-[#27ae60] text-lg"></i>
-                  <span className="text-[15px] font-medium">
-                    Completed
-                  </span>
-                </button>
-              </li>
-              <li className="nav-item flex-shrink-0 w-1/3" role="presentation">
-                <button
-                  className="nav-link flex items-center justify-center w-full text-base py-3"
-                  id="cancelled-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#cancelled-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="cancelled-tab-pane"
-                  aria-selected="false"
-                >
-                  <i className="fa-solid fa-ban mr-2 text-[#e74c3c] text-lg"></i>
-                  <span className="text-[15px] font-medium">
-                    Cancelled
-                  </span>
-                </button>
-              </li>
-              <li className="nav-item flex-shrink-0 w-1/3" role="presentation">
-                <button
-                  className="nav-link w-full text-base flex items-center justify-center py-3"
-                  id="pending-tab"
-                  data-bs-toggle="tab"
-                  data-bs-target="#pending-tab-pane"
-                  type="button"
-                  role="tab"
-                  aria-controls="pending-tab-pane"
-                  aria-selected="false"
-                >
-                  <i className="fa-solid fa-clock mr-2 text-black text-lg"></i>
-                  <span className="text-[15px] font-medium">
-                    Pending
-                  </span>
-                </button>
-              </li>
-            </ul>
-            <div className="tab-content" id="myTabContent3">
+            <div className="flex flex-nowrap overflow-auto w-full justify-between border-b border-gray-200">
+              <button
+                className={`flex-shrink-0 w-1/3 text-base flex items-center justify-center py-3 border-b-2 transition-colors ${
+                  activeTab === 'completed'
+                    ? 'border-[#27ae60] text-[#27ae60] bg-green-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveTab('completed')}
+                type="button"
+              >
+                <i className="fa-solid fa-circle-check mr-2 text-lg"></i>
+                <span className="text-[15px] font-medium">
+                  Completed
+                </span>
+              </button>
+              <button
+                className={`flex-shrink-0 w-1/3 text-base flex items-center justify-center py-3 border-b-2 transition-colors ${
+                  activeTab === 'cancelled'
+                    ? 'border-[#e74c3c] text-[#e74c3c] bg-red-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveTab('cancelled')}
+                type="button"
+              >
+                <i className="fa-solid fa-ban mr-2 text-lg"></i>
+                <span className="text-[15px] font-medium">
+                  Cancelled
+                </span>
+              </button>
+              <button
+                className={`flex-shrink-0 w-1/3 text-base flex items-center justify-center py-3 border-b-2 transition-colors ${
+                  activeTab === 'pending'
+                    ? 'border-black text-black bg-gray-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveTab('pending')}
+                type="button"
+              >
+                <i className="fa-solid fa-clock mr-2 text-lg"></i>
+                <span className="text-[15px] font-medium">
+                  Pending
+                </span>
+              </button>
+            </div>
+            <div className="mt-4">
               {/* Pending Orders Tab */}
-              <div
-                className="tab-pane fade"
-                id="pending-tab-pane"
-                role="tabpanel"
-                aria-labelledby="pending-tab"
-                tabIndex={0}
-              >
-                <div className="accordion style-3" id="accordionExamplePending">
-                  {Object.keys(pendingOrdersByDate).length > 0 ? (
-                    <>
-                      <div className="flex justify-end items-center mb-3">
-                        <button
-                          className="text-sm p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors"
-                          onClick={
-                            Object.values(expandedPendingDates).some((e) => e)
-                              ? handleCollapseAllPending
-                              : handleExpandAllPending
-                          }
-                          aria-expanded={Object.values(expandedPendingDates).some((e) => e)}
-                        >
-                          <span>
-                            {Object.values(expandedPendingDates).some((e) => e)
-                              ? "Collapse All"
-                              : "Expand All"}
-                          </span>
-                          <i
-                            className={`ml-2 fas ${
+              {activeTab === 'pending' && (
+                <div>
+                  <div className="accordion style-3">
+                    {Object.keys(pendingOrdersByDate).length > 0 ? (
+                      <>
+                        <div className="flex justify-end items-center mb-3">
+                          <button
+                            className="text-sm p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors"
+                            onClick={
                               Object.values(expandedPendingDates).some((e) => e)
-                                ? "fa-chevron-up"
-                                : "fa-chevron-down"
-                            }`}
-                          ></i>
-                        </button>
-                      </div>
-                      {Object.entries(pendingOrdersByDate).map(([dateKey, dailyData]) => (
-                        <div className="accordion-item" key={dateKey}>
-                          <h2
-                            className="accordion-header"
-                            id={"headingPending" + dateKey.replace(/\s/g, "")}
-                          >
-                            <button
-                              className={`w-full flex justify-between items-center p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors ${
-                                !expandedPendingDates[dateKey] ? "collapsed" : ""
-                              }`}
-                              type="button"
-                              data-bs-toggle="collapse"
-                              data-bs-target={"#collapsePending" + dateKey.replace(/\s/g, "")}
-                              aria-expanded={expandedPendingDates[dateKey] || false}
-                              aria-controls={"collapsePending" + dateKey.replace(/\s/g, "")}
-                              onClick={() => togglePendingDateExpansion(dateKey)}
-                            >
-                              <span className="flex-grow text-left">{dailyData.date}</span>
-                              <span className="mr-2">{dailyData.orderCount}</span>
-                              <i
-                                className={`ml-2 fas ${
-                                  expandedPendingDates[dateKey]
-                                    ? "fa-chevron-up"
-                                    : "fa-chevron-down"
-                                }`}
-                              ></i>
-                            </button>
-                          </h2>
-                          <div
-                            id={"collapsePending" + dateKey.replace(/\s/g, "")}
-                            className={
-                              "accordion-collapse collapse " +
-                              (expandedPendingDates[dateKey] ? "show" : "")
+                                ? handleCollapseAllPending
+                                : handleExpandAllPending
                             }
-                            aria-labelledby={"headingPending" + dateKey.replace(/\s/g, "")}
-                            data-bs-parent="#accordionExamplePending"
                           >
-                            <div className="accordion-body">
-                              {dailyData.orders.map((order) => (
-                                <OrderAccordionItem
-                                  key={order.id + "-" + order.status}
-                                  orderId={order.orderId}
-                                  orderNumber={order.orderNumber}
-                                  itemCount={order.itemCount}
-                                  status={order.status}
-                                  iconColor={order.iconColor}
-                                  iconBgClass={order.iconBgClass}
-                                  isExpanded={order.isExpanded}
-                                  parentId={order.parentId}
-                                  outletName={order.outletName}
-                                  orderType={order.orderType}
-                                  totalAmount={order.totalAmount}
-                                  paymentStatus={
-                                    order.status === "udhari_pending"
-                                      ? "Udhari Pending"
-                                      : order.paymentStatus
-                                  }
-                                  orderTime={order.time || order.orderTime}
-                                  tableNumber={order.tableNumber}
-                                  sectionName={order.sectionName}
-                                />
-                              ))}
-                            </div>
-                          </div>
+                            <span>
+                              {Object.values(expandedPendingDates).some((e) => e)
+                                ? "Collapse All"
+                                : "Expand All"}
+                            </span>
+                            <i
+                              className={`ml-2 fas ${
+                                Object.values(expandedPendingDates).some((e) => e)
+                                  ? "fa-chevron-up"
+                                  : "fa-chevron-down"
+                              }`}
+                            ></i>
+                          </button>
                         </div>
-                      ))}
-                    </>
-                  ) : (
-                    <NoOrders message="No pending orders" />
-                  )}
+                        {Object.entries(pendingOrdersByDate).map(([dateKey, dailyData]) => (
+                          <div className="accordion-item mb-3" key={dateKey}>
+                            <div className="accordion-header">
+                              <button
+                                className={`w-full flex justify-between items-center p-3 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors border rounded-lg ${
+                                  expandedPendingDates[dateKey] ? "bg-gray-50" : "bg-white"
+                                }`}
+                                type="button"
+                                onClick={() => togglePendingDateExpansion(dateKey)}
+                              >
+                                <span className="flex-grow text-left font-medium">{dailyData.date}</span>
+                                <span className="mr-2 text-sm text-gray-500">{dailyData.orderCount} orders</span>
+                                <i
+                                  className={`ml-2 fas ${
+                                    expandedPendingDates[dateKey]
+                                      ? "fa-chevron-up"
+                                      : "fa-chevron-down"
+                                  }`}
+                                ></i>
+                              </button>
+                            </div>
+                            {expandedPendingDates[dateKey] && (
+                              <div className="accordion-body mt-2">
+                                {dailyData.orders.map((order) => (
+                                  <OrderAccordionItem
+                                    key={order.id + "-" + order.status}
+                                    orderId={order.orderId}
+                                    orderNumber={order.orderNumber}
+                                    itemCount={order.itemCount}
+                                    status={order.status}
+                                    iconColor={order.iconColor}
+                                    iconBgClass={order.iconBgClass}
+                                    isExpanded={order.isExpanded}
+                                    parentId={order.parentId}
+                                    outletName={order.outletName}
+                                    orderType={order.orderType}
+                                    totalAmount={order.totalAmount}
+                                    paymentStatus={
+                                      order.status === "udhari_pending"
+                                        ? "Udhari Pending"
+                                        : order.paymentStatus
+                                    }
+                                    orderTime={order.time || order.orderTime}
+                                    tableNumber={order.tableNumber}
+                                    sectionName={order.sectionName}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </>
+                    ) : (
+                      <NoOrders message="No pending orders" />
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
               {/* Completed Orders Tab */}
-              <div
-                className="tab-pane fade show active"
-                id="completed-tab-pane"
-                role="tabpanel"
-                aria-labelledby="completed-tab"
-                tabIndex={0}
-              >
-                <div className="accordion style-3" id="accordionExample3">
+              {activeTab === 'completed' && (
+                <div>
+                  <div className="accordion style-3" id="accordionExample3">
                   {orderHistoryError ? (
                     <NoOrders message="No completed orders" />
                   ) : Object.keys(transformedOrders.completedByDate).length >
@@ -908,17 +871,13 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                     <NoOrders message="No completed orders" />
                   )}
                 </div>
-              </div>
+                </div>
+              )}
 
               {/* Cancelled Orders Tab */}
-              <div
-                className="tab-pane fade"
-                id="cancelled-tab-pane"
-                role="tabpanel"
-                aria-labelledby="cancelled-tab"
-                tabIndex={0}
-              >
-                <div className="accordion style-3" id="accordionExample2">
+              {activeTab === 'cancelled' && (
+                <div>
+                  <div className="accordion style-3" id="accordionExample2">
                   {isLoadingOrderHistory ? (
                     <div className="text-center py-4 text-[#6c757d]">
                       Loading order history...
@@ -975,6 +934,14 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                     : ""
                                 }`}
                                 type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target={
+                                  "#collapseCancelled" + dateKey.replace(/\s/g, "")
+                                }
+                                aria-expanded={expandedCancelledDates[dateKey] || false}
+                                aria-controls={
+                                  "collapseCancelled" + dateKey.replace(/\s/g, "")
+                                }
                                 onClick={() =>
                                   toggleCancelledDateExpansion(dateKey)
                                 }
@@ -1037,8 +1004,9 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                   ) : (
                     <NoOrders message="No cancelled orders" />
                   )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

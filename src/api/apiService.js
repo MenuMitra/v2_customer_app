@@ -216,7 +216,7 @@ export const apiService = {
       return response?.data?.detail || {};
     },
     getSavings: async ({ userId }) => {
-      const response = await axiosInstance.post(`/${ENV.V2_COMMON_BASE}/user/get_user_count`, {
+      const response = await axiosInstance.post(`/user/get_user_count`, {
         user_id: parseInt(userId),
         app_source: "user_app"
       });

@@ -52,12 +52,31 @@ const AuthOffcanvas = () => {
   const nameInputRef = useRef(null);
   const otpFormRef = useRef(null);
   const didAutoSubmitRef = useRef(false);
+  const [shouldHighlightPhone, setShouldHighlightPhone] = useState(false);
+  const [shouldHighlightOTPButton, setShouldHighlightOTPButton] = useState(false);
+  const [otpFieldsHighlight, setOtpFieldsHighlight] = useState([false, false, false, false]);
 
 
   // inside AuthOffcanvas component, near other handlers
 const handleInputFocus = (e) => {
   // optional UX: select all text on focus
   if (e?.target?.select) e.target.select();
+};
+
+const handlePhoneNumberChange = (value) => {
+  const cleanValue = value.replace(/\D/g, "");
+  if (cleanValue === "" || (/^[6-9]/.test(cleanValue) && cleanValue.length <= 10)) {
+    setPhoneNumber(cleanValue);
+    
+    // Highlight phone input when user enters more than 1 digit
+    if (cleanValue.length > 1) {
+      console.log("Highlighting phone input, length:", cleanValue.length); // Debug log
+      setShouldHighlightPhone(true);
+    } else {
+      console.log("Removing phone highlight, length:", cleanValue.length); // Debug log
+      setShouldHighlightPhone(false);
+    }
+  }
 };
   useEffect(() => {
     let interval;
@@ -124,6 +143,20 @@ const handleInputFocus = (e) => {
         const digits = [...otpInputs].map((input) => input.value).join("");
         setOtp(digits);
 
+        // Update field highlighting based on filled inputs
+        const fieldHighlights = [...otpInputs].map((input) => input.value.length > 0);
+        setOtpFieldsHighlight(fieldHighlights);
+        console.log("OTP fields highlight:", fieldHighlights);
+
+        // Highlight OTP button when all 4 digits are entered
+        if (digits.length === 4 && [...otpInputs].every((i) => i.value && i.value.length === 1)) {
+          console.log("Highlighting OTP button - 4 digits entered");
+          setShouldHighlightOTPButton(true);
+        } else {
+          console.log("Removing OTP button highlight - digits:", digits.length);
+          setShouldHighlightOTPButton(false);
+        }
+
         if (
           digits.length === 4 &&
           [...otpInputs].every((i) => i.value && i.value.length === 1) &&
@@ -182,6 +215,21 @@ const handleInputFocus = (e) => {
     }
   }, [currentStep, showAuthOffcanvas]);
 
+  // Debug effect to monitor highlight state
+  useEffect(() => {
+    console.log("shouldHighlightPhone changed:", shouldHighlightPhone);
+  }, [shouldHighlightPhone]);
+
+  // Debug effect to monitor OTP button highlight state
+  useEffect(() => {
+    console.log("shouldHighlightOTPButton changed:", shouldHighlightOTPButton);
+  }, [shouldHighlightOTPButton]);
+
+  // Debug effect to monitor OTP fields highlight state
+  useEffect(() => {
+    console.log("otpFieldsHighlight changed:", otpFieldsHighlight);
+  }, [otpFieldsHighlight]);
+
 
 
   const handleClose = () => {
@@ -194,6 +242,9 @@ const handleInputFocus = (e) => {
     setTimer(0);
     setIsResendDisabled(false);
     setResetTimer(0); // Reset the resetTimer state
+    setShouldHighlightPhone(false);
+    setShouldHighlightOTPButton(false);
+    setOtpFieldsHighlight([false, false, false, false]);
   };
 
   const handlePhoneSubmit = async (e) => {
@@ -504,21 +555,23 @@ const handleInputFocus = (e) => {
         <div className="mb-3">
           <label className="block mb-2 text-sm font-medium text-[var(--title)]">Phone Number</label>
           <div className="flex">
-            <span className="inline-flex items-center px-3 text-sm text-[#495057] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">+91</span>
+            <span className="inline-flex items-center px-3 text-sm text-[#222121ff] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">+91</span>
             <input
               type="tel"
               className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
+              style={{
+                fontSize: '14px',
+                color: '#222121ff',
+                ...(shouldHighlightPhone ? {
+                  borderColor: '#66ccd4',
+                  backgroundColor: 'rgba(102, 204, 212, 0.05)',
+                  boxShadow: '0 0 0 2px rgba(102, 204, 212, 0.3)',
+                  transition: 'all 0.3s ease'
+                } : {})
+              }}
               ref={phoneInputRef}
               value={phoneNumber}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "");
-                if (
-                  value === "" ||
-                  (/^[6-9]/.test(value) && value.length <= 10)
-                ) {
-                  setPhoneNumber(value);
-                }
-              }}
+              onChange={(e) => handlePhoneNumberChange(e.target.value)}
               placeholder="Enter your phone number"
               pattern="^[6-9][0-9]{9}$"
               maxLength="10"
@@ -530,7 +583,7 @@ const handleInputFocus = (e) => {
         </div>
         <button
           type="submit"
-          className="w-full py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-2.5 px-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={
             isLoading ||
             phoneNumber.length !== 10 ||
@@ -616,16 +669,19 @@ const handleInputFocus = (e) => {
             <input
               type="tel"
               className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
-              value={phoneNumber}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, "");
-                if (
-                  value === "" ||
-                  (/^[6-9]/.test(value) && value.length <= 10)
-                ) {
-                  setPhoneNumber(value);
-                }
+              style={{
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: '#000000',
+                ...(shouldHighlightPhone ? {
+                  borderColor: '#66ccd4',
+                  backgroundColor: 'rgba(102, 204, 212, 0.05)',
+                  boxShadow: '0 0 0 2px rgba(102, 204, 212, 0.3)',
+                  transition: 'all 0.3s ease'
+                } : {})
               }}
+              value={phoneNumber}
+              onChange={(e) => handlePhoneNumberChange(e.target.value)}
               placeholder="Enter your phone number"
               pattern="^[6-9][0-9]{9}$"
               maxLength="10"
@@ -701,7 +757,16 @@ const handleInputFocus = (e) => {
             {[1, 2, 3, 4].map((digit) => (
               <input
                 key={digit}
-                className="w-12 h-12 px-3 py-2 border border-[var(--border-color)] rounded-lg text-center outline-none focus:border-[var(--primary)] transition-colors"
+                className="w-12 h-12 px-3 py-2 border border-2 rounded-lg text-center outline-none transition-colors"
+                style={{
+                  borderColor: otpFieldsHighlight[digit - 1] ? '#66ccd4' : 'var(--border-color)',
+                  backgroundColor: otpFieldsHighlight[digit - 1] ? 'rgba(102, 204, 212, 0.1)' : 'transparent',
+                  boxShadow: otpFieldsHighlight[digit - 1] ? '0 0 0 2px rgba(102, 204, 212, 0.2)' : 'none',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  color: '#000000',
+                  transition: 'all 0.3s ease'
+                }}
                 type="text"
                 id={`digit-${digit}`}
                 name={`digit-${digit}`}
@@ -728,7 +793,12 @@ const handleInputFocus = (e) => {
           </button>
           <button
             type="submit"
-            className="flex-1 py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 py-2.5 px-4 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: shouldHighlightOTPButton ? '#66ccd4' : 'var(--primary)',
+              boxShadow: shouldHighlightOTPButton ? '0 0 0 3px rgba(102, 204, 212, 0.4)' : 'none',
+              transition: 'all 0.3s ease'
+            }}
             disabled={isLoading || otp.length !== 4}
           >
             {isLoading ? (

@@ -267,10 +267,10 @@ const VerticalMenuCard = ({
             <span className="whitespace-nowrap">Add to cart</span>
           </a>
           <div
-            className={`dz-stepper  rounded-stepper stepper-fill ${cartItemsForMenu.length ? "active" : ""
-              }`}
+            className={`dz-stepper rounded-stepper stepper-fill ${cartItemsForMenu.length ? "active" : ""}`}
+            style={{ display: cartItemsForMenu.length ? 'block' : 'none' }}
           >
-            <div className="flex items-center justify-between gap-1 sm:gap-2">
+            <div className="flex items-center border-2 border-gray-300 rounded-lg justify-between gap-1 sm:gap-2 p-1">
               <button
                 className="bg-[var(--primary)] text-white rounded-full p-1.5 sm:p-2 w-[30px] h-[30px] sm:w-[35px] sm:h-[35px] flex items-center justify-center border-0 hover:bg-[var(--primary-dark)] transition-colors flex-shrink-0 text-sm sm:text-base"
                 type="button"

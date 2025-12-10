@@ -387,7 +387,7 @@ function OrderDetail() {
       }
 
       const response = await axios.post(
-        `${ENV.V2_COMMON_BASE}/v2/user/get_order_details`,
+        `${ENV.V2_COMMON_BASE}/user/get_order_details`,
         {
           order_id: orderId,
           user_id: parseInt(userId),

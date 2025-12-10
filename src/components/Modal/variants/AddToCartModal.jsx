@@ -481,7 +481,7 @@ export const AddToCartModal = () => {
       </div>
 
       <div className="flex items-center gap-3 mt-4">
-        <div className="flex items-center border border-green-600 rounded-full p-1.5 bg-white flex-1">
+        <div className="flex items-center border border-2 border-green-600 rounded-full p-1.5 bg-white flex-1">
           <button
             type="button"
             onClick={() =>
