@@ -559,7 +559,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
   return (
     <>
       <div className="page-content">
-        <div className="max-w-[1200px] mx-auto px-4 pb-4">
+        <div className="max-w-[1200px] mx-auto px-4 pb-24">
           {/* Show ongoing orders section */}
           {!ongoingError && ongoingOrdersData?.length > 0 && (
             <div className="mb-4">

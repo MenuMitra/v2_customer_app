@@ -43,7 +43,7 @@ export const useCachedBanners = ({ outletId, userId, enabled = true }) => {
         }
 
         // Use the cache context fetchData method
-        const response = await fetchData('banner_listview', payload, {
+        const response = await fetchData('/user/banner_listview', payload, {
           forceRefresh: false,
           transformResponse: (data) => data?.banners || [],
           method: 'post'

@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import AuthPrompt from "../components/Auth/AuthPrompt";
 import { useCart } from "../contexts/CartContext";
 import axios from "axios";
-import { API_CONFIG } from "../constants/config";
+
 import { useNavigate } from "react-router-dom";
 import { useOutlet } from "../contexts/OutletContext";
 import OrderExistsModal from "../components/Modal/variants/OrderExistsModal";
@@ -454,7 +454,7 @@ function CheckoutContent() {
     try {
       const accessToken = getAccessToken();
       const response = await axios.post(
-        `${ENV.V2_COMMON_BASE}/v2/common/verify_coupon`,
+        `${ENV.V2_COMMON_BASE}/common/verify_coupon`,
         {
           coupon_code: couponCode,
           app_source: "user_App",

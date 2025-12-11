@@ -351,10 +351,10 @@ function ProductDetail() {
                   </div>
                 </div>
                 {cartItem && !isCrossOutlet && (
-                  <div className="dz-stepper border rounded-stepper">
+                  <div className="dz-stepper border rounded-3xl ">
                     <div className="flex items-center">
                       <button
-                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-l-lg hover:bg-[var(--primary-dark)] transition-colors"
+                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-3xl hover:bg-[#329e2b] transition-colors"
                         type="button"
                         onClick={() => {
                           if (cartItem.quantity === 1) {
@@ -381,7 +381,7 @@ function ProductDetail() {
                         name="demo3"
                       />
                       <button
-                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-r-lg hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-3xl hover:bg-[#329e2b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         type="button"
                         onClick={() => {
                           if (cartItem.quantity < 20) {
@@ -422,7 +422,7 @@ function ProductDetail() {
           <div className="max-w-[1200px] mx-auto px-4">
             <button
               onClick={isCrossOutlet ? undefined : handleAddToCart}
-              className={`w-full text-left rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[var(--primary-dark)] transition-colors ${
+              className={`w-full text-left rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[#329e2b] transition-colors ${
                 isCrossOutlet || !menuDetails.portions?.length
                   ? "opacity-50 cursor-not-allowed"
                   : ""

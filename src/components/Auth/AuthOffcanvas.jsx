@@ -21,7 +21,8 @@ const STEPS = {
   SIGNUP: "signup",
   OTP: "otp",
 }; 
-const API_BASE_URL = "https://menusmitra.xyz/v2";
+import {ENV} from '../../config';
+const API_BASE_URL = ENV.V2_COMMON_BASE;
 
 // Create axios instance with common config
 const api = axios.create({
@@ -292,7 +293,6 @@ const handlePhoneNumberChange = (value) => {
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       await api.post("/user/account_signup", {
         mobile: phoneNumber,
