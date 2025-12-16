@@ -148,7 +148,7 @@ function Search() {
           <div className="relative z-[1]">
             <div className="flex items-center mb-4">
               <div className="w-full">
-                <div className="search-container mb-0 flex items-center border-2 border-gray-300 rounded-lg overflow-hidden transition-colors duration-200">
+                <div className="search-container mt-2 mb-0 flex items-center border-2 border-gray-300 rounded-lg overflow-hidden transition-colors duration-200">
                   <div className="flex items-center justify-center px-3 bg-[#f8f9fa] cursor-not-allowed opacity-50">
                     <i className="fas fa-search text-[20px] text-[#7D8FAB]"></i>
                   </div>
@@ -164,10 +164,10 @@ function Search() {
                     data-search-input
                   />
                   {searchInputValue && (
-                    <div className="flex items-center px-4">
+                    <div className="flex items-center px-2 sm:px-4">
                       <button
                         type="button"
-                        className="p-0 border-0 bg-transparent text-[#6c757d] text-base leading-none cursor-pointer hover:text-[#495057] transition-colors"
+                        className="p-2 sm:p-1 border-0 bg-transparent text-[#6c757d] text-base leading-none cursor-pointer hover:text-[#495057] transition-colors min-w-[44px] min-h-[44px] sm:min-w-auto sm:min-h-auto flex items-center justify-center"
                         onClick={() => {
                           setSearchInputValue("");
                           setSearchResults([]);
@@ -177,7 +177,7 @@ function Search() {
                         }}
                         title="Clear search"
                       >
-                        <i className="fas fa-times"></i>
+                        <i className="fas fa-times text-lg sm:text-base"></i>
                       </button>
                     </div>
                   )}

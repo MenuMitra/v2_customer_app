@@ -77,6 +77,8 @@ function Header() {
     if (path.startsWith("/orders")) return "Orders";
     if (path.startsWith("/favourites")) return "Favourite";
     if (path.startsWith("/categories")) return "Categories";
+    if (path.startsWith("/menu")) return "Menu";
+    if (path.startsWith("/category-menu/")) return "Categories View";
     if (path.startsWith("/order-detail")) return "Order Details";
     if (path.startsWith("/savings")) return "Savings";
     if (path.startsWith("/outlet-details")) return "Outlet Details";

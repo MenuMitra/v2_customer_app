@@ -369,7 +369,7 @@ const QuickFilters = ({ onFilterChange, menuList }) => {
           animation: dropdownFade 0.2s ease;
         }
       `}</style>
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap mb-2">
         {renderFilterDropdown("Type", typeOptions, activeFilters.type)}
         {renderFilterDropdown("Price", priceOptions, activeFilters.price)}
         {renderFilterDropdown("Spicy", spicyOptions, activeFilters.spicy)}

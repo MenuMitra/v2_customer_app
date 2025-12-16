@@ -387,7 +387,7 @@ function OrderDetail() {
       }
 
       const response = await axios.post(
-        `${ENV.V2_COMMON_BASE}/user/get_order_details`,
+        `/user/get_order_details`,
         {
           order_id: orderId,
           user_id: parseInt(userId),
@@ -428,7 +428,7 @@ function OrderDetail() {
         }
 
         const response = await fetch(
-          `${ENV.V2_COMMON_BASE}/v2/user/get_order_details`,
+          `${ENV.V2_COMMON_BASE}/user/get_order_details`,
           {
             method: "POST",
             headers: {
@@ -495,7 +495,7 @@ function OrderDetail() {
       <div className="page-content bottom-content">
         <div className="max-w-[1200px] mx-auto px-4 pb-4">
           {/* Order Header Card */}
-          <div className="card">
+          <div className="card mt-3">
             <div className="card-body">
               <div className="flex items-center justify-between mb-2">
                 <div>

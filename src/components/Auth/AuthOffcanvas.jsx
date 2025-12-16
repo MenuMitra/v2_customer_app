@@ -251,11 +251,12 @@ const handlePhoneNumberChange = (value) => {
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    let Version = localStorage.getItem("version")
 
     try {
       const { data } = await api.post("/common/login", {
         mobile: phoneNumber,
-        version: "2.1.1",
+        version: Version,
         app_type: "customer",
       });
 
@@ -338,6 +339,7 @@ const handlePhoneNumberChange = (value) => {
     };
 
     // Get or create device ID
+    let setVersion = localStorage.setItem("version", "2.1.1")
     let deviceId = localStorage.getItem("mm_device_id");
     if (!deviceId) {
       deviceId = generateDeviceId();
@@ -506,10 +508,11 @@ const handlePhoneNumberChange = (value) => {
   const handleResendOTP = async () => {
     setIsLoading(true);
     setResetTimer((prev) => prev + 1); // Trigger timer reset
-
+    let Version = localStorage.getItem("version")
     try {
       const { data } = await api.post("/common/resend_otp", {
         mobile: phoneNumber,
+        version:Version,
         app_type: "customer",
       });
 
@@ -702,7 +705,7 @@ const handlePhoneNumberChange = (value) => {
           </button>
           <button
             type="submit"
-            className="flex-1 py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[var(--primary-dark)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[#32a852] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={
               isLoading || !userDetails.name.trim() || phoneNumber.length !== 10
             }

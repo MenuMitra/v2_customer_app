@@ -58,11 +58,11 @@ function CustomerSavingsContent() {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-3 gap-3 mb-4">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
             <div>
               <div className="bg-white rounded-lg h-full border border-[#E5E7EB] shadow-sm">
-                <div className="p-3 flex flex-col justify-center items-center">
-                  <div className="text-3xl font-bold text-[#212529] mb-1">
+                <div className="p-2 sm:p-3 flex flex-col justify-center items-center">
+                  <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-[#212529] mb-1 text-center break-words max-w-full">
                     {savingsData.user_count}
                   </div>
                   <div className="text-[#6B7280] text-xs text-center">
@@ -73,8 +73,8 @@ function CustomerSavingsContent() {
             </div>
             <div>
               <div className="bg-white rounded-lg h-full border border-[#E5E7EB] shadow-sm">
-                <div className="p-3 flex flex-col justify-center items-center">
-                  <div className="text-3xl font-bold text-[#212529] mb-1">
+                <div className="p-2 sm:p-3 flex flex-col justify-center items-center">
+                  <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-[#212529] mb-1 text-center break-words max-w-full">
                     ₹{totalAmountSpent}
                   </div>
                   <div className="text-[#6B7280] text-xs text-center">
@@ -85,8 +85,8 @@ function CustomerSavingsContent() {
             </div>
             <div>
               <div className="bg-white rounded-lg h-full border border-[#E5E7EB] shadow-sm">
-                <div className="p-3 flex flex-col justify-center items-center">
-                  <div className="text-3xl font-bold text-[#212529] mb-1">
+                <div className="p-2 sm:p-3 flex flex-col justify-center items-center">
+                  <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-[#212529] mb-1 text-center break-words max-w-full">
                     {savingsData.coupon_count || 0}
                   </div>
                   <div className="text-[#6B7280] text-xs text-center">

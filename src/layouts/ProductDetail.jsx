@@ -351,10 +351,10 @@ function ProductDetail() {
                   </div>
                 </div>
                 {cartItem && !isCrossOutlet && (
-                  <div className="dz-stepper border rounded-3xl ">
-                    <div className="flex items-center">
+                  <div className="dz-stepper border rounded-3xl max-w-[140px] sm:max-w-[160px]">
+                    <div className="flex items-center justify-between">
                       <button
-                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-3xl hover:bg-[#329e2b] transition-colors"
+                        className="px-2 sm:px-3 py-2 bg-[var(--primary)] text-white rounded-3xl hover:bg-[#329e2b] transition-colors flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base"
                         type="button"
                         onClick={() => {
                           if (cartItem.quantity === 1) {
@@ -375,13 +375,13 @@ function ProductDetail() {
                       </button>
                       <input
                         readOnly
-                        className="stepper w-16 text-center border-y border-[var(--border-color)] py-2"
+                        className="stepper flex-1 text-center border-0 py-2 bg-transparent text-sm sm:text-base font-medium min-w-0"
                         type="text"
                         value={cartItem.quantity}
                         name="demo3"
                       />
                       <button
-                        className="px-4 py-2 bg-[var(--primary)] text-white rounded-3xl hover:bg-[#329e2b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-2 sm:px-3 py-2 bg-[var(--primary)] text-white rounded-3xl hover:bg-[#329e2b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base"
                         type="button"
                         onClick={() => {
                           if (cartItem.quantity < 20) {
