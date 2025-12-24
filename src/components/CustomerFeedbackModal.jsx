@@ -147,9 +147,9 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
             </button>
           </div>
           <form onSubmit={handleSubmit}>
-            <div className="p-4">
+            <div className="p-3">
 
-              <div className="mb-3">
+              <div className="mb-2">
                 <label className="block mb-2 text-sm font-medium text-gray-700">Customer Name</label>
                 <input
                   type="text"
@@ -160,7 +160,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
                   placeholder="Enter your name"
                 />
               </div>
-              <div className="mb-3">
+              <div className="mb-2">
                 <label className="block mb-2 text-sm font-medium text-gray-700">Mobile</label>
                 <input
                   type="text"
@@ -182,7 +182,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
                   placeholder="Enter your order number"
                 />
               </div> */}
-              <div className="mb-3">
+              <div className="mb-2">
                 <label className="block mb-2 text-sm font-medium text-gray-700">
                   <span className="text-red-600">*</span>Feedback
                 </label>
@@ -196,7 +196,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
                   placeholder="Write your feedback here..."
                 />
               </div>
-              <div className="mb-3">
+              <div className="mb-2">
                 <label className="block mb-2 text-sm font-medium text-gray-700">
                   <span className="text-red-600">*</span>Rating
                 </label>
@@ -228,10 +228,10 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2 px-4 py-3 border-t border-gray-200">
+            <div className="flex justify-end gap-2 px-4 py-2 border-t border-gray-200">
               <button
                 type="button"
-                className="px-4 py-2 bg-gray-500 text-white rounded-3xl hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-500 text-white rounded-3xl hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 onClick={onClose}
                 disabled={loading}
               >
@@ -239,7 +239,7 @@ const CustomerFeedbackModal = ({ show, onClose, orderNo }) => {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-primary text-white rounded-3xl hover:bg-primary-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-primary text-white rounded-3xl hover:bg-primary-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                 disabled={loading}
               >
                 {loading ? "Submitting..." : "Submit Feedback"}

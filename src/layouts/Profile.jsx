@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
@@ -14,31 +14,33 @@ function Profile() {
   const { clearCart } = useCart();
   const navigate = useNavigate();
   const { outletCode, sectionId, tableId } = useOutlet();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const onLogoutClick = (e) => {
-    e.preventDefault();
-    clearCart();
-    handleLogout();
-    // Build canonical root preserving o/s/t if available
+  // Memoize navigation target to prevent recalculation on every render
+  const navigationTarget = useMemo(() => {
     const code = outletCode || localStorage.getItem("outletCode");
     const sec = sectionId || localStorage.getItem("sectionId");
     const tbl = tableId || localStorage.getItem("tableId");
-    const target = code && sec && tbl ? `/o${code}/s${sec}/t${tbl}` : "/";
-    navigate(target, { replace: true });
-  };
+    return code && sec && tbl ? `/o${code}/s${sec}/t${tbl}` : "/";
+  }, [outletCode, sectionId, tableId]);
 
-  const handleLoginClick = (e) => {
+  const onLogoutClick = useCallback((e) => {
+    e.preventDefault();
+    clearCart();
+    handleLogout();
+    navigate(navigationTarget, { replace: true });
+  }, [clearCart, handleLogout, navigate, navigationTarget]);
+
+  const handleLoginClick = useCallback((e) => {
     e.preventDefault();
     setShowAuthOffcanvas(true);
-  };
-
-  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  }, [setShowAuthOffcanvas]);
 
   return (
     <>
       <Header />
 
-      <div className="page-content pb-2">
+      <div className="page-content pb-2" style={{ minHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
         <div className="max-w-[1200px] mx-auto px-4 profile-area">
           <div
             className={`profile rounded-2xl mx-1 mt-3 ${!isAuthenticated ? "cursor-pointer" : ""}`}
@@ -60,7 +62,7 @@ function Profile() {
               </div>
             </div>
           </div>
-          <div className="profile-content border-0">
+          <div className="profile-content border-0 mt-3">
             <div className="grid grid-cols-2 gap-2">
               <div>
                 <Link
@@ -137,35 +139,11 @@ function Profile() {
               </div>
             </div>
           </div>
-          {isAuthenticated && (
-            <div className="account-section mt-4">
-              <h5 className="mb-3 text-lg font-semibold">Account</h5>
-              <div className="grid grid-cols-1 gap-2">
-                <div className="w-5/6 mx-auto">
-                  <Link
-                    to="/edit-profile"
-                    className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
-                  >
-                    <i className="fa-solid fa-user mr-2 text-[#212529]" />
-                    Edit Profile
-                  </Link>
-                </div>
-              </div>
-            </div>
-          )}
+
+          <div className="flex flex-col items-center mt-3 mb-3 px-4">
+            <MenuMitra />
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col items-center my-4 pb-24">
-        {isAuthenticated && (
-          <button
-            onClick={(e) => { e.preventDefault(); setShowLogoutConfirm(true); }}
-            className="flex items-center gap-2 mb-5 px-4 py-2 text-[#8B0000] border-2 border-[#f5c2c7] bg-transparent hover:bg-[#f8d7da] hover:border-[#dc3545] transition-colors rounded-lg"
-          >
-            <i className="fa-solid fa-power-off text-base text-[#8B0000]" />
-            <span className="text-[#8B0000]">Logout</span>
-          </button>
-        )}
-        <MenuMitra />
       </div>
       <ConfirmLogoutModal
         show={showLogoutConfirm}

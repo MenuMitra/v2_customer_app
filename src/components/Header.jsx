@@ -47,25 +47,34 @@ function Header() {
   //   setUserName(firstName);
   // }, [getUserName]);
 
-  // Keep scroll handler in separate useEffect
+  // Keep scroll handler in separate useEffect with CSS-based approach
   useEffect(() => {
     const handleScroll = () => {
       if (!mainBarRef.current) return;
 
-      if (window.scrollY > 50) {
-        // Equivalent to sticky-header: fixed top, bg-white, shadow
-        mainBarRef.current.classList.add("fixed", "top-0", "left-0", "w-full", "bg-white", "shadow-md", "z-[999]", "transition-all", "duration-300");
-      } else {
-        mainBarRef.current.classList.remove("fixed", "top-0", "left-0", "w-full", "bg-white", "shadow-md", "z-[999]", "transition-all", "duration-300");
+      const isScrolled = window.scrollY > 50;
+      const currentState = mainBarRef.current.dataset.scrolled === 'true';
+      
+      // Only update if state changed to prevent unnecessary DOM updates
+      if (isScrolled !== currentState) {
+        mainBarRef.current.dataset.scrolled = isScrolled;
+        mainBarRef.current.style.position = isScrolled ? 'fixed' : 'relative';
+        mainBarRef.current.style.top = isScrolled ? '0' : 'auto';
+        mainBarRef.current.style.left = isScrolled ? '0' : 'auto';
+        mainBarRef.current.style.width = isScrolled ? '100%' : 'auto';
+        mainBarRef.current.style.backgroundColor = isScrolled ? '#ffffff' : 'transparent';
+        mainBarRef.current.style.boxShadow = isScrolled ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none';
+        mainBarRef.current.style.zIndex = isScrolled ? '999' : 'auto';
       }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    // Use passive listener for better scroll performance
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
-  }, []); // Empty dependency array since it doesn't depend on any props or state
+  }, []);
 
   const getHeaderTitle = () => {
     const path = location.pathname;
@@ -99,7 +108,7 @@ function Header() {
       {/* <Sidebar /> */}
       {/* Sidebar always rendered, class toggled by isOpen for smooth animation */}
       <header className="relative block">
-        <div className="bg-white w-full transition-all duration-300" ref={mainBarRef}>
+        <div className="bg-white w-full transition-all duration-300 header-bar" ref={mainBarRef}>
           <div className="container mx-auto px-4">
             <div className="relative flex items-center justify-between py-3 min-h-[60px]">
               {/* Left content: back arrow for non-home pages, logo+title for home */}

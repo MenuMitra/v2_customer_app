@@ -1,0 +1,225 @@
+/* Scroll Optimization - Prevents flickering and jitter */
+
+/* Disable smooth scroll behavior to prevent jitter during scroll events */
+:root {
+  scroll-behavior: auto;
+}
+
+/* Optimize body for smooth scrolling */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Prevent layout shift from scrollbar appearance/disappearance */
+html {
+  overflow-y: scroll;
+}
+
+/* Page content container - stable layout */
+.page-content {
+  position: relative;
+  will-change: auto;
+  contain: layout style paint;
+  padding-bottom: 120px;
+}
+
+/* Ensure footer doesn't overlap content on smaller screens */
+@media (max-width: 768px) {
+  .page-content {
+    padding-bottom: 120px;
+  }
+}
+
+/* Header optimization - prevent reflow during scroll */
+header {
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Fixed footer optimization */
+.fixed.bottom-0 {
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Prevent text selection jitter during scroll */
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+}
+
+/* Allow text selection on interactive elements */
+a, button, input, textarea, select {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  user-select: auto;
+}
+
+/* Optimize transitions for smooth performance */
+.transition-all,
+.transition-colors,
+.transition-opacity {
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent GPU thrashing */
+.profile-area,
+.profile-content {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimize scroll performance with containment */
+.profile-area > * {
+  contain: content;
+}
+
+/* Prevent margin collapse that causes layout shift */
+.page-content > * {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Stable footer positioning */
+.fixed.bottom-0.left-0.w-full {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  will-change: transform;
+}
+
+/* Prevent scrollbar width changes */
+@supports (scrollbar-gutter: stable) {
+  html {
+    scrollbar-gutter: stable;
+  }
+}
+
+
+/* Header scroll optimization */
+.header-bar {
+  transition: position 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  will-change: position, box-shadow;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+.header-bar[data-scrolled="true"] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #ffffff;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+}
+
+.header-bar[data-scrolled="false"] {
+  position: relative;
+  background-color: transparent;
+  box-shadow: none;
+}
+
+
+/* Profile Page Spacing Optimization */
+
+/* Reduce excessive margins in profile area */
+.profile-area {
+  margin-bottom: 0;
+}
+
+/* Optimize profile card spacing */
+.profile-area .profile {
+  margin-bottom: 0.75rem;
+}
+
+/* Optimize profile content spacing */
+.profile-content {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* Optimize account section spacing */
+.account-section {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Optimize button grid gap */
+.profile-content .grid {
+  gap: 0.5rem;
+}
+
+/* Reduce MenuMitra card spacing */
+.profile-area + div {
+  margin-top: 0;
+}
+
+/* Optimize flex container for logout and MenuMitra */
+.flex.flex-col.items-center {
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 100px;
+}
+
+/* Ensure proper footer spacing without excessive padding */
+@media (max-width: 768px) {
+  .profile-area {
+    padding-bottom: 0;
+  }
+  
+  .account-section {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Prevent margin collapse */
+.profile-area > * {
+  margin-bottom: 0;
+}
+
+.profile-area > *:not(:last-child) {
+  margin-bottom: 0.75rem;
+}
+
+/* MenuMitra component - ensure it's not hidden behind footer */
+.border-t.border-gray-200 {
+  margin-bottom: 100px;
+}
+
+/* Sidebar menu list - add top padding for first item visibility */
+.sidebar ul.flex.flex-col {
+  padding-top: 1rem;
+}
+
+/* Ensure first menu item is fully visible */
+.sidebar ul.flex.flex-col > li:first-child {
+  padding-top: 0.5rem;
+}
+
+/* Feedback modal - add top padding to prevent touching header */
+.feedback-modal-backdrop {
+  padding-top: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Feedback modal form - reduce height and center properly */
+.feedback-modal-backdrop .w-full.max-w-\[500px\] {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Feedback modal content - ensure proper sizing */
+.feedback-modal-backdrop .bg-white.rounded-lg {
+  max-height: 80vh;
+  overflow-y: auto;
+}
