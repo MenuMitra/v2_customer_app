@@ -7,7 +7,6 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import toast from "react-hot-toast";
 import MenuMitra from "../assets/logo.png";
-import FeedbackButton from "../components/FeedbackButton";
 import { ENV } from '../config';
 
 function OrderDetail() {
@@ -756,11 +755,8 @@ function OrderDetail() {
             </div>
           </div>
 
-          {/* Invoice and Feedback Buttons */}
-          <div className="flex justify-between items-center mt-3">
-            <div>
-              <FeedbackButton orderNo={orderDetails.order_details.order_number} />
-            </div>
+          {/* Invoice Button */}
+          <div className="flex justify-end items-center mt-3">
             {["paid", "complementary_paid", "udhari_paid"].includes(
               orderDetails.order_details.order_status?.toLowerCase()
             ) && (

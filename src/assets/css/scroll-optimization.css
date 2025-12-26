@@ -10,11 +10,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Prevent overscroll bounce that causes flickering */
+  overscroll-behavior-y: contain;
 }
 
 /* Prevent layout shift from scrollbar appearance/disappearance */
 html {
   overflow-y: scroll;
+  /* Prevent overscroll bounce */
+  overscroll-behavior-y: contain;
 }
 
 /* Page content container - stable layout */
@@ -23,6 +27,8 @@ html {
   will-change: auto;
   contain: layout style paint;
   padding-bottom: 120px;
+  /* Prevent content from causing reflows */
+  min-height: calc(100vh - 60px);
 }
 
 /* Ensure footer doesn't overlap content on smaller screens */
@@ -36,14 +42,28 @@ html {
 header {
   will-change: transform;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   perspective: 1000px;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Header bar - stable positioning to prevent flickering */
+.header-bar {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Fixed footer optimization */
 .fixed.bottom-0 {
   will-change: transform;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   perspective: 1000px;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* Prevent text selection jitter during scroll */
@@ -72,7 +92,9 @@ a, button, input, textarea, select {
 .profile-area,
 .profile-content {
   transform: translateZ(0);
+  -webkit-transform: translateZ(0);
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Optimize scroll performance with containment */
@@ -93,6 +115,8 @@ a, button, input, textarea, select {
   left: 0;
   right: 0;
   will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 /* Prevent scrollbar width changes */
@@ -102,29 +126,162 @@ a, button, input, textarea, select {
   }
 }
 
+/* ============================================
+   CART/CHECKOUT PAGE SCROLL OPTIMIZATION
+   ============================================ */
 
-/* Header scroll optimization */
-.header-bar {
-  transition: position 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-  will-change: position, box-shadow;
-  backface-visibility: hidden;
-  perspective: 1000px;
+/* Cart page container - prevent layout shifts */
+.page-content.min-h-screen {
+  contain: layout style;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
-.header-bar[data-scrolled="true"] {
+/* Cart items list container - optimize scroll performance */
+.item-list.style-2 {
+  contain: content;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Cart items list - prevent reflows during scroll */
+.item-list.style-2 ul {
+  contain: layout;
+}
+
+/* Individual cart item - GPU acceleration and containment */
+.item-list.style-2 li {
+  contain: layout style paint;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Prevent layout shifts from dynamic content */
+  will-change: auto;
+}
+
+/* Cart item card - stable dimensions */
+.item-list.style-2 li > div {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Ensure stable height */
+  min-height: 90px;
+}
+
+/* Quantity buttons - prevent layout shift on interaction */
+.item-list.style-2 .bg-gray-100.rounded-full {
+  contain: layout;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Summary card - stable positioning */
+.rounded-2xl.shadow-sm.border-gray-300 {
+  contain: layout style;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Checkout button container - prevent shifts */
+.flex.justify-center.mb-4 {
+  contain: layout;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Bottom content container - stable layout */
+.bottom-content {
+  contain: layout style;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Ensure enough space for fixed footer */
+  padding-bottom: 100px;
+}
+
+/* ============================================
+   CART ITEMS SPECIFIC OPTIMIZATIONS
+   ============================================ */
+
+/* Cart items container - isolate repaints */
+.cart-items-container {
+  contain: content;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Prevent content from affecting parent layout */
+  isolation: isolate;
+}
+
+/* Cart items list - optimize for scrolling */
+.cart-items-list {
+  contain: layout;
+  /* Prevent margin collapse */
+  overflow: visible;
+}
+
+/* Individual cart item - GPU layer promotion */
+.cart-item {
+  contain: layout style paint;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Stable dimensions to prevent reflows */
+  min-height: 90px;
+  /* Isolate paint operations */
+  isolation: isolate;
+}
+
+/* Cart item inner card - prevent layout shifts */
+.cart-item > div {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  contain: layout style;
+}
+
+/* Quantity control buttons - prevent interaction jitter */
+.cart-item .bg-gray-100.rounded-full {
+  contain: layout;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  /* Prevent button clicks from causing reflows */
+  will-change: auto;
+}
+
+/* Remove button - stable positioning */
+.cart-item button[aria-label="Remove"] {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+
+/* Header scroll optimization - using class-based approach for stability */
+.header-bar {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  background-color: #ffffff;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   z-index: 999;
+  background-color: #ffffff;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  /* Smooth transitions for visual changes only, not position */
+  transition: box-shadow 0.2s ease-out;
 }
 
-.header-bar[data-scrolled="false"] {
-  position: relative;
-  background-color: transparent;
-  box-shadow: none;
+.header-bar.header-scrolled {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Spacer to prevent content jump when header is fixed */
+header.relative.block {
+  /* Reserve space for the fixed header */
+  min-height: 60px;
 }
 
 

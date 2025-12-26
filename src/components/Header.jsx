@@ -48,23 +48,37 @@ function Header() {
   // }, [getUserName]);
 
   // Keep scroll handler in separate useEffect with CSS-based approach
+  // Using transform instead of position changes to prevent layout shifts
   useEffect(() => {
-    const handleScroll = () => {
-      if (!mainBarRef.current) return;
+    let ticking = false;
+    let lastScrolled = false;
 
-      const isScrolled = window.scrollY > 50;
-      const currentState = mainBarRef.current.dataset.scrolled === 'true';
-      
-      // Only update if state changed to prevent unnecessary DOM updates
-      if (isScrolled !== currentState) {
-        mainBarRef.current.dataset.scrolled = isScrolled;
-        mainBarRef.current.style.position = isScrolled ? 'fixed' : 'relative';
-        mainBarRef.current.style.top = isScrolled ? '0' : 'auto';
-        mainBarRef.current.style.left = isScrolled ? '0' : 'auto';
-        mainBarRef.current.style.width = isScrolled ? '100%' : 'auto';
-        mainBarRef.current.style.backgroundColor = isScrolled ? '#ffffff' : 'transparent';
-        mainBarRef.current.style.boxShadow = isScrolled ? '0 4px 6px -1px rgba(0, 0, 0, 0.1)' : 'none';
-        mainBarRef.current.style.zIndex = isScrolled ? '999' : 'auto';
+    const handleScroll = () => {
+      if (!ticking) {
+        // Use requestAnimationFrame for smoother updates
+        window.requestAnimationFrame(() => {
+          if (!mainBarRef.current) {
+            ticking = false;
+            return;
+          }
+
+          const isScrolled = window.scrollY > 50;
+          
+          // Only update if state changed to prevent unnecessary DOM updates
+          if (isScrolled !== lastScrolled) {
+            lastScrolled = isScrolled;
+            mainBarRef.current.dataset.scrolled = isScrolled;
+            
+            // Use classList toggle for better performance
+            if (isScrolled) {
+              mainBarRef.current.classList.add('header-scrolled');
+            } else {
+              mainBarRef.current.classList.remove('header-scrolled');
+            }
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 

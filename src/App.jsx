@@ -26,7 +26,6 @@ import { ThemeColorProvider } from "./contexts/ThemeColorContext";
 import CustomerSavings from "./layouts/CustomerSavings";
 import OutletDetails from "./layouts/OutletDetails";
 import OutletNotFound from "./components/OutletNotFound";
-import FeedbackButton from "./components/FeedbackButton";
 import axios from "axios";
 import { CacheDataProvider } from "./contexts/CacheDataContext";
 import CacheStatus from "./components/CacheStatus";

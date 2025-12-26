@@ -9,7 +9,6 @@ import "../assets/css/style.css";
 import ThemeColorOffcanvas from "./ThemeColorOffcanvas";
 import ConfirmLogoutModal from "./ConfirmLogoutModal";
 import MenuMitra from "./MenuMitra";
-import FeedbackButton from "./FeedbackButton";
 
 function Sidebar() {
   const { isOpen, closeSidebar } = useSidebar();
@@ -240,12 +239,6 @@ function Sidebar() {
               </span>
               <span className="text-[#dc3545]">Logout</span>
             </NavLink>
-          </li>
-        )}
-        {/* Only show FeedbackButton if user is logged in */}
-        {user && (
-          <li className="mt-2 mb-2 flex justify-center">
-            <FeedbackButton onOpen={closeSidebar} />
           </li>
         )}
         <li className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-2 mt-4">Settings</li>

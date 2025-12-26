@@ -535,8 +535,8 @@ function CheckoutContent() {
         <div className="page-content min-h-screen">
           <div className="container mx-auto bottom-content pt-0 pb-10">
             {/* Menu/Cart Items List */}
-            <div className="item-list style-2">
-              <ul className="list-none p-0">
+            <div className="item-list style-2 cart-items-container">
+              <ul className="list-none p-0 cart-items-list">
                 {cartItems.length === 0 ? (
                   <div className="flex flex-col justify-center items-center min-h-[60vh] w-full">
                     {/* Cart SVG Icon */}
@@ -557,7 +557,7 @@ function CheckoutContent() {
                     return (
                       <li
                         key={`${item.menuId}-${item.portionId}`}
-                        className="mb-3 border-0 cursor-pointer"
+                        className="mb-3 border-0 cursor-pointer cart-item"
                         onClick={() => {
                           if (!menuCatId) {
                             addToast({
