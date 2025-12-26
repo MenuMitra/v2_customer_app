@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import CategorySwiper from "../components/CategorySwiper/CategorySwiper";
-import CodeSandboxBannerSwiper from "../components/BannerSwiper/CodeSandboxBannerSwiper";
 import VerticalMenuCard from "../components/VerticalMenuCard";
 import { useAuth } from "../contexts/AuthContext";
 import { useCart } from "../contexts/CartContext";
@@ -15,7 +14,6 @@ import { OrderTypeModal } from "../components/Modal/variants/OrderTypeModal";
 import { useModal } from "../contexts/ModalContext";
 import apiService from "../api/apiService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useCachedBanners } from "../hooks/useCachedBanners";
 import { ENV } from "../config";
 
 
@@ -40,22 +38,6 @@ function Home() {
   // Add QueryClient
   const queryClient = useQueryClient();
   const userId = getUserId();
-
-  // Fetch banner data with cache
-  const { banners = [], isLoading: bannersLoading, error: bannersError } = useCachedBanners({
-    outletId,
-    userId,
-    enabled: !!outletId
-  });
-
-  // Hide entire banner section if API returns 404 Not Found
-  const hideBanners = !!(
-    bannersError && (
-      (bannersError?.response && bannersError.response.status === 404) ||
-      bannersError?.status === 404 ||
-      (typeof bannersError?.message === 'string' && bannersError.message.includes('404'))
-    )
-  );
 
   // Add favorite mutations with optimistic updates
   const toggleFavorite = useMutation({
@@ -233,49 +215,6 @@ function Home() {
         <div className="page-content">
           <div className="pt-0">
             <div className="max-w-[1200px] mx-auto px-4 pb-24 pt-0">
-
-              {/* Modern Banner Swiper with Cache Status */}
-              {!hideBanners && (
-                bannersLoading ? (
-                  // Loading skeleton for banners
-                  <div className="modern-banner-swiper">
-                    <div className="h-[200px] flex gap-5 px-5">
-                      {Array.from({ length: 3 }).map((_, index) => (
-                        <Skeleton key={`skeleton-${index}`} height={200} className="rounded-[20px] flex-1" />
-                      ))}
-                    </div>
-                  </div>
-                ) : bannersError ? (
-                  // Error state
-                  <div className="text-center p-4">
-                    <p className="text-[#6c757d]">Failed to load banners</p>
-                  </div>
-                ) : banners.length === 0 ? (
-                  // No banners state
-                  <div className="text-center p-4">
-                    <p className="text-[#6c757d]">No banners available</p>
-                  </div>
-                ) : (
-                  <div>
-                    <CodeSandboxBannerSwiper
-                      banners={banners.map(banner => ({
-                        id: banner.banner_id,
-                        title: banner.name || banner.title,
-                        subtitle: banner.subtitle || banner.name,
-                        description: banner.description || banner.subtitle,
-                        bgImage: banner.banner_image || banner.image
-                      }))}
-                      onBannerClick={(banner) => {
-                        console.log('Banner clicked:', banner);
-                        // Add your banner click logic here
-                      }}
-                      autoplayDelay={3000}
-                      pauseOnHover={true}
-                      disableOnInteraction={false}
-                    />
-                  </div>
-                )
-              )}
 
               <div
                 className="title-bar flex justify-between items-center cursor-pointer"
