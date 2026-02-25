@@ -20,8 +20,8 @@ const STEPS = {
   LOGIN: "login",
   SIGNUP: "signup",
   OTP: "otp",
-}; 
-import {ENV} from '../../config';
+};
+import { ENV } from '../../config';
 const API_BASE_URL = ENV.V2_COMMON_BASE;
 
 // Create axios instance with common config
@@ -59,26 +59,26 @@ const AuthOffcanvas = () => {
 
 
   // inside AuthOffcanvas component, near other handlers
-const handleInputFocus = (e) => {
-  // optional UX: select all text on focus
-  if (e?.target?.select) e.target.select();
-};
+  const handleInputFocus = (e) => {
+    // optional UX: select all text on focus
+    if (e?.target?.select) e.target.select();
+  };
 
-const handlePhoneNumberChange = (value) => {
-  const cleanValue = value.replace(/\D/g, "");
-  if (cleanValue === "" || (/^[6-9]/.test(cleanValue) && cleanValue.length <= 10)) {
-    setPhoneNumber(cleanValue);
-    
-    // Highlight phone input when user enters more than 1 digit
-    if (cleanValue.length > 1) {
-      console.log("Highlighting phone input, length:", cleanValue.length); // Debug log
-      setShouldHighlightPhone(true);
-    } else {
-      console.log("Removing phone highlight, length:", cleanValue.length); // Debug log
-      setShouldHighlightPhone(false);
+  const handlePhoneNumberChange = (value) => {
+    const cleanValue = value.replace(/\D/g, "");
+    if (cleanValue === "" || (/^[6-9]/.test(cleanValue) && cleanValue.length <= 10)) {
+      setPhoneNumber(cleanValue);
+
+      // Highlight phone input when user enters more than 1 digit
+      if (cleanValue.length > 1) {
+        console.log("Highlighting phone input, length:", cleanValue.length); // Debug log
+        setShouldHighlightPhone(true);
+      } else {
+        console.log("Removing phone highlight, length:", cleanValue.length); // Debug log
+        setShouldHighlightPhone(false);
+      }
     }
-  }
-};
+  };
   useEffect(() => {
     let interval;
     if (currentStep === STEPS.OTP || resetTimer) {
@@ -283,7 +283,7 @@ const handlePhoneNumberChange = (value) => {
 
       toast.error(
         err.response?.data?.detail ||
-          "Unable to process request. Please try again.",
+        "Unable to process request. Please try again.",
         "Error"
       );
     } finally {
@@ -309,7 +309,7 @@ const handlePhoneNumberChange = (value) => {
       console.error("Signup error:", err);
       toast.error(
         err.response?.data?.detail ||
-          "Failed to create account. Please try again.",
+        "Failed to create account. Please try again.",
         "Error"
       );
     } finally {
@@ -339,7 +339,7 @@ const handlePhoneNumberChange = (value) => {
     };
 
     // Get or create device ID
-    let setVersion = localStorage.setItem("version", "2.1.1")
+    let setVersion = localStorage.setItem("version", "2.2.0")
     let deviceId = localStorage.getItem("mm_device_id");
     if (!deviceId) {
       deviceId = generateDeviceId();
@@ -431,12 +431,10 @@ const handlePhoneNumberChange = (value) => {
       device_model: deviceModel.trim() || `${detectedOS} Device`,
       device_type: readableDeviceType,
       full_details: {
-        browser: `${detectedBrowser} ${
-          browserVersion !== "none" ? browserVersion : ""
-        }`.trim(),
-        operating_system: `${detectedOS} ${
-          osVersion !== "none" ? osVersion : ""
-        }`.trim(),
+        browser: `${detectedBrowser} ${browserVersion !== "none" ? browserVersion : ""
+          }`.trim(),
+        operating_system: `${detectedOS} ${osVersion !== "none" ? osVersion : ""
+          }`.trim(),
         device_type: readableDeviceType,
       },
     };
@@ -512,7 +510,7 @@ const handlePhoneNumberChange = (value) => {
     try {
       const { data } = await api.post("/common/resend_otp", {
         mobile: phoneNumber,
-        version:Version,
+        version: Version,
         app_type: "customer",
       });
 
@@ -837,7 +835,7 @@ const handlePhoneNumberChange = (value) => {
             {currentStep === STEPS.SIGNUP && "Create Account"}
             {currentStep === STEPS.OTP && "Verify OTP"}
           </h6>
-          <button 
+          <button
             className={`bg-transparent border-0 text-xl p-1 cursor-pointer hover:opacity-80 transition-opacity ${isDarkMode ? 'text-white' : 'text-[#6c757d]'}`}
             onClick={handleClose}
             type="button"
@@ -846,7 +844,7 @@ const handlePhoneNumberChange = (value) => {
             <i className="fa-solid fa-xmark"></i>
           </button>
         </div>
-        
+
         {currentStep === STEPS.LOGIN && renderLoginStep()}
         {currentStep === STEPS.SIGNUP && renderSignupStep()}
         {currentStep === STEPS.OTP && renderOTPStep()}

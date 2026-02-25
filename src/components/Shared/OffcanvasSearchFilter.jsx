@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import {ENV} from '../../config';
+import { ENV } from '../../config';
 
 function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
   const [foodTypes, setFoodTypes] = useState({});
@@ -25,10 +25,10 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
 
   const fetchFoodTypes = async () => {
     try {
-      const response = await fetch(`${ENV.V2_COMMON_BASE}/v2/user/get_food_type_list`);
+      const response = await fetch(`${ENV.V2_COMMON_BASE}/user/get_food_type_list`);
       const data = await response.json();
       const foodTypeList = data.detail.food_type_list;
-      
+
       // Initialize foodType filters with all types set to false
       const initialFoodTypes = Object.keys(foodTypeList).reduce((acc, type) => {
         acc[type] = false;
@@ -99,7 +99,7 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
         sameDayDelivery: false
       }
     };
-    
+
     setFilters(initialState);
     onApplyFilter(initialState); // This will reset the filters and show all results
   };
@@ -108,9 +108,9 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
     <div className="flex-grow p-4 overflow-y-auto w-full px-[15px] mx-auto max-w-[1024px]">
       <div className="filter-area">
         <div className="filter-head flex items-center mb-4">
-          <button 
-            type="button" 
-            className="mr-2 p-0 bg-transparent border-0 cursor-pointer" 
+          <button
+            type="button"
+            className="mr-2 p-0 bg-transparent border-0 cursor-pointer"
             onClick={onClose}
             aria-label="Close"
           >
@@ -120,8 +120,8 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
             </svg>
           </button>
           <h2 className="mb-0 flex-1 text-2xl font-semibold">Search Filters</h2>
-          <h6 
-            className="sub-title mb-0 text-accent cursor-pointer text-base font-medium" 
+          <h6
+            className="sub-title mb-0 text-accent cursor-pointer text-base font-medium"
             onClick={handleReset}
           >
             Reset
@@ -136,12 +136,12 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
               {Object.entries(foodTypes).map(([type, label]) => (
                 <li key={type} className="w-1/2 pb-2 pr-2">
                   <div className="flex items-center">
-                    <input 
-                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
-                      type="checkbox" 
+                    <input
+                      className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                      type="checkbox"
                       checked={filters.foodType[type] || false}
                       onChange={() => handleFoodTypeChange(type)}
-                      id={`${type}Filter`} 
+                      id={`${type}Filter`}
                     />
                     <label className="ml-2 text-sm cursor-pointer" htmlFor={`${type}Filter`}>
                       {label.charAt(0).toUpperCase() + label.slice(1)} {/* Capitalize first letter */}
@@ -156,18 +156,18 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
           </div>
           <div className="border-b border-[#F0F0F0] flex justify-between items-center">
             <div className="mb-3 mr-3 flex-1">
-              <input 
-                type="text" 
-                className="w-full px-4 py-2 border border-[#F0F0F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+              <input
+                type="text"
+                className="w-full px-4 py-2 border border-[#F0F0F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Min"
                 value={filters.priceRange.min}
                 onChange={(e) => handlePriceChange('min', e.target.value)}
               />
             </div>
             <div className="mb-3 flex-1">
-              <input 
-                type="text" 
-                className="w-full px-4 py-2 border border-[#F0F0F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" 
+              <input
+                type="text"
+                className="w-full px-4 py-2 border border-[#F0F0F0] rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 placeholder="Max"
                 value={filters.priceRange.max}
                 onChange={(e) => handlePriceChange('max', e.target.value)}
@@ -201,17 +201,17 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
           </div> */}
           <div className="title-bar mt-4 mb-3">
             <h5 className="sub-title text-lg font-semibold">Others</h5>
-          </div>	
+          </div>
           <div className="border-b border-[#F0F0F0] pb-3">
             <ul className="flex items-center flex-wrap list-none p-0 m-0">
               <li className="w-1/2 pb-2 pr-2">
                 <div className="flex items-center">
-                  <input 
-                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
-                    type="checkbox" 
+                  <input
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    type="checkbox"
                     checked={filters.others.discount}
                     onChange={() => handleOthersChange('discount')}
-                    id="flexCheckChecked1" 
+                    id="flexCheckChecked1"
                   />
                   <label className="ml-2 text-sm cursor-pointer" htmlFor="flexCheckChecked1">
                     Discount
@@ -220,9 +220,9 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
               </li>
               <li className="w-1/2 pb-2 pr-2">
                 <div className="flex items-center">
-                  <input 
-                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
-                    type="checkbox" 
+                  <input
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    type="checkbox"
                     checked={filters.others.voucher}
                     onChange={() => handleOthersChange('voucher')}
                     id="flexCheckChecked2"
@@ -234,9 +234,9 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
               </li>
               <li className="w-1/2 pb-2 pr-2">
                 <div className="flex items-center">
-                  <input 
-                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
-                    type="checkbox" 
+                  <input
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    type="checkbox"
                     checked={filters.others.freeShipping}
                     onChange={() => handleOthersChange('freeShipping')}
                     id="flexCheckChecked3"
@@ -248,9 +248,9 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
               </li>
               <li className="w-1/2 pb-2 pr-2">
                 <div className="flex items-center">
-                  <input 
-                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
-                    type="checkbox" 
+                  <input
+                    className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer"
+                    type="checkbox"
                     checked={filters.others.sameDayDelivery}
                     onChange={() => handleOthersChange('sameDayDelivery')}
                     id="flexCheckChecked4"
@@ -310,7 +310,7 @@ function OffcanvasSearchFilter({ onClose, onApplyFilter }) {
               </li>
             </ul>
           </div>
-          <button 
+          <button
             type="button"
             className="w-full bg-primary text-white py-3 px-4 rounded-lg font-semibold hover:bg-primary-hover transition-colors duration-200"
             onClick={handleApplyClick}

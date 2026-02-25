@@ -33,10 +33,10 @@ const MenuMitra = () => {
   const renderLogo = () => (
     <div className="flex flex-col items-center mb-2 pb-2">
       <a href="https://menumitra.com" target="_blank" rel="noopener noreferrer" className="no-underline flex items-center">
-        <img 
-          src={logo2} 
-          alt="MenuMitra Logo" 
-          className="w-8 h-8 max-w-full" 
+        <img
+          src={logo2}
+          alt="MenuMitra Logo"
+          className="w-8 h-8 max-w-full"
         />
         <div className="text-gray-900 font-semibold ml-2 text-xl">
           MenuMitra
@@ -66,7 +66,7 @@ const MenuMitra = () => {
 
   const renderFooter = () => (
     <div className="text-center">
-      <p className="text-gray-500 mb-0 text-sm">version 2.1.1</p>
+      <p className="text-gray-500 mb-0 text-sm">version 2.2.0</p>
       <p className="text-gray-500 mb-0 text-sm">13 Aug 2025</p>
     </div>
   );

@@ -90,9 +90,8 @@ const OrderAccordionItem = ({
           </div>
           <div style="text-align: right;">
               <p style="margin: 0;">Bill no: ${order_details.order_number}</p>
-              <p style="margin: 5px 0 0 0; color: #666;">${
-                order_details.date || ""
-              } ${generationTime || ""}</p>
+              <p style="margin: 5px 0 0 0; color: #666;">${order_details.date || ""
+        } ${generationTime || ""}</p>
             </div>
           </div>
 
@@ -103,110 +102,96 @@ const OrderAccordionItem = ({
               <th style="text-align: right; padding: 8px 0; border-bottom: 1px solid #ddd; color: #333;">Price</th>
             </tr>
             ${menu_details
-              .map(
-                (item) => `
+          .map(
+            (item) => `
               <tr>
-                <td style="padding: 8px 0; color: #d9534f;">${
-                  item.menu_name
-                }</td>
-                <td style="text-align: center; padding: 8px 0;">${
-                  item.quantity
-                }</td>
+                <td style="padding: 8px 0; color: #d9534f;">${item.menu_name
+              }</td>
+                <td style="text-align: center; padding: 8px 0;">${item.quantity
+              }</td>
                 <td style="text-align: right; padding: 8px 0;">₹ ${item.price.toFixed(
-                  2
-                )}</td>
+                2
+              )}</td>
               </tr>
             `
-              )
-              .join("")}
+          )
+          .join("")}
         </table>
 
           <!-- Billing Summary -->
 <div style="border-top: 2px solid #ddd; margin-top: 20px;">
   <div style="text-align: right; margin-top: 10px;">
     <!-- Total -->
-    ${
-      order_details.total_bill_amount
-        ? `<span style="font-weight: bold;">Total:</span> ₹${order_details.total_bill_amount.toFixed(
+    ${order_details.total_bill_amount
+          ? `<span style="font-weight: bold;">Total:</span> ₹${order_details.total_bill_amount.toFixed(
             2
           )}</br>`
-        : ""
-    }
+          : ""
+        }
 
     <!-- Discount -->
-    ${
-      order_details.discount_percent > 0
-        ? `<span style="font-weight: bold;">Discount:</span>(${
-            order_details.discount_percent
+    ${order_details.discount_percent > 0
+          ? `<span style="font-weight: bold;">Discount:</span>(${order_details.discount_percent
           }%): <span style="color: red;">-₹${order_details.discount_amount.toFixed(
             2
           )}</span></br>`
-        : ""
-    }
+          : ""
+        }
 
     <!-- Special Discount -->
-    ${
-      order_details.special_discount
-        ? `<span style="font-weight: bold;">Special Discount:</span><span style="color: red;">-₹${order_details.special_discount.toFixed(
+    ${order_details.special_discount
+          ? `<span style="font-weight: bold;">Special Discount:</span><span style="color: red;">-₹${order_details.special_discount.toFixed(
             2
           )}</span></br>`
-        : ""
-    }
+          : ""
+        }
     <!-- Extra Charges -->
-    ${
-      order_details.charges > 0
-        ? `<span style="font-weight: bold;">Extra Charges:</span><span style="color: green;">+₹${order_details.charges.toFixed(
+    ${order_details.charges > 0
+          ? `<span style="font-weight: bold;">Extra Charges:</span><span style="color: green;">+₹${order_details.charges.toFixed(
             2
           )}</span></br>`
-        : ""
-    }
+          : ""
+        }
     <!-- Subtotal -->
-    ${
-      order_details.total_bill_with_discount
-        ? `<span style="font-weight: bold;">Subtotal:</span> ₹${order_details.total_bill_with_discount.toFixed(
+    ${order_details.total_bill_with_discount
+          ? `<span style="font-weight: bold;">Subtotal:</span> ₹${order_details.total_bill_with_discount.toFixed(
             2
           )}</br>`
-        : ""
-    }
+          : ""
+        }
     <!-- Service Charges -->
-          ${
-            order_details.service_charges_amount
-              ? `<span style="font-weight: bold;">Service Charges (${
-                  order_details.service_charges_percent || ""
-                }%):</span> <span style="color: green;">+₹${order_details.service_charges_amount.toFixed(
-                  2
-                )}</span></br>`
-              : ""
-          }
+          ${order_details.service_charges_amount
+          ? `<span style="font-weight: bold;">Service Charges (${order_details.service_charges_percent || ""
+          }%):</span> <span style="color: green;">+₹${order_details.service_charges_amount.toFixed(
+            2
+          )}</span></br>`
+          : ""
+        }
 
     <!-- GST -->
-    ${
-      order_details.gst_amount
-        ? `<span style="font-weight: bold;">GST (${
-            order_details.gst_percent || ""
+    ${order_details.gst_amount
+          ? `<span style="font-weight: bold;">GST (${order_details.gst_percent || ""
           }%):</span> <span style="color: green;">+₹${order_details.gst_amount.toFixed(
             2
           )}</span></br>`
-        : ""
-    }
+          : ""
+        }
 <!-- Tip -->
-          ${
-            order_details.tip && order_details.tip > 0
-              ? `<span style="font-weight: bold;">Tip:</span><span style="color: green;">+₹${order_details.tip.toFixed(
-                  2
-                )}</span></br>`
-              : ""
-          }
+          ${order_details.tip && order_details.tip > 0
+          ? `<span style="font-weight: bold;">Tip:</span><span style="color: green;">+₹${order_details.tip.toFixed(
+            2
+          )}</span></br>`
+          : ""
+        }
 
 
     <!-- Grand Total -->
-    ${
-      order_details.final_grand_total
-        ? `<span style="font-weight: bold;">Grand Total:</span> ₹${order_details.final_grand_total.toFixed(
+    ${order_details.final_grand_total
+          ? `<span style="font-weight: bold;">Grand Total:</span> ₹${order_details.final_grand_total.toFixed(
             2
           )}</br>`
-        : ""
-    }
+          : ""
+        }
   </div>
 </div>
           <div style="display: flex; justify-content: space-between; margin-top: 30px;">
@@ -217,9 +202,8 @@ const OrderAccordionItem = ({
             </div>
             <div style="text-align: right;">
               <p style="margin: 0 0 10px 0; font-weight: bold;">Payment Method</p>
-              <p style="margin: 5px 0; text-transform: uppercase;">${
-                order_details.payment_method || ""
-              }</p>
+              <p style="margin: 5px 0; text-transform: uppercase;">${order_details.payment_method || ""
+        }</p>
         </div>
           </div>
 
@@ -312,7 +296,7 @@ const OrderAccordionItem = ({
       }
 
       const response = await axios.post(
-        `${ENV.V2_COMMON_BASE}/v2/user/get_order_details`,
+        `${ENV.V2_COMMON_BASE}/user/get_order_details`,
         {
           order_id: orderId,
           user_id: parseInt(userId),
