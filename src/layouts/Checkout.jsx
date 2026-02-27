@@ -13,7 +13,7 @@ import LazyImage from "../components/Shared/LazyImage";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiService from "../api/apiService";
 import { useToastContext } from "../components/Toast/ToastContext";
-import {ENV} from "../config";
+import { ENV } from "../config";
 
 const FooterSummary = function FooterSummary({ checkoutDetails }) {
   // Fallback to zeros if no data yet
@@ -179,11 +179,11 @@ function CheckoutContent() {
     onSuccess: () => {
       clearCart();
       localStorage.removeItem("cart");
-      
+
       // Invalidate and refetch orders data
       queryClient.invalidateQueries({ queryKey: ['ongoingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
-      
+
       addToast({
         message: "Items added to existing order successfully!",
         type: "success",
@@ -211,11 +211,11 @@ function CheckoutContent() {
     onSuccess: (data) => {
       clearCart();
       localStorage.removeItem("cart");
-      
+
       // Invalidate and refetch orders data
       queryClient.invalidateQueries({ queryKey: ['ongoingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
-      
+
       addToast({
         message: `Order cancelled and new order #${data.order_number} created successfully!`,
         type: "success",
@@ -243,7 +243,7 @@ function CheckoutContent() {
       const orderItems = cartItems.map((item) => ({
         menu_id: item.menuId,
         quantity: item.quantity,
-        portion_name: item.portionName.toLowerCase(),
+        portion_name: item.portionName?.toLowerCase() || "",
         comment: item.comment || "", // Add the comment field here
       }));
 
@@ -699,7 +699,7 @@ function CheckoutContent() {
                         </span>
                       </div>
                       <hr className="my-2 border-gray-300" />
-                      
+
                       {/* Regular Discount */}
                       <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>
@@ -755,7 +755,7 @@ function CheckoutContent() {
                         <span>+₹{checkoutDetails?.gst_amount || "0.00"}</span>
                       </div>
                       <hr className="my-2 border-gray-300" />
-                      
+
                       {/* Grand Total with coupon discount */}
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-lg">
@@ -804,9 +804,8 @@ function CheckoutContent() {
                   </div>
                   {couponStatus && (
                     <div
-                      className={`mt-2 font-semibold text-sm ${
-                        couponStatus.success ? "text-green-600" : "text-red-600"
-                      }`}
+                      className={`mt-2 font-semibold text-sm ${couponStatus.success ? "text-green-600" : "text-red-600"
+                        }`}
                     >
                       {couponStatus.message}
                     </div>
