@@ -42,34 +42,39 @@ export const AuthProvider = ({ children }) => {
 
   const handleLoginSuccess = (userData) => {
     console.log('Login Success - API Response:', userData);
-    
+
+    // Support both naming conventions from different API versions/endpoints
+    const userId = userData.user_id || userData.id;
+    const accessToken = userData.access_token || userData.accessToken;
+    const expiresAt = userData.expires_at || userData.expires_on || userData.expiresAt;
+
     // Store auth data in localStorage
     const auth = {
-      userId: userData.user_id,
+      userId: userId,
       name: userData.name,
       role: userData.role,
       mobile: userData.mobile,
-      accessToken: userData.access_token,
-      expiresAt: userData.expires_on  // Using expires_on from API
+      accessToken: accessToken,
+      expiresAt: expiresAt
     };
-    
+
     console.log('Storing auth data:', auth);
     localStorage.setItem('auth', JSON.stringify(auth));
-    
+
     setUser({
-      id: userData.user_id,
+      id: userId,
       name: userData.name,
       role: userData.role,
       mobile: userData.mobile,
-      accessToken: userData.access_token,
-      expiresAt: userData.expires_on  // Using expires_on from API
+      accessToken: accessToken,
+      expiresAt: expiresAt
     });
   };
 
   const handleLogout = useCallback(() => {
     localStorage.removeItem('auth');
     setUser(null);
-    
+
     // Dispatch cache clear event
     window.dispatchEvent(new CustomEvent('cache:clear'));
   }, []);
@@ -83,19 +88,19 @@ export const AuthProvider = ({ children }) => {
       expiresAt: user?.expiresAt,
       expiresAtType: typeof user?.expiresAt
     });
-    
+
     // Simplified check - just check if user exists and has access token
     if (!user) return false;
-    
+
     // For now, just check if user exists and has access token
     const isValid = !!user.accessToken;
-    
+
     console.log('Auth check result:', {
       isValid,
       accessTokenExists: !!user.accessToken,
       userExists: !!user
     });
-    
+
     return isValid;
   }, [user]);
 
@@ -107,7 +112,7 @@ export const AuthProvider = ({ children }) => {
   const getDeviceInfo = useCallback(() => DEVICE_INFO, []);
 
   return (
-    <AuthContext.Provider 
+    <AuthContext.Provider
       value={{
         user,
         isAuthenticated: isAuthenticated(), // Call the function here

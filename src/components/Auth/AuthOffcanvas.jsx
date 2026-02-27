@@ -251,9 +251,10 @@ const AuthOffcanvas = () => {
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    let Version = localStorage.getItem("version")
+    const Version = localStorage.getItem("version") || "2.2.0";
 
     try {
+      console.log("Login Payload:", { mobile: phoneNumber, version: Version, app_type: "customer" });
       const { data } = await api.post("/common/login", {
         mobile: phoneNumber,
         version: Version,
@@ -274,7 +275,8 @@ const AuthOffcanvas = () => {
 
       if (
         err.response?.status === 400 &&
-        err.response?.data?.detail === "This mobile number is not registered."
+        (err.response?.data?.detail === "This mobile number is not registered." ||
+          err.response?.data?.detail?.toLowerCase().includes("not registered"))
       ) {
         setCurrentStep(STEPS.SIGNUP);
         toast.info("Number not registered. Please sign up.", "New User");
@@ -295,6 +297,7 @@ const AuthOffcanvas = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
+      console.log("Signup Payload:", { mobile: phoneNumber, name: userDetails.name });
       await api.post("/user/account_signup", {
         mobile: phoneNumber,
         name: userDetails.name,
@@ -307,11 +310,15 @@ const AuthOffcanvas = () => {
       );
     } catch (err) {
       console.error("Signup error:", err);
-      toast.error(
-        err.response?.data?.detail ||
-        "Failed to create account. Please try again.",
-        "Error"
-      );
+      const errorMsg = err.response?.data?.detail || "Failed to create account. Please try again.";
+
+      if (errorMsg.toLowerCase().includes("already exist")) {
+        toast.error("This number is already registered. Please login.", "Account Exists");
+        setCurrentStep(STEPS.LOGIN);
+        return;
+      }
+
+      toast.error(errorMsg, "Error");
     } finally {
       setIsLoading(false);
     }
@@ -480,7 +487,7 @@ const AuthOffcanvas = () => {
         role: data.role,
         mobile: phoneNumber,
         access_token: data.access_token,
-        expires_at: data.expires_at,
+        expiresAt: data.expires_at || data.expires_on, // Check both possibilities
       });
 
       toast.success("Login successful!", "Welcome");
@@ -506,8 +513,9 @@ const AuthOffcanvas = () => {
   const handleResendOTP = async () => {
     setIsLoading(true);
     setResetTimer((prev) => prev + 1); // Trigger timer reset
-    let Version = localStorage.getItem("version")
+    const Version = localStorage.getItem("version") || "2.2.0";
     try {
+      console.log("Resend OTP Payload:", { mobile: phoneNumber, version: Version, app_type: "customer" });
       const { data } = await api.post("/common/resend_otp", {
         mobile: phoneNumber,
         version: Version,

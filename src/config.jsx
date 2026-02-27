@@ -1,12 +1,12 @@
 // Centralized environment configuration for API and WebSocket endpoints
 
 // SINGLE SWITCH: change this to 'production' | 'testing' | 'development'
-const CURRENT_ENV = 'testing';
+const CURRENT_ENV = 'production';
 
 // Host configuration per environment
 const CONFIG = {
   production: {
-    API_HOST: 'https://menu4.xyz',
+    API_HOST: 'https://menu4.xyz/v2.2',
     WS_URL: 'wss://menu4.xyz/ws/database-updates',
   },
   testing: {
