@@ -4,7 +4,7 @@ import { useSidebar } from "../contexts/SidebarContext";
 // import { useAuth } from "../contexts/AuthContext";
 // import { useTheme } from "../contexts/ThemeContext";
 import { Link, useNavigate } from "react-router-dom";
-import TestEnvironmentBanner from "./TestEnvironmentBanner";
+
 import OutletInfoBanner from "./OutletInfoBanner";
 import { useLocation } from "react-router-dom";
 import logo2 from "../assets/mm-logo.png";
@@ -63,12 +63,12 @@ function Header() {
           }
 
           const isScrolled = window.scrollY > 50;
-          
+
           // Only update if state changed to prevent unnecessary DOM updates
           if (isScrolled !== lastScrolled) {
             lastScrolled = isScrolled;
             mainBarRef.current.dataset.scrolled = isScrolled;
-            
+
             // Use classList toggle for better performance
             if (isScrolled) {
               mainBarRef.current.classList.add('header-scrolled');
@@ -113,7 +113,7 @@ function Header() {
 
   return (
     <>
-      <TestEnvironmentBanner />
+
       {/* Overlay always rendered, class toggled by isOpen */}
       <div
         className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
