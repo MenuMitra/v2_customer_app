@@ -126,7 +126,7 @@ function CategoryFilteredMenuList() {
                                     <VerticalMenuCard
                                         image={menu.images?.[0]?.image || DEFAULT_IMAGE}
                                         title={menu.menu_name}
-                                        currentPrice={menu.portions?.[0]?.price || 0}
+                                        currentPrice={menu.price || menu.portions?.[0]?.price || 0}
                                         reviewCount={menu.rating || 0}
                                         isFavorite={menu.is_favourite === 1}
                                         discount={menu.offer > 0 ? `${menu.offer}%` : null}

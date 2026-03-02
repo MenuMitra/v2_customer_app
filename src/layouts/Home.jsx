@@ -321,7 +321,7 @@ function Home() {
                               )
                             }
                             title={menuItem.menuName}
-                            currentPrice={menuItem.portions?.[0]?.price ?? 0}
+                            currentPrice={menuItem.price || menuItem.portions?.[0]?.price || 0}
                             reviewCount={
                               menuItem.rating ? parseInt(menuItem.rating) : null
                             }
@@ -351,7 +351,7 @@ function Home() {
                             )
                           }
                           title={menuItem.menuName}
-                          currentPrice={menuItem.portions?.[0]?.price ?? 0}
+                          currentPrice={menuItem.price || menuItem.portions?.[0]?.price || 0}
                           reviewCount={
                             menuItem.rating ? parseInt(menuItem.rating) : null
                           }

@@ -206,9 +206,8 @@ const VerticalMenuCard = ({
           >
             <div className={`like-button ${isFavoriteBoolean ? "active" : ""}`}>
               <i
-                className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart text-base leading-none ${
-                  isFavoriteBoolean ? "text-[#dc3545]" : "text-[#6c757d]"
-                }`}
+                className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart text-base leading-none ${isFavoriteBoolean ? "text-[#dc3545]" : "text-[#6c757d]"
+                  }`}
               />
             </div>
           </a>
@@ -245,13 +244,13 @@ const VerticalMenuCard = ({
             <li className="price text-[#3AB4F2] text-[15px] ml-auto">
               {menuItem.offer > 0 ? (
                 <>
-                  ₹{Math.round(menuItem.portions?.[0]?.price * (1 - menuItem.offer / 100))}
+                  ₹{Math.round((menuItem.price || menuItem.portions?.[0]?.price) * (1 - menuItem.offer / 100))}
                   <del className="ml-2 text-gray-500">
-                    ₹{menuItem.portions?.[0]?.price}
+                    ₹{menuItem.price || menuItem.portions?.[0]?.price}
                   </del>
                 </>
               ) : (
-                `₹${currentPrice}`
+                `₹${currentPrice || menuItem.price || 0}`
               )}
             </li>
           </ul>

@@ -12,7 +12,7 @@ export const useMenuItems = () => {
     queryFn: async () => {
       if (!outletId) return null;
       const data = await apiService.common.getAllMenuListByCategory({ outletId });
-      
+
       if (!data) return null;
 
       return {
@@ -35,8 +35,8 @@ export const useMenuItems = () => {
             price: portion.price,
             unit_value: portion.unit_value,
             unit_type: portion.unit_type
-          })),
-          price: menu.portions?.[0]?.price ?? 0,
+          })) || [],
+          price: menu.price ?? menu.portions?.[0]?.price ?? 0,
           rating: menu.rating,
           offer: menu.offer,
           isSpecial: menu.is_special,
@@ -73,13 +73,13 @@ export const useMenuItems = () => {
         if (!old) return old;
         return {
           ...old,
-          menus: old.menus.map(menu => 
-            menu.menuId === menuId 
+          menus: old.menus.map(menu =>
+            menu.menuId === menuId
               ? {
-                  ...menu,
-                  is_favourite: !isFavorite ? 1 : 0,
-                  isFavourite: !isFavorite
-                }
+                ...menu,
+                is_favourite: !isFavorite ? 1 : 0,
+                isFavourite: !isFavorite
+              }
               : menu
           )
         };
