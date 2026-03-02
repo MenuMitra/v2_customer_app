@@ -5,7 +5,7 @@ import logo2 from '../assets/mm-logo.png';
 const SOCIAL_LINKS = [
   {
     platform: 'google',
-    url: 'https://www.google.com/search?q=MenuMitra',
+    url: 'https://menumitra.com/',
     icon: 'ri-google-fill',
     color: '#4285F4'
   },

@@ -27,7 +27,7 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     const auth = localStorage.getItem('auth');
-    
+
     // Only restore cart if user is authenticated
     if (savedCart && auth) {
       return JSON.parse(savedCart);
@@ -85,7 +85,7 @@ export const CartProvider = ({ children }) => {
     console.log('portionId:', portionId);
     console.log('quantity:', quantity);
     console.log('comment:', comment);
-    
+
     // Check if user is authenticated
     const authData = localStorage.getItem("auth");
     if (!authData || !user) {
@@ -96,10 +96,10 @@ export const CartProvider = ({ children }) => {
 
     setCartItems((prevItems) => {
       console.log('Previous cart items:', prevItems);
-      
+
       const existingItemIndex = prevItems.findIndex(
         (item) =>
-          item.menuId === menuItem.menuId && item.portionId === portionId
+          item.menuId == menuItem.menuId && item.portionId == portionId
       );
 
       console.log('Existing item index:', existingItemIndex);
@@ -112,8 +112,8 @@ export const CartProvider = ({ children }) => {
       console.log('Selected portion:', selectedPortion);
 
       // Validate price - ensure it's a valid number
-      const validPrice = selectedPortion?.price 
-        ? parseFloat(selectedPortion.price) || 0 
+      const validPrice = selectedPortion?.price
+        ? parseFloat(selectedPortion.price) || 0
         : 0;
 
       console.log('Valid price:', validPrice);
@@ -170,7 +170,7 @@ export const CartProvider = ({ children }) => {
       order_items: cartItems.map((item) => ({
         menu_id: item.menuId,
         quantity: item.quantity,
-        portion_name: item.portionName.toLowerCase(),
+        portion_name: item.portionName?.toLowerCase() || "",
         comment: item.comment || "",
       })),
       action: orderSettings.action,
@@ -188,7 +188,7 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = (menuId, portionId) => {
     setCartItems((prevItems) =>
       prevItems.filter(
-        (item) => !(item.menuId === menuId && item.portionId === portionId)
+        (item) => !(item.menuId == menuId && item.portionId == portionId)
       )
     );
   };
@@ -209,7 +209,7 @@ export const CartProvider = ({ children }) => {
 
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item.menuId === menuId && item.portionId === portionId
+        item.menuId == menuId && item.portionId == portionId
           ? { ...item, quantity }
           : item
       )
@@ -240,7 +240,7 @@ export const CartProvider = ({ children }) => {
   const updateComment = (menuId, portionId, comment) => {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
-        item.menuId === menuId && item.portionId === portionId
+        item.menuId == menuId && item.portionId == portionId
           ? { ...item, comment }
           : item
       )
@@ -250,7 +250,7 @@ export const CartProvider = ({ children }) => {
   // Update getCartItemComment to be portion-specific
   const getCartItemComment = (menuId, portionId) => {
     const cartItem = cartItems.find(
-      (item) => item.menuId === menuId && item.portionId === portionId
+      (item) => item.menuId == menuId && item.portionId == portionId
     );
     return cartItem?.comment || "";
   };

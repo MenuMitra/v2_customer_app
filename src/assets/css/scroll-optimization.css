@@ -25,7 +25,7 @@ html {
 .page-content {
   position: relative;
   will-change: auto;
-  contain: layout style paint;
+  contain: layout style;
   padding-bottom: 120px;
   /* Prevent content from causing reflows */
   min-height: calc(100vh - 60px);
@@ -74,7 +74,11 @@ header {
 }
 
 /* Allow text selection on interactive elements */
-a, button, input, textarea, select {
+a,
+button,
+input,
+textarea,
+select {
   -webkit-user-select: auto;
   -moz-user-select: auto;
   user-select: auto;
@@ -98,12 +102,12 @@ a, button, input, textarea, select {
 }
 
 /* Optimize scroll performance with containment */
-.profile-area > * {
+.profile-area>* {
   contain: content;
 }
 
 /* Prevent margin collapse that causes layout shift */
-.page-content > * {
+.page-content>* {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -163,7 +167,7 @@ a, button, input, textarea, select {
 }
 
 /* Cart item card - stable dimensions */
-.item-list.style-2 li > div {
+.item-list.style-2 li>div {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   /* Ensure stable height */
@@ -236,7 +240,7 @@ a, button, input, textarea, select {
 }
 
 /* Cart item inner card - prevent layout shifts */
-.cart-item > div {
+.cart-item>div {
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   contain: layout style;
@@ -315,7 +319,7 @@ header.relative.block {
 }
 
 /* Reduce MenuMitra card spacing */
-.profile-area + div {
+.profile-area+div {
   margin-top: 0;
 }
 
@@ -331,7 +335,7 @@ header.relative.block {
   .profile-area {
     padding-bottom: 0;
   }
-  
+
   .account-section {
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
@@ -339,11 +343,11 @@ header.relative.block {
 }
 
 /* Prevent margin collapse */
-.profile-area > * {
+.profile-area>* {
   margin-bottom: 0;
 }
 
-.profile-area > *:not(:last-child) {
+.profile-area>*:not(:last-child) {
   margin-bottom: 0.75rem;
 }
 
@@ -358,7 +362,7 @@ header.relative.block {
 }
 
 /* Ensure first menu item is fully visible */
-.sidebar ul.flex.flex-col > li:first-child {
+.sidebar ul.flex.flex-col>li:first-child {
   padding-top: 0.5rem;
 }
 
@@ -379,4 +383,29 @@ header.relative.block {
 .feedback-modal-backdrop .bg-white.rounded-lg {
   max-height: 80vh;
   overflow-y: auto;
+}
+
+/* Custom Scrollbar for Menu Lists */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #ccc #f1f1f1;
 }

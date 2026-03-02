@@ -5,19 +5,33 @@ import { useModal } from "../../../contexts/ModalContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useOutlet } from "../../../contexts/OutletContext";
 import axios from "axios";
-import {ENV} from '../../../config';
+import { ENV } from '../../../config';
+import apiService from "../../../api/apiService";
 
 export const AddToCartModal = () => {
   const { closeModal, modalConfig } = useModal();
   const { addToCart, cartItems } = useCart();
-  const { user, setShowAuthOffcanvas, getAccessToken } = useAuth();
+  const { user, setShowAuthOffcanvas, getUserId } = useAuth();
   const { outletId } = useOutlet();
 
-  const [selectedPortion, setSelectedPortion] = useState(null);
-  const [quantities, setQuantities] = useState({});
-  const [menuDetails, setMenuDetails] = useState({
-    portions: []
+  const [selectedPortion, setSelectedPortion] = useState(() => {
+    return modalConfig.data?.portions?.[0]?.portion_id || null;
   });
+  const [quantities, setQuantities] = useState(() => {
+    const initial = {};
+    modalConfig.data?.portions?.forEach((portion) => {
+      const cartItem = cartItems.find(
+        (item) =>
+          item.menuId == (modalConfig.data?.menuId || modalConfig.data?.menu_id) &&
+          item.portionId == portion.portion_id
+      );
+      initial[portion.portion_id] = cartItem?.quantity || 1;
+    });
+    return initial;
+  });
+  const [menuDetails, setMenuDetails] = useState(() => ({
+    portions: modalConfig.data?.portions || []
+  }));
 
   // Track comments for all portions
   const [comments, setComments] = useState(() => {
@@ -50,9 +64,8 @@ export const AddToCartModal = () => {
   };
 
   // Set modal title based on cart status and include menu name
-  const modalTitle = `${isInCart ? "Update" : "Add"} - ${
-    modalConfig.data?.menuName || modalConfig.data?.menu_name || ""
-  }`;
+  const modalTitle = `${isInCart ? "Update" : "Add"} - ${modalConfig.data?.menuName || modalConfig.data?.menu_name || ""
+    }`;
 
   // Add auth check at the start of the component
   useEffect(() => {
@@ -69,14 +82,14 @@ export const AddToCartModal = () => {
     if (modalConfig.data?.action && selectedPortion) {
       const action = modalConfig.data.action;
       const currentQuantity = quantities[selectedPortion] || 0;
-      
+
       if (action === 'increment') {
         const newQuantity = currentQuantity + 1;
         setQuantities((prev) => ({
           ...prev,
           [selectedPortion]: newQuantity,
         }));
-        
+
         if (modalConfig.data) {
           addToCart(
             modalConfig.data,
@@ -91,7 +104,7 @@ export const AddToCartModal = () => {
           ...prev,
           [selectedPortion]: newQuantity,
         }));
-        
+
         if (modalConfig.data) {
           addToCart(
             modalConfig.data,
@@ -101,7 +114,7 @@ export const AddToCartModal = () => {
           );
         }
       }
-      
+
       modalConfig.data.action = null;
     }
   }, [modalConfig.data?.action, selectedPortion]);
@@ -171,7 +184,7 @@ export const AddToCartModal = () => {
     }
 
     const currentQuantity = quantities[selectedPortion] || 0;
-    
+
     console.log('=== Add to Cart Debug ===');
     console.log('Selected Portion:', selectedPortion);
     console.log('Current Quantity:', currentQuantity);
@@ -181,8 +194,8 @@ export const AddToCartModal = () => {
 
     if (selectedPortion && currentQuantity > 0) {
       // Use menuDetails.portions if available, otherwise fall back to modalConfig.data.portions
-      const portionsToUse = menuDetails.portions?.length > 0 
-        ? menuDetails.portions 
+      const portionsToUse = menuDetails.portions?.length > 0
+        ? menuDetails.portions
         : modalConfig.data?.portions || [];
 
       console.log('Portions to use:', portionsToUse);
@@ -210,7 +223,7 @@ export const AddToCartModal = () => {
         currentQuantity,
         comments[selectedPortion] || ""
       );
-      
+
       console.log('=== Add to Cart Complete ===');
     } else {
       console.log('Cannot add - Invalid portion or quantity');
@@ -226,65 +239,58 @@ export const AddToCartModal = () => {
   useEffect(() => {
     const fetchMenuDetails = async () => {
       try {
-        const token = getAccessToken();
+        const userId = getUserId();
+        const menuId = modalConfig.data?.menuId || modalConfig.data?.menu_id;
+        const menuCatId = modalConfig.data?.menuCatId || modalConfig.data?.menu_cat_id || modalConfig.data?.category_id;
 
-        const response = await axios.post(
-          `${ENV.V2_COMMON_BASE}/user/get_full_half_price_of_menu`,
-          {
-            outlet_id: outletId,
-            menu_id: modalConfig.data?.menuId || modalConfig.data?.menu_id,
-            app_source: "user_app",
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        if (!menuId || !menuCatId) return;
 
-        if (response.data?.detail?.menu_detail) {
-          const newPortions = response.data.detail.menu_detail.portions.map(portion => ({
+        const details = await apiService.menus.getDetails({
+          outletId,
+          menuId,
+          menuCatId,
+          userId,
+        });
+
+        if (details?.portions) {
+          const newPortions = details.portions.map(portion => ({
             ...portion,
             price: parseFloat(portion.price) || 0
           }));
-
-          let firstPortionId = null;
-          if (!selectedPortion && newPortions.length > 0) {
-            firstPortionId = newPortions[0].portion_id;
-            setSelectedPortion(firstPortionId);
-          }
-
-          setQuantities(prev => {
-            const newQuantities = {};
-            newPortions.forEach(portion => {
-              const cartItem = cartItems.find(
-                item => item.menuId === (modalConfig.data?.menuId || modalConfig.data?.menu_id) && 
-                       item.portionId === portion.portion_id
-              );
-              // Always set quantity - either from cart or default to 1
-              newQuantities[portion.portion_id] = cartItem?.quantity || 1;
-            });
-            
-            console.log('Initialized quantities:', newQuantities);
-            console.log('First portion ID:', firstPortionId || selectedPortion);
-            return newQuantities;
-          });
 
           setMenuDetails(prev => ({
             ...prev,
             portions: newPortions
           }));
+
+          // Update quantities with any new portions found, preserving existing quantities
+          setQuantities(prev => {
+            const newQuantities = { ...prev };
+            newPortions.forEach(portion => {
+              if (newQuantities[portion.portion_id] === undefined) {
+                const cartItem = cartItems.find(
+                  item => item.menuId == menuId &&
+                    item.portionId == portion.portion_id
+                );
+                newQuantities[portion.portion_id] = cartItem?.quantity || 1;
+              }
+            });
+            return newQuantities;
+          });
+
+          if (!selectedPortion && newPortions.length > 0) {
+            setSelectedPortion(newPortions[0].portion_id);
+          }
         }
       } catch (err) {
-        console.error("API Error:", err);
+        console.error("API Error fetching menu details:", err);
       }
     };
 
     if (modalConfig.data?.menuId || modalConfig.data?.menu_id) {
       fetchMenuDetails();
     }
-  }, [modalConfig.data, cartItems, getAccessToken, outletId]);
+  }, [modalConfig.data, cartItems, getUserId, outletId]);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
@@ -338,12 +344,10 @@ export const AddToCartModal = () => {
                 className="flex justify-between items-center p-3 border-b border-gray-200 bg-gray-100 cursor-pointer transition-all duration-200"
               >
                 <div className="flex flex-col">
-                  <span className={`text-base text-gray-900 ${
-                    selectedPortion === portion.portion_id ? "font-medium" : "font-normal"
-                  }`}>
-                    {`${portion.portion_name ? `${portion.portion_name} - ` : ''}₹${portion.price} (${
-                      portion.unit_value
-                    }${portion.unit_type ? ` ${portion.unit_type}` : ''})`}
+                  <span className={`text-base text-gray-900 ${selectedPortion === portion.portion_id ? "font-medium" : "font-normal"
+                    }`}>
+                    {`${portion.portion_name ? `${portion.portion_name} - ` : ''}₹${portion.price} (${portion.unit_value
+                      }${portion.unit_type ? ` ${portion.unit_type}` : ''})`}
                   </span>
                 </div>
                 {selectedPortion === portion.portion_id && (
@@ -386,11 +390,10 @@ export const AddToCartModal = () => {
             })()}
           </span>
           <small
-            className={`text-xs ${
-              (comments[selectedPortion]?.length || 0) > 50
-                ? "text-red-600"
-                : "text-gray-600"
-            }`}
+            className={`text-xs ${(comments[selectedPortion]?.length || 0) > 50
+              ? "text-red-600"
+              : "text-gray-600"
+              }`}
           ></small>
         </label>
 
@@ -420,13 +423,11 @@ export const AddToCartModal = () => {
                 onClick={() =>
                   !suggestionDisabled && handleSuggestionClick(suggestion.text)
                 }
-                className={`flex items-center gap-1 px-3 py-2 rounded-full text-[13px] select-none transition-all duration-200 ${
-                  suggestionSelected
-                    ? "bg-green-50 border border-green-600 text-green-600"
-                    : "bg-gray-100 border border-gray-200 text-gray-600"
-                } ${
-                  suggestionDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
-                }`}
+                className={`flex items-center gap-1 px-3 py-2 rounded-full text-[13px] select-none transition-all duration-200 ${suggestionSelected
+                  ? "bg-green-50 border border-green-600 text-green-600"
+                  : "bg-gray-100 border border-gray-200 text-gray-600"
+                  } ${suggestionDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+                  }`}
               >
                 <span>{suggestion.icon}</span>
                 <span>{suggestion.text}</span>
@@ -446,20 +447,18 @@ export const AddToCartModal = () => {
             </span>
           </div>
           <textarea
-            className={`w-full rounded-lg p-3 text-base transition-all duration-200 pr-[60px] min-h-[60px] max-h-[120px] resize-y ${
-              comments[selectedPortion]?.length < 5 && comments[selectedPortion]?.length > 0
-                ? "border-red-600"
-                : comments[selectedPortion]?.length > 50
+            className={`w-full rounded-lg p-3 text-base transition-all duration-200 pr-[60px] min-h-[60px] max-h-[120px] resize-y ${comments[selectedPortion]?.length < 5 && comments[selectedPortion]?.length > 0
+              ? "border-red-600"
+              : comments[selectedPortion]?.length > 50
                 ? "border-red-600"
                 : "border-gray-200"
-            } border focus:outline-none focus:ring-0 focus:border-green-600`}
+              } border focus:outline-none focus:ring-0 focus:border-green-600`}
             value={comments[selectedPortion] || ""}
             onChange={(e) => handleCommentChange(e.target.value)}
-            placeholder={`Add instructions for ${
-              menuDetails?.portions?.find(
-                (p) => p.portion_id === selectedPortion
-              )?.portion_name || 'selected'
-            } portion...`}
+            placeholder={`Add instructions for ${menuDetails?.portions?.find(
+              (p) => p.portion_id === selectedPortion
+            )?.portion_name || 'selected'
+              } portion...`}
           />
         </div>
 
@@ -469,8 +468,8 @@ export const AddToCartModal = () => {
             {comments[selectedPortion]?.length < 5
               ? "Instructions must be at least 5 characters"
               : comments[selectedPortion]?.length > 50
-              ? "Instructions cannot exceed 50 characters"
-              : ""}
+                ? "Instructions cannot exceed 50 characters"
+                : ""}
           </small>
         )}
 
@@ -487,9 +486,8 @@ export const AddToCartModal = () => {
             onClick={() =>
               handleQuantityChange((quantities[selectedPortion] || 0) - 1)
             }
-            className={`w-10 h-10 rounded-3xl bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center mr-5 transition-all duration-200 ${
-              (quantities[selectedPortion] || 0) <= 0 ? 'opacity-50' : 'opacity-100'
-            }`}
+            className={`w-10 h-10 rounded-3xl bg-[#07813a] text-white border-0 text-xl font-medium flex items-center justify-center mr-5 transition-all duration-200 ${(quantities[selectedPortion] || 0) <= 0 ? 'opacity-50' : 'opacity-100'
+              }`}
             disabled={(quantities[selectedPortion] || 0) <= 0}
           >
             –

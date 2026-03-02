@@ -88,10 +88,10 @@ function Search() {
     setSearchResults((prev) =>
       Array.isArray(prev)
         ? prev.map((item) =>
-            item?.menu_id === menuId
-              ? { ...item, is_favourite: nextIsFavorite ? 1 : 0 }
-              : item
-          )
+          item?.menu_id === menuId
+            ? { ...item, is_favourite: nextIsFavorite ? 1 : 0 }
+            : item
+        )
         : prev
     );
   };
@@ -236,7 +236,7 @@ function Search() {
                 minHeight="calc(100vh - 300px)"
               />
             ) : (
-              <div className="item-list style-2">
+              <div className="item-list style-2 max-h-[calc(100vh-300px)] overflow-y-auto pr-1 custom-scrollbar">
                 <div className="saprater" />
                 <ul>
                   {displayResults.map((menu) => (
@@ -244,8 +244,8 @@ function Search() {
                       <HorizontalMenuCard
                         image={
                           menu.images &&
-                          Array.isArray(menu.images) &&
-                          menu.images.length > 0
+                            Array.isArray(menu.images) &&
+                            menu.images.length > 0
                             ? menu.images[0].image
                             : menu.image || null
                         }
@@ -253,9 +253,9 @@ function Search() {
                         currentPrice={
                           menu.offer > 0
                             ? Math.round(
-                                menu.portions?.[0]?.price *
-                                  (1 - menu.offer / 100)
-                              )
+                              menu.portions?.[0]?.price *
+                              (1 - menu.offer / 100)
+                            )
                             : menu.portions?.[0]?.price || 0
                         }
                         originalPrice={
@@ -276,8 +276,8 @@ function Search() {
                             })) || [],
                           image:
                             menu.images &&
-                            Array.isArray(menu.images) &&
-                            menu.images.length > 0
+                              Array.isArray(menu.images) &&
+                              menu.images.length > 0
                               ? menu.images[0].image
                               : menu.image || null,
                           menuFoodType: menu.menu_food_type,

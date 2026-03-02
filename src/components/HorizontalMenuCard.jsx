@@ -102,7 +102,7 @@ const HorizontalMenuCard = ({
   const handleCardClick = (e) => {
     // Don't navigate if clicking on favorite button or cart button
     if (
-      e.target.closest('.like-button') || 
+      e.target.closest('.like-button') ||
       e.target.closest('.btn-primary')
     ) {
       return;
@@ -111,19 +111,19 @@ const HorizontalMenuCard = ({
     if (menuItem?.menuId && menuItem?.menuCatId) {
       // Check if this is a cross-outlet favorite
       const isCrossOutlet = menuItem.outletId && Number(menuItem.outletId) !== Number(outletId);
-      
+
       // Navigate with outlet override state if cross-outlet
-      const url = isCrossOutlet 
+      const url = isCrossOutlet
         ? `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}?overrideOutletId=${menuItem.outletId}&notCurrentOutlet=true`
         : `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}`;
-      
+
       navigate(url, {
         state: isCrossOutlet
-          ? { 
-              outletIdOverride: menuItem.outletId, 
-              notCurrentOutlet: true,
-              outletName: menuItem.outletName 
-            }
+          ? {
+            outletIdOverride: menuItem.outletId,
+            notCurrentOutlet: true,
+            outletName: menuItem.outletName
+          }
           : undefined
       });
     }
@@ -142,7 +142,7 @@ const HorizontalMenuCard = ({
 
     try {
       setIsLoading(true);
-      
+
       const targetOutletId = menuItem?.outletId ?? outletId;
 
       if (isFavoriteBoolean) {
@@ -158,7 +158,7 @@ const HorizontalMenuCard = ({
           menuId: menuItem.menuId
         });
       }
-      
+
       onFavoriteUpdate(menuItem.menuId, !isFavoriteBoolean, targetOutletId);
     } catch (error) {
       console.error("Error updating favorite status:", error);
@@ -189,7 +189,7 @@ const HorizontalMenuCard = ({
   // Removed unused detailPageUrl
 
   return (
-    <div 
+    <div
       className="horizontal-menu-card bg-white rounded-lg relative shadow border border-gray-200 pb-0 my-3 pt-0 min-h-[50px] w-full overflow-x-auto whitespace-nowrap cursor-pointer"
       onClick={handleCardClick}
       style={{
@@ -268,7 +268,7 @@ const HorizontalMenuCard = ({
           <i
             className={`${icons.placeholder} text-[55px] opacity-50 text-gray-600 z-[1] pointer-events-none leading-none`}
           ></i>
-          
+
           {/* Menu Image */}
           {typeof image === 'string' && (
             <img
@@ -280,14 +280,14 @@ const HorizontalMenuCard = ({
               }}
             />
           )}
-          
+
           {/* Veg/Nonveg/Vegan/Egg icon */}
           {menuItem.menuFoodType && (
             <span className="absolute left-[5px] bottom-[5px] z-[3]">
               <FoodTypeIcon foodType={menuItem.menuFoodType} />
             </span>
           )}
-          
+
           {/* Favorite icon */}
           {isCurrentOutlet && (
             <a
@@ -297,9 +297,8 @@ const HorizontalMenuCard = ({
             >
               <div className={`like-button ${isFavoriteBoolean ? "active" : ""}`}>
                 <i
-                  className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart text-base leading-none bg-white p-1 rounded-full shadow-sm border-[1.5px] border-white ${
-                    isFavoriteBoolean ? "text-[#dc3545]" : "text-gray-600"
-                  }`}
+                  className={`fa-${isFavoriteBoolean ? "solid" : "regular"} fa-heart text-base leading-none bg-white p-1 rounded-full shadow-sm border-[1.5px] border-white ${isFavoriteBoolean ? "text-[#dc3545]" : "text-gray-600"
+                    }`}
                 />
               </div>
             </a>
@@ -328,12 +327,16 @@ const HorizontalMenuCard = ({
           {/* Price Section with Cart Button */}
           <div className="flex items-center mb-1 justify-between">
             <h6 className="menu-price mb-0 mr-1 font-semibold">
-              ₹{currentPrice}
-              {originalPrice && (
+              ₹{currentPrice || menuItem.price || menuItem.portions?.[0]?.price || 0}
+              {originalPrice ? (
                 <del className="ml-2 text-gray-500 text-xs">
                   ₹{originalPrice}
                 </del>
-              )}
+              ) : (menuItem.offer > 0 && (menuItem.price || menuItem.portions?.[0]?.price)) ? (
+                <del className="ml-2 text-gray-500 text-xs">
+                  ₹{menuItem.price || menuItem.portions?.[0]?.price}
+                </del>
+              ) : null}
             </h6>
 
             {/* Add Spicy Index here */}

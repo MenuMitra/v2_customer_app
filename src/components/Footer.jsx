@@ -83,7 +83,7 @@ function Footer() {
               <i className="fa-solid fa-cart-shopping"></i>
               {cartCount > 0 && (
                 <span className="absolute bottom-[14px] left-[15px] text-[0.6rem] min-w-[13px] h-[13px] bg-[#F44336] text-white px-1 py-0 z-[2] rounded-full flex items-center justify-center border border-white">
-                  {/* {cartCount} */}
+                  {cartCount}
                 </span>
               )}
             </span>

@@ -47,6 +47,11 @@ const NonVegIcon = () => (
   </svg>
 );
 
+const toTitleCase = (str) =>
+  str
+    ? str.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    : str;
+
 function AllOutlets() {
   const navigate = useNavigate();
   const toast = useToast();
@@ -57,10 +62,10 @@ function AllOutlets() {
   const [openDropdown, setOpenDropdown] = useState(null);
 
   // Replace useState and useEffect with useQuery
-  const { 
-    data: outlets = [], 
-    isLoading, 
-    error 
+  const {
+    data: outlets = [],
+    isLoading,
+    error
   } = useQuery({
     queryKey: ['outlets'],
     queryFn: apiService.customer.getAllRestaurants,
@@ -136,10 +141,10 @@ function AllOutlets() {
       <div className="page-content">
         <div className="container mx-auto pb-20 flex flex-col items-center">
           {/* Title Section */}
-          {/* <div className="flex justify-between items-center mb-3">
-            <h6 className="mb-0">All Restaurants</h6>
-            <span className="text-gray-500 text-sm">Total: {filteredOutlets.length} outlets</span>
-          </div> */}
+          <div className="flex justify-between items-center mb-3 w-full">
+            <h6 className="mb-0 font-semibold text-base">All Outlets</h6>
+            <span className="text-gray-500 text-sm">{filteredOutlets.length} outlet{filteredOutlets.length !== 1 ? 's' : ''}</span>
+          </div>
 
           {/* Filter Section */}
           <div className="mb-3">
@@ -155,17 +160,16 @@ function AllOutlets() {
                     {filters.type === "all"
                       ? "All"
                       : filters.type === "veg"
-                      ? "Veg"
-                      : "Non-Veg"}
+                        ? "Veg"
+                        : "Non-Veg"}
                   </span>
                   <i className={`fas fa-chevron-down text-xs transition-transform ${openDropdown === 'type' ? 'rotate-180' : ''}`}></i>
                 </button>
                 <ul className={`absolute z-10 mt-1 bg-white border border-gray-200 rounded shadow-lg min-w-[100px] ${openDropdown === 'type' ? 'block' : 'hidden'}`}>
                   <li>
                     <button
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        filters.type === "all" ? "bg-green-50 text-green-600" : ""
-                      }`}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${filters.type === "all" ? "bg-green-50 text-green-600" : ""
+                        }`}
                       onClick={() => {
                         setFilters((prev) => ({ ...prev, type: "all" }));
                         setOpenDropdown(null);
@@ -176,9 +180,8 @@ function AllOutlets() {
                   </li>
                   <li>
                     <button
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center ${
-                        filters.type === "veg" ? "bg-blue-50 text-blue-600" : ""
-                      }`}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center ${filters.type === "veg" ? "bg-blue-50 text-blue-600" : ""
+                        }`}
                       onClick={() => {
                         setFilters((prev) => ({ ...prev, type: "veg" }));
                         setOpenDropdown(null);
@@ -190,9 +193,8 @@ function AllOutlets() {
                   </li>
                   <li>
                     <button
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center ${
-                        filters.type === "nonveg" ? "bg-blue-50 text-blue-600" : ""
-                      }`}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center ${filters.type === "nonveg" ? "bg-blue-50 text-blue-600" : ""
+                        }`}
                       onClick={() => {
                         setFilters((prev) => ({ ...prev, type: "nonveg" }));
                         setOpenDropdown(null);
@@ -219,17 +221,16 @@ function AllOutlets() {
                     {filters.status === "all"
                       ? "All"
                       : filters.status === "open"
-                      ? "Open"
-                      : "Closed"}
+                        ? "Open"
+                        : "Closed"}
                   </span>
                   <i className={`fas fa-chevron-down text-xs transition-transform ${openDropdown === 'status' ? 'rotate-180' : ''}`}></i>
                 </button>
                 <ul className={`absolute z-10 mt-1 bg-white border border-gray-200 rounded shadow-lg min-w-[100px] ${openDropdown === 'status' ? 'block' : 'hidden'}`}>
                   <li>
                     <button
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        filters.status === "all" ? "bg-green-50 text-green-600" : ""
-                      }`}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${filters.status === "all" ? "bg-green-50 text-green-600" : ""
+                        }`}
                       onClick={() => {
                         setFilters((prev) => ({ ...prev, status: "all" }));
                         setOpenDropdown(null);
@@ -240,9 +241,8 @@ function AllOutlets() {
                   </li>
                   <li>
                     <button
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        filters.status === "open" ? "bg-blue-50 text-blue-600" : ""
-                      }`}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${filters.status === "open" ? "bg-blue-50 text-blue-600" : ""
+                        }`}
                       onClick={() => {
                         setFilters((prev) => ({ ...prev, status: "open" }));
                         setOpenDropdown(null);
@@ -253,9 +253,8 @@ function AllOutlets() {
                   </li>
                   <li>
                     <button
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${
-                        filters.status === "closed" ? "bg-blue-50 text-blue-600" : ""
-                      }`}
+                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors ${filters.status === "closed" ? "bg-blue-50 text-blue-600" : ""
+                        }`}
                       onClick={() => {
                         setFilters((prev) => ({ ...prev, status: "closed" }));
                         setOpenDropdown(null);
@@ -275,15 +274,14 @@ function AllOutlets() {
           ) : filteredOutlets.length === 0 ? (
             <div className="text-center text-gray-500 py-4">No results</div>
           ) : (
-            <div className="flex flex-col gap-2 w-full">
+            <div className="flex flex-col gap-2 w-full max-h-[calc(100vh-180px)] overflow-y-auto pr-1">
               {filteredOutlets.map((outlet) => (
                 <div
                   key={outlet.outlet_id}
-                  className={`border-0 mb-2 rounded border transition-all duration-300 ${
-                    outlet.is_open 
-                      ? 'cursor-pointer opacity-100 hover:-translate-y-0.5 hover:shadow-lg' 
-                      : 'cursor-not-allowed opacity-70'
-                  } shadow-sm`}
+                  className={`border-0 mb-2 rounded border transition-all duration-300 ${outlet.is_open
+                    ? 'cursor-pointer opacity-100 hover:-translate-y-0.5 hover:shadow-lg'
+                    : 'cursor-not-allowed opacity-70'
+                    } shadow-sm`}
                   onClick={() => handleRestoUrl(outlet.resto_url, outlet.is_open, outlet.is_outlet_filled)}
                 >
                   <div className="p-3 rounded border">
@@ -306,13 +304,12 @@ function AllOutlets() {
                           </span>
                         )}
                         <h6 className="text-base font-semibold mb-0">
-                          {outlet.outlet_name}
+                          {toTitleCase(outlet.outlet_name)}
                         </h6>
                       </div>
                       <span
-                        className={`inline-block rounded-full px-3 py-2 text-xs font-medium ${
-                          outlet.is_open ? "bg-green-500 text-white" : "bg-red-500 text-white"
-                        }`}
+                        className={`inline-block rounded-full px-3 py-2 text-xs font-medium ${outlet.is_open ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                          }`}
                       >
                         {outlet.is_open ? "OPEN" : "CLOSED"}
                       </span>
@@ -322,7 +319,7 @@ function AllOutlets() {
                     <div className="flex flex-col gap-2">
                       <p className="flex items-center text-gray-500 text-sm mb-0">
                         <i className="fas fa-map-marker-alt text-base w-6"></i>
-                        <span>{outlet.address}</span>
+                        <span>{toTitleCase(outlet.address)}</span>
                       </p>
                       <p className="flex items-center text-gray-500 text-sm mb-0">
                         <i className="fas fa-phone text-base w-6"></i>

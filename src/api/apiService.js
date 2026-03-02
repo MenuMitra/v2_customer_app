@@ -1,5 +1,5 @@
 import axiosInstance from './axios';
-import {ENV} from '../config';
+import { ENV } from '../config';
 // API version constant
 export const apiService = {
   // Common API calls that return different data shapes
@@ -15,7 +15,7 @@ export const apiService = {
         app_source: "user_app",
         user_id: userId || null
       });
-      
+
       return response?.data?.detail || {};
     },
   },
@@ -32,12 +32,12 @@ export const apiService = {
   menus: {
     getByCategory: async ({ outletId, categoryId }) => {
       const data = await apiService.common.getAllMenuListByCategory({ outletId });
-      
+
       return {
-        category: data.category?.find(cat => 
+        category: data.category?.find(cat =>
           cat.menu_cat_id.toString() === categoryId.toString()
         ),
-        menus: data.menus?.filter(menu => 
+        menus: data.menus?.filter(menu =>
           menu.menu_cat_id.toString() === categoryId.toString()
         ) || []
       };
@@ -56,9 +56,9 @@ export const apiService = {
         menu_id: Number(menuId),
         menu_cat_id: Number(menuCatId),
         user_id: userId ? Number(userId) : null,
-        app_source: "customer_app"
+        app_source: "user_app"
       });
-      
+
       const details = response?.data?.details;
       return {
         ...details,
@@ -128,7 +128,7 @@ export const apiService = {
       });
       return response?.data?.detail || {};
     },
-    
+
     checkExistingOrder: async ({ userId, outletId }) => {
       try {
         const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/check_order_exist`, {
@@ -136,7 +136,7 @@ export const apiService = {
           outlet_id: outletId,
           app_source: "user_app"
         });
-        
+
         return response.data?.detail || null;
       } catch (error) {
         // If no order exists, API returns error - this is expected behavior
@@ -155,13 +155,13 @@ export const apiService = {
       return response.data?.detail || null;
     },
 
-    cancelExistingAndCreateNew: async ({ 
-      orderId, 
-      userId, 
-      outletId, 
-      sectionId, 
-      tableId, 
-      orderItems 
+    cancelExistingAndCreateNew: async ({
+      orderId,
+      userId,
+      outletId,
+      sectionId,
+      tableId,
+      orderItems
     }) => {
       const response = await axiosInstance.post(
         `${ENV.V2_COMMON_BASE}/user/complete_or_cancel_existing_order_create_new_order`,
@@ -197,16 +197,16 @@ export const apiService = {
       });
       return response?.data?.detail || {};
     },
-    
+
     getAllRestaurants: async () => {
       const response = await axiosInstance.get(`${ENV.V2_COMMON_BASE}/user/get_all_restaurants`, {
         headers: {
-          app_source: "customer_app"
+          app_source: "user_app"
         }
       });
       return response?.data?.detail?.outlets || [];
     },
-    
+
     getOrderHistory: async ({ userId, outletId }) => {
       const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_completed_and_cancel_order_list`, {
         user_id: parseInt(userId),
@@ -225,7 +225,7 @@ export const apiService = {
       });
       return response?.data?.detail?.orders || [];
     },
-    
+
     cancelOrder: async ({ outletId, orderId, note }) => {
       const response = await axiosInstance.post(`/user/cancel_order`, {
         outlet_id: outletId,

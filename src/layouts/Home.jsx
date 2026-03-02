@@ -238,77 +238,108 @@ function Home() {
               <div className="title-bar mt-0">
                 <span className="title mb-0 text-lg font-semibold">Menus</span>
               </div>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                {isLoading ? (
-                  // Skeleton for VerticalMenuCards
-                  [...Array(6)].map((_, index) => (
-                    <div key={`skeleton-${index}`}>
-                      <div className="rounded-2xl overflow-hidden bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
-                        {/* Image Skeleton */}
-                        <div className="relative pt-[75%]">
-                          <div className="absolute top-0 left-0 w-full h-full">
-                            <Skeleton
-                              height="100%"
-                              width="100%"
-                              baseColor="#C8C8C8"
-                              highlightColor="#E0E0E0"
-                              className="rounded-t-2xl"
-                            />
+              <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar">
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  {isLoading ? (
+                    // Skeleton for VerticalMenuCards
+                    [...Array(6)].map((_, index) => (
+                      <div key={`skeleton-${index}`}>
+                        <div className="rounded-2xl overflow-hidden bg-white shadow-[0_2px_8px_rgba(0,0,0,0.08)]">
+                          {/* Image Skeleton */}
+                          <div className="relative pt-[75%]">
+                            <div className="absolute top-0 left-0 w-full h-full">
+                              <Skeleton
+                                height="100%"
+                                width="100%"
+                                baseColor="#C8C8C8"
+                                highlightColor="#E0E0E0"
+                                className="rounded-t-2xl"
+                              />
+                            </div>
+                            {/* Discount Badge Skeleton */}
+                            <div className="absolute top-2.5 left-2.5 z-10">
+                              <Skeleton
+                                height={24}
+                                width={45}
+                                baseColor="#C8C8C8"
+                                highlightColor="#E0E0E0"
+                                className="rounded-[12px]"
+                              />
+                            </div>
+                            {/* Favorite Button Skeleton */}
+                            <div className="absolute top-2.5 right-2.5 z-10">
+                              <Skeleton
+                                circle
+                                height={32}
+                                width={32}
+                                baseColor="#C8C8C8"
+                                highlightColor="#E0E0E0"
+                              />
+                            </div>
                           </div>
-                          {/* Discount Badge Skeleton */}
-                          <div className="absolute top-2.5 left-2.5 z-10">
-                            <Skeleton
-                              height={24}
-                              width={45}
-                              baseColor="#C8C8C8"
-                              highlightColor="#E0E0E0"
-                              className="rounded-[12px]"
-                            />
-                          </div>
-                          {/* Favorite Button Skeleton */}
-                          <div className="absolute top-2.5 right-2.5 z-10">
-                            <Skeleton
-                              circle
-                              height={32}
-                              width={32}
-                              baseColor="#C8C8C8"
-                              highlightColor="#E0E0E0"
-                            />
-                          </div>
-                        </div>
 
-                        {/* Content Section */}
-                        <div className="p-3">
-                          {/* Title Skeleton */}
-                          <Skeleton
-                            height={20}
-                            width="80%"
-                            baseColor="#C8C8C8"
-                            highlightColor="#E0E0E0"
-                            className="mb-2"
-                          />
+                          {/* Content Section */}
+                          <div className="p-3">
+                            {/* Title Skeleton */}
+                            <Skeleton
+                              height={20}
+                              width="80%"
+                              baseColor="#C8C8C8"
+                              highlightColor="#E0E0E0"
+                              className="mb-2"
+                            />
 
-                          {/* Price and Rating Row */}
-                          <div className="flex justify-between items-center">
-                            <Skeleton
-                              height={18}
-                              width={60}
-                              baseColor="#C8C8C8"
-                              highlightColor="#E0E0E0"
-                            />
-                            <Skeleton
-                              height={18}
-                              width={40}
-                              baseColor="#C8C8C8"
-                              highlightColor="#E0E0E0"
-                            />
+                            {/* Price and Rating Row */}
+                            <div className="flex justify-between items-center">
+                              <Skeleton
+                                height={18}
+                                width={60}
+                                baseColor="#C8C8C8"
+                                highlightColor="#E0E0E0"
+                              />
+                              <Skeleton
+                                height={18}
+                                width={40}
+                                baseColor="#C8C8C8"
+                                highlightColor="#E0E0E0"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                ) : isSearching ? (
-                  filteredMenus.length > 0 ? (
+                    ))
+                  ) : isSearching ? (
+                    filteredMenus.length > 0 ? (
+                      visibleMenus.map((menuItem) => (
+                        <div key={menuItem.menuId}>
+                          <VerticalMenuCard
+                            image={
+                              menuItem.image ? (
+                                menuItem.image
+                              ) : (
+                                <i className="fa-solid fa-utensils text-[55px]"></i>
+                              )
+                            }
+                            title={menuItem.menuName}
+                            currentPrice={menuItem.price || menuItem.portions?.[0]?.price || 0}
+                            reviewCount={
+                              menuItem.rating ? parseInt(menuItem.rating) : null
+                            }
+                            isFavorite={menuItem.is_favourite === 1}
+                            discount={
+                              menuItem.offer > 0 ? `${menuItem.offer}%` : null
+                            }
+                            menuItem={menuItem}
+                            onFavoriteUpdate={handleFavoriteClick}
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="col-span-2 text-center py-4">
+                        <p className="text-[#6c757d]">No results found</p>
+                      </div>
+                    )
+                  ) : (
                     visibleMenus.map((menuItem) => (
                       <div key={menuItem.menuId}>
                         <VerticalMenuCard
@@ -316,15 +347,18 @@ function Home() {
                             menuItem.image ? (
                               menuItem.image
                             ) : (
-                              <i className="fa-solid fa-utensils text-[55px]"></i>
+                              <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]"></i>
                             )
                           }
                           title={menuItem.menuName}
-                          currentPrice={menuItem.portions?.[0]?.price ?? 0}
+                          currentPrice={menuItem.price || menuItem.portions?.[0]?.price || 0}
                           reviewCount={
                             menuItem.rating ? parseInt(menuItem.rating) : null
                           }
-                          isFavorite={menuItem.is_favourite === 1}
+                          isFavorite={
+                            favoriteMenuIds.has(menuItem.menuId) ||
+                            menuItem.is_favourite === 1
+                          }
                           discount={
                             menuItem.offer > 0 ? `${menuItem.offer}%` : null
                           }
@@ -333,52 +367,20 @@ function Home() {
                         />
                       </div>
                     ))
-                  ) : (
-                    <div className="col-span-2 text-center py-4">
-                      <p className="text-[#6c757d]">No results found</p>
-                    </div>
-                  )
-                ) : (
-                  visibleMenus.map((menuItem) => (
-                    <div key={menuItem.menuId}>
-                      <VerticalMenuCard
-                        image={
-                          menuItem.image ? (
-                            menuItem.image
-                          ) : (
-                            <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]"></i>
-                          )
-                        }
-                        title={menuItem.menuName}
-                        currentPrice={menuItem.portions?.[0]?.price ?? 0}
-                        reviewCount={
-                          menuItem.rating ? parseInt(menuItem.rating) : null
-                        }
-                        isFavorite={
-                          favoriteMenuIds.has(menuItem.menuId) ||
-                          menuItem.is_favourite === 1
-                        }
-                        discount={
-                          menuItem.offer > 0 ? `${menuItem.offer}%` : null
-                        }
-                        menuItem={menuItem}
-                        onFavoriteUpdate={handleFavoriteClick}
-                      />
-                    </div>
-                  ))
+                  )}
+                </div>
+                {/* Lazy Load Button */}
+                {filteredMenus.length > visibleMenuCount && (
+                  <div className="text-center mb-10">
+                    <button
+                      className="px-6 py-2.5 bg-[#177a26] border-[#007bff] text-[#ffffff] rounded-3xl hover:bg-[#159428] hover:text-white transition-all duration-300 font-medium"
+                      onClick={handleLoadMoreMenus}
+                    >
+                      Load More
+                    </button>
+                  </div>
                 )}
               </div>
-              {/* Lazy Load Button */}
-              {filteredMenus.length > visibleMenuCount && (
-                <div className="text-center mb-20">
-                  <button
-                    className="px-6 py-2.5 bg-[#177a26] border-[#007bff] text-[#ffffff] rounded-3xl hover:bg-[#159428] hover:text-white transition-all duration-300 font-medium"
-                    onClick={handleLoadMoreMenus}
-                  >
-                    Load More
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
