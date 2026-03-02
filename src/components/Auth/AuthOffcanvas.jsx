@@ -15,13 +15,13 @@ import {
   osName,
   osVersion,
 } from "react-device-detect";
+import { ENV } from '../../config';
 
 const STEPS = {
   LOGIN: "login",
   SIGNUP: "signup",
   OTP: "otp",
 };
-import { ENV } from '../../config';
 const API_BASE_URL = ENV.V2_COMMON_BASE;
 
 // Create axios instance with common config

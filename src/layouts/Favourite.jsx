@@ -22,10 +22,10 @@ function FavouriteContent() {
     queryKey: ['favorites', outletId, userId],
     queryFn: async () => {
       if (!userId) return [];
-      
-      const response = await apiService.favorites.getList({ 
-        outletId, 
-        userId 
+
+      const response = await apiService.favorites.getList({
+        outletId,
+        userId
       });
 
       // Transform the response into the format we need
@@ -66,12 +66,12 @@ function FavouriteContent() {
     onMutate: async ({ menuId }) => {
       await queryClient.cancelQueries({ queryKey: ['favorites', outletId, userId] });
       const previousFavorites = queryClient.getQueryData(['favorites', outletId, userId]);
-      
+
       // Optimistically update
-      queryClient.setQueryData(['favorites', outletId, userId], old => 
+      queryClient.setQueryData(['favorites', outletId, userId], old =>
         old?.filter(menu => menu.menu_id !== menuId) || []
       );
-      
+
       return { previousFavorites };
     }
   });
@@ -80,7 +80,7 @@ function FavouriteContent() {
     if (!isFavorite && !removeFavorite.isLoading) {
       const currentFavorites = queryClient.getQueryData(['favorites', outletId, userId]);
       const menuExists = currentFavorites?.some(menu => menu.menu_id === menuId);
-      
+
       if (menuExists) {
         await removeFavorite.mutateAsync({ menuId, outletId: menuOutletId });
       }
@@ -90,7 +90,7 @@ function FavouriteContent() {
   const groupByOutlet = (menus) => {
     // Add safety check for menus array
     if (!Array.isArray(menus)) return {};
-    
+
     return menus.reduce((acc, menu) => {
       if (!acc[menu.outlet_name]) {
         acc[menu.outlet_name] = [];
@@ -111,10 +111,10 @@ function FavouriteContent() {
         .sort(([, aMenus], [, bMenus]) => {
           const aOutletId = aMenus[0]?.outlet_id;
           const bOutletId = bMenus[0]?.outlet_id;
-          
+
           if (Number(aOutletId) === Number(outletId)) return -1;
           if (Number(bOutletId) === Number(outletId)) return 1;
-          
+
           return aMenus[0]?.outlet_name.localeCompare(bMenus[0]?.outlet_name);
         });
 
@@ -134,7 +134,7 @@ function FavouriteContent() {
     <div className="page-content">
       <div className="content-inner pt-0">
         <div className="container mx-auto px-4 pb-5">
-          <div className="dashboard-area">
+          <div className="dashboard-area max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
             {isLoading ? (
               <div className="text-center p-5">Loading...</div>
             ) : (
@@ -144,10 +144,10 @@ function FavouriteContent() {
                   .sort(([, aMenus], [, bMenus]) => {
                     const aOutletId = aMenus[0]?.outlet_id;
                     const bOutletId = bMenus[0]?.outlet_id;
-                    
+
                     if (Number(aOutletId) === Number(outletId)) return -1;
                     if (Number(bOutletId) === Number(outletId)) return 1;
-                    
+
                     return aMenus[0]?.outlet_name.localeCompare(bMenus[0]?.outlet_name);
                   });
 
@@ -169,9 +169,8 @@ function FavouriteContent() {
                         </span>
                         <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-gray-100">
                           <i
-                            className={`fa-solid fa-chevron-${
-                              expandedOutlet[outletName] ? "up" : "down"
-                            } text-lg text-gray-600`}
+                            className={`fa-solid fa-chevron-${expandedOutlet[outletName] ? "up" : "down"
+                              } text-lg text-gray-600`}
                           ></i>
                         </span>
                       </div>
@@ -199,8 +198,8 @@ function FavouriteContent() {
                                   isSpecial: menu.is_special,
                                   isFavourite: true,
                                   isActive: true,
-                                  image: menu.image && Array.isArray(menu.image) && menu.image.length > 0 
-                                    ? menu.image[0].image 
+                                  image: menu.image && Array.isArray(menu.image) && menu.image.length > 0
+                                    ? menu.image[0].image
                                     : null,
                                   outletName: menu.outlet_name,
                                   outletId: menu.outlet_id,
