@@ -38,30 +38,43 @@ export const CartProvider = ({ children }) => {
   // Add effect to clear cart when user changes
   useEffect(() => {
     if (!user) {
+      console.log('CartContext - User is null, checking auth in localStorage');
       // Check if there's actually no auth data in localStorage
       const auth = localStorage.getItem('auth');
       if (!auth) {
+        console.log('CartContext - No auth found, clearing cart');
         // Only clear cart if user is actually logged out
         setCartItems([]);
         localStorage.removeItem("cart");
+      } else {
+        console.log('CartContext - Auth found in localStorage, keeping cart');
       }
     }
   }, [user]); // This effect runs whenever user auth state changes
 
   // Add new useEffect to watch for outlet changes and clear mismatched items
   useEffect(() => {
+    console.log('CartContext - outletId changed:', outletId);
     if (outletId && cartItems.length > 0) {
       // Filter out items that don't match current outlet
       const filteredItems = cartItems.filter(item => {
         // If the item has an outlet_id and it doesn't match current outlet, remove it
-        if (item.outlet_id && item.outlet_id !== outletId) {
-          return false;
+        if (item.outlet_id && item.outlet_id == outletId) {
+          return true;
         }
-        return true;
+        // If no outlet_id on item, keep it but it might be legacy
+        if (!item.outlet_id) return true;
+
+        console.log('CartContext - Filtering out item due to outlet mismatch:', {
+          itemOutlet: item.outlet_id,
+          currentOutlet: outletId
+        });
+        return false;
       });
 
       // Update cart if items were removed
       if (filteredItems.length !== cartItems.length) {
+        console.log('CartContext - Updating cart with filtered items (mismatch cleared)');
         setCartItems(filteredItems);
       }
     }
@@ -78,13 +91,17 @@ export const CartProvider = ({ children }) => {
     portionId,
     quantity,
     comment,
-    immediate = false
+    forcedOutletId = null
   ) => {
     console.log('=== CartContext addToCart called ===');
     console.log('menuItem:', menuItem);
     console.log('portionId:', portionId);
     console.log('quantity:', quantity);
     console.log('comment:', comment);
+    console.log('forcedOutletId:', forcedOutletId);
+
+    const activeOutletId = forcedOutletId || outletId;
+    console.log('using activeOutletId:', activeOutletId);
 
     // Check if user is authenticated
     const authData = localStorage.getItem("auth");
@@ -129,12 +146,12 @@ export const CartProvider = ({ children }) => {
             ...updatedItems[existingItemIndex],
             quantity: quantity,
             comment: comment,
-            outlet_id: outletId,
+            outlet_id: activeOutletId,
             price: validPrice,
             offer: menuItem.offer || null,
           };
         }
-        console.log('Updated cart items:', updatedItems);
+        console.log('Updated cart items state:', updatedItems);
         return updatedItems;
       } else if (quantity > 0) {
         const newItem = {
@@ -145,7 +162,7 @@ export const CartProvider = ({ children }) => {
           price: validPrice,
           quantity: quantity,
           comment: comment,
-          outlet_id: outletId,
+          outlet_id: activeOutletId,
           menu_cat_id: menuItem.menu_cat_id || menuItem.category_id,
           category_name: menuItem.category_name,
           offer: menuItem.offer || null,

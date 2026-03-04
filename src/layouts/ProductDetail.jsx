@@ -1,4 +1,4 @@
-import { useParams, useLocation, useSearchParams } from "react-router-dom";
+import { useParams, useLocation, useSearchParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -49,6 +49,7 @@ const FoodTypeIcon = ({ foodType }) => {
 function ProductDetail() {
   const { menuId, menuCatId } = useParams();
   const { state } = useLocation();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { openModal } = useModal();
   const { cartItems, removeFromCart, updateQuantity } = useCart();
@@ -83,25 +84,30 @@ function ProductDetail() {
   // Check if item exists in cart with proper menuId comparison
   const cartItem = cartItems.find(
     (item) =>
-      item.menuId === Number(menuId) &&
-      item.portionId === menuDetails?.portions?.[0]?.portion_id
+      item.menuId == Number(menuId) &&
+      item.portionId == menuDetails?.portions?.[0]?.portion_id
   );
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     // Check if user is authenticated
     if (!user) {
       setShowAuthOffcanvas(true);
       return;
     }
 
-    // Format menu details to include required fields for checkout
+    if (!menuDetails?.portions?.length) {
+      openModal("ERROR", { message: "This item is currently unavailable." });
+      return;
+    }
+
     const formattedMenuDetails = {
       ...menuDetails,
       menuId: Number(menuId),
       menu_cat_id: Number(menuCatId),
+      outlet_id: Number(effectiveOutletId), // Ensure we pass the outletId we used for fetching
       menuName: menuDetails.menu_name,
       image: menuDetails.images?.[0] || null,
-      portions: menuDetails.portions.map((portion) => ({
+      portions: (menuDetails.portions ?? []).map((portion) => ({
         ...portion,
         portion_id: portion.portion_id,
         portion_name: portion.portion_name,
@@ -191,6 +197,13 @@ function ProductDetail() {
   }
 
   if (!menuDetails) return null;
+
+  const firstPortion = menuDetails?.portions?.[0];
+  const basePrice = firstPortion?.price;
+  const discountedPrice =
+    basePrice != null && menuDetails.offer > 0
+      ? Math.round(basePrice * (1 - menuDetails.offer / 100))
+      : null;
 
   return (
     <>
@@ -298,20 +311,17 @@ function ProductDetail() {
                         title={isFavoriteLoading ? "Updating favorite..." : ""}
                       >
                         <div
-                          className={`like-button ${
-                            menuDetails?.is_favourite === 1 ? "active" : ""
-                          }`}
+                          className={`like-button ${menuDetails?.is_favourite === 1 ? "active" : ""
+                            }`}
                         >
                           <i
-                            className={`fa-${
-                              menuDetails?.is_favourite === 1
-                                ? "solid"
-                                : "regular"
-                            } fa-heart text-[20px] leading-none ${
-                              menuDetails?.is_favourite === 1
+                            className={`fa-${menuDetails?.is_favourite === 1
+                              ? "solid"
+                              : "regular"
+                              } fa-heart text-[20px] leading-none ${menuDetails?.is_favourite === 1
                                 ? "text-[#dc3545]"
                                 : "text-[#6c757d]"
-                            }`}
+                              }`}
                           />
                         </div>
                       </button>
@@ -328,19 +338,18 @@ function ProductDetail() {
                   <span className="text-style text-soft">Price</span>
                   <div className="flex justify-between items-center">
                     <h3 className="sub-title mb-0">
-                      {menuDetails.offer > 0 ? (
+                      {basePrice == null ? (
+                        "Unavailable"
+                      ) : menuDetails.offer > 0 && discountedPrice != null ? (
                         <>
                           ₹
-                          {Math.round(
-                            menuDetails.portions[0]?.price *
-                              (1 - menuDetails.offer / 100)
-                          )}
+                          {discountedPrice}
                           <del className="ml-2 text-[#6c757d]">
-                            ₹{menuDetails.portions[0]?.price}
+                            ₹{basePrice}
                           </del>
                         </>
                       ) : (
-                        `₹${menuDetails.portions[0]?.price}`
+                        `₹${basePrice}`
                       )}
                     </h3>
                     {menuDetails.offer > 0 && (
@@ -422,18 +431,17 @@ function ProductDetail() {
           <div className="max-w-[1200px] mx-auto px-4">
             <button
               onClick={isCrossOutlet ? undefined : handleAddToCart}
-              className={`w-full text-left rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[#329e2b] transition-colors ${
-                isCrossOutlet || !menuDetails.portions?.length
-                  ? "opacity-50 cursor-not-allowed"
-                  : ""
-              }`}
+              className={`w-full text-left rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[#329e2b] transition-colors ${isCrossOutlet || !menuDetails.portions?.length
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+                }`}
               disabled={isCrossOutlet || !menuDetails.portions?.length}
               title={
                 isCrossOutlet
                   ? `Switch to ${crossOutletName} to order`
                   : !menuDetails.portions?.length
-                  ? "Item unavailable"
-                  : ""
+                    ? "Item unavailable"
+                    : ""
               }
             >
               <i

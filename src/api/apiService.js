@@ -130,15 +130,20 @@ export const apiService = {
     },
 
     checkExistingOrder: async ({ userId, outletId }) => {
+      console.log('Checking existing order for:', { userId, outletId });
       try {
-        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/check_order_exist`, {
-          user_id: userId,
-          outlet_id: outletId,
+        const payload = {
+          user_id: userId?.toString(),
+          outlet_id: outletId?.toString(),
           app_source: "user_app"
-        });
+        };
+        console.log('checkExistingOrder payload:', payload);
+        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/common/check_order_exist`, payload);
 
+        console.log('checkExistingOrder response:', response.data);
         return response.data?.detail || null;
       } catch (error) {
+        console.error('checkExistingOrder error:', error);
         // If no order exists, API returns error - this is expected behavior
         return null;
       }
@@ -158,24 +163,38 @@ export const apiService = {
     cancelExistingAndCreateNew: async ({
       orderId,
       userId,
+      orderStatus = "cancelled",
       outletId,
       sectionId,
       tableId,
-      orderItems
+      orderType,
+      orderItems,
+      appSource = "user_app"
     }) => {
+      const payload = {
+        order_id: orderId.toString(),
+        user_id: userId.toString(),
+        order_status: orderStatus,
+        outlet_id: outletId.toString(),
+        section_id: sectionId.toString(),
+        order_type: orderType || "dine-in",
+        app_source: appSource,
+        order_items: orderItems.map(item => ({
+          menu_id: item.menu_id.toString(),
+          quantity: Number(item.quantity),
+          comment: item.comment || "",
+          portion_name: item.portion_name || ""
+        }))
+      };
+
+      // Only add table_id if it's provided and not null/undefined
+      if (tableId && tableId !== "null") {
+        payload.table_id = tableId.toString();
+      }
+
       const response = await axiosInstance.post(
         `${ENV.V2_COMMON_BASE}/user/complete_or_cancel_existing_order_create_new_order`,
-        {
-          order_id: orderId.toString(),
-          user_id: userId,
-          order_status: "cancelled",
-          outlet_id: outletId.toString(),
-          section_id: sectionId.toString(),
-          order_type: "dine-in",
-          app_source: "user_app",
-          table_id: tableId.toString(),
-          order_items: orderItems
-        }
+        payload
       );
       return response.data?.detail || null;
     }

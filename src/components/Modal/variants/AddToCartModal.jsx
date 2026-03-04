@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import BaseModal from "../BaseModal";
 import { useCart } from "../../../contexts/CartContext";
 import { useModal } from "../../../contexts/ModalContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useOutlet } from "../../../contexts/OutletContext";
-import axios from "axios";
-import { ENV } from '../../../config';
 import apiService from "../../../api/apiService";
 
 export const AddToCartModal = () => {
-  const { closeModal, modalConfig } = useModal();
+  const { closeModal, modalConfig, openModal } = useModal();
   const { addToCart, cartItems } = useCart();
   const { user, setShowAuthOffcanvas, getUserId } = useAuth();
   const { outletId } = useOutlet();
+  const navigate = useNavigate();
 
   const [selectedPortion, setSelectedPortion] = useState(() => {
     return modalConfig.data?.portions?.[0]?.portion_id || null;
@@ -39,8 +39,8 @@ export const AddToCartModal = () => {
     modalConfig.data?.portions?.forEach((portion) => {
       const cartItem = cartItems.find(
         (item) =>
-          item.menuId === modalConfig.data?.menuId &&
-          item.portionId === portion.portion_id
+          item.menuId == modalConfig.data?.menuId &&
+          item.portionId == portion.portion_id
       );
       initial[portion.portion_id] = cartItem?.comment || "";
     });
@@ -49,7 +49,7 @@ export const AddToCartModal = () => {
 
   // Check if item exists in cart
   const isInCart = cartItems.some(
-    (item) => item.menuId === modalConfig.data?.menuId
+    (item) => item.menuId == modalConfig.data?.menuId
   );
 
   // Update quantity when portion changes
@@ -175,7 +175,7 @@ export const AddToCartModal = () => {
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const authData = localStorage.getItem("auth");
     if (!authData || !user) {
       closeModal("addToCart");
@@ -185,51 +185,89 @@ export const AddToCartModal = () => {
 
     const currentQuantity = quantities[selectedPortion] || 0;
 
-    console.log('=== Add to Cart Debug ===');
-    console.log('Selected Portion:', selectedPortion);
-    console.log('Current Quantity:', currentQuantity);
-    console.log('All Quantities:', quantities);
-    console.log('Menu Details Portions:', menuDetails.portions);
-    console.log('Modal Config Portions:', modalConfig.data?.portions);
-
     if (selectedPortion && currentQuantity > 0) {
-      // Use menuDetails.portions if available, otherwise fall back to modalConfig.data.portions
-      const portionsToUse = menuDetails.portions?.length > 0
-        ? menuDetails.portions
-        : modalConfig.data?.portions || [];
+      const targetOutletId =
+        modalConfig.data?.outlet_id || modalConfig.data?.outletId || outletId;
 
-      console.log('Portions to use:', portionsToUse);
+      // Use menuDetails.portions if available, otherwise fall back to modalConfig.data.portions
+      const portionsToUse =
+        menuDetails.portions?.length > 0
+          ? menuDetails.portions
+          : modalConfig.data?.portions || [];
 
       const menuItemData = {
         ...modalConfig.data,
         menuId: modalConfig.data.menuId || modalConfig.data.menu_id,
         menuName: modalConfig.data.menuName || modalConfig.data.menu_name,
-        menu_cat_id: modalConfig.data.menu_cat_id || modalConfig.data.category_id,
+        menu_cat_id:
+          modalConfig.data.menu_cat_id || modalConfig.data.category_id,
         category_name: modalConfig.data.category_name,
         offer: modalConfig.data.offer,
         portions: portionsToUse,
       };
 
-      console.log('Menu Item Data:', menuItemData);
-      console.log('Calling addToCart with:', {
-        portionId: Number(selectedPortion),
-        quantity: currentQuantity,
-        comment: comments[selectedPortion] || ""
-      });
+      const nextCartItems = (() => {
+        const menuId = Number(menuItemData.menuId);
+        const portionId = Number(selectedPortion);
+        const next = [...(cartItems || [])];
+        const idx = next.findIndex(
+          (i) => i.menuId == menuId && i.portionId == portionId
+        );
+        const nextItem = {
+          ...(idx >= 0 ? next[idx] : {}),
+          menuId,
+          portionId,
+          quantity: currentQuantity,
+          comment: comments[selectedPortion] || "",
+          outlet_id: targetOutletId,
+        };
 
-      addToCart(
-        menuItemData,
-        Number(selectedPortion),
-        currentQuantity,
-        comments[selectedPortion] || ""
-      );
+        if (currentQuantity === 0) {
+          if (idx >= 0) next.splice(idx, 1);
+        } else if (idx >= 0) {
+          next[idx] = nextItem;
+        } else {
+          next.push(nextItem);
+        }
+        return next;
+      })();
 
-      console.log('=== Add to Cart Complete ===');
-    } else {
-      console.log('Cannot add - Invalid portion or quantity');
+      try {
+        const checkoutPreview = await apiService.checkout.getDetails({
+          outletId: targetOutletId,
+          orderItems: nextCartItems.map((item) => ({
+            menu_id: Number(item.menuId),
+            portion_id: Number(item.portionId),
+            quantity: Number(item.quantity),
+            comment: item.comment || "",
+          })),
+        });
+
+        addToCart(
+          menuItemData,
+          Number(selectedPortion),
+          currentQuantity,
+          comments[selectedPortion] || "",
+          targetOutletId
+        );
+
+        closeModal("addToCart");
+        navigate("/checkout", { state: { checkoutPreview } });
+        return;
+      } catch (err) {
+        console.error("Failed to get checkout details:", err);
+        openModal("ERROR", {
+          message:
+            err?.message ||
+            err?.response?.data?.detail ||
+            "Failed to calculate checkout details. Please try again.",
+        });
+        return;
+      }
     }
 
     closeModal("addToCart");
+    navigate("/checkout");
   };
 
   const hasValidQuantity = () => {
@@ -242,11 +280,13 @@ export const AddToCartModal = () => {
         const userId = getUserId();
         const menuId = modalConfig.data?.menuId || modalConfig.data?.menu_id;
         const menuCatId = modalConfig.data?.menuCatId || modalConfig.data?.menu_cat_id || modalConfig.data?.category_id;
+        const targetOutletId =
+          modalConfig.data?.outlet_id || modalConfig.data?.outletId || outletId;
 
         if (!menuId || !menuCatId) return;
 
         const details = await apiService.menus.getDetails({
-          outletId,
+          outletId: targetOutletId,
           menuId,
           menuCatId,
           userId,

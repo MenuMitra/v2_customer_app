@@ -1,10 +1,12 @@
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import LazyImage from "./Shared/LazyImage";
 import { useModal } from "../contexts/ModalContext";
 import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
+import { useOutlet } from "../contexts/OutletContext";
 import { useMenuItems } from '../hooks/useMenuItems';
+import apiService from "../api/apiService";
 
 // FoodTypeIcon component
 const FoodTypeIcon = ({ foodType }) => {
@@ -54,10 +56,13 @@ const VerticalMenuCard = ({
   // Convert isFavorite to boolean if it's a number
   const isFavoriteBoolean = typeof isFavorite === 'number' ? isFavorite === 1 : Boolean(isFavorite);
 
+  const navigate = useNavigate();
   const { toggleFavorite, isFavoriteLoading } = useMenuItems();
   const { openModal } = useModal();
   const { cartItems, getCartItemComment } = useCart();
-  const { user, setShowAuthOffcanvas } = useAuth();
+  const { user, setShowAuthOffcanvas, getUserId } = useAuth();
+  const { outletId } = useOutlet();
+  const userId = getUserId();
 
   // Generate the product URL from menuItem data with safety checks
   const detailPageUrl =
@@ -67,7 +72,7 @@ const VerticalMenuCard = ({
 
   // Check if any portion of this menu exists in cart with safety check
   const cartItemsForMenu = menuItem?.menuId
-    ? cartItems.filter((item) => item.menuId === menuItem.menuId)
+    ? cartItems.filter((item) => item.menuId == menuItem.menuId)
     : [];
 
   // Get the comment for this menu item with safety check
@@ -121,7 +126,7 @@ const VerticalMenuCard = ({
     }
   };
 
-  const handleAddToCartClick = (e) => {
+  const handleAddToCartClick = async (e) => {
     e.preventDefault();
 
     if (!menuItem) return;
@@ -132,11 +137,16 @@ const VerticalMenuCard = ({
       return;
     }
 
-    openModal("addToCart", menuItem);
+    openModal("addToCart", {
+      ...menuItem,
+      menuId: menuItem?.menuId ?? menuItem?.menu_id,
+      menuCatId: menuItem?.menuCatId ?? menuItem?.menu_cat_id ?? menuItem?.category_id,
+      outlet_id: menuItem?.outlet_id ?? menuItem?.outletId ?? outletId,
+    });
   };
 
   // Handle quantity changes
-  const handleQuantityChange = (increment) => {
+  const handleQuantityChange = async (increment) => {
     if (!menuItem) return;
 
     // Check if user is authenticated
@@ -149,6 +159,9 @@ const VerticalMenuCard = ({
     // Pass the action information to the modal
     openModal("addToCart", {
       ...menuItem,
+      menuId: menuItem?.menuId ?? menuItem?.menu_id,
+      menuCatId: menuItem?.menuCatId ?? menuItem?.menu_cat_id ?? menuItem?.category_id,
+      outlet_id: menuItem?.outlet_id ?? menuItem?.outletId ?? outletId,
       action: increment ? 'increment' : 'decrement'
     });
   };
