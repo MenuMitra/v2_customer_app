@@ -5,6 +5,7 @@ import { useModal } from "../contexts/ModalContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useOutlet } from "../contexts/OutletContext";
 import { useCart } from "../contexts/CartContext";
+import apiService from "../api/apiService";
 
 // FoodTypeIcon component
 const FoodTypeIcon = ({ foodType }) => {
@@ -170,8 +171,9 @@ const HorizontalMenuCard = ({
     }
   };
 
-  const handleAddToCartClick = (e) => {
+  const handleAddToCartClick = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent card click from triggering navigation
 
     if (!menuItem) return;
 
@@ -181,7 +183,12 @@ const HorizontalMenuCard = ({
       return;
     }
 
-    openModal("addToCart", menuItem);
+    openModal("addToCart", {
+      ...menuItem,
+      menuId: menuItem?.menuId ?? menuItem?.menu_id,
+      menuCatId: menuItem?.menuCatId ?? menuItem?.menu_cat_id ?? menuItem?.category_id,
+      outlet_id: menuItem?.outlet_id ?? menuItem?.outletId ?? outletId,
+    });
   };
 
   // Removed unused handleQuantityChange

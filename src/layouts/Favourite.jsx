@@ -181,7 +181,7 @@ function FavouriteContent() {
                               <HorizontalMenuCard
                                 image={menu.image && Array.isArray(menu.image) && menu.image.length > 0 ? menu.image[0].image : null}
                                 title={menu.menu_name}
-                                currentPrice={menu.portions?.[0]?.price || 0}
+                                currentPrice={menu.price || menu.portions?.[0]?.price || 0}
                                 reviewCount={menu.rating ? parseFloat(menu.rating) : null}
                                 isFavorite={true}
                                 discount={menu.offer > 0 ? `${menu.offer}%` : null}
@@ -193,6 +193,7 @@ function FavouriteContent() {
                                   categoryName: menu.category_name,
                                   spicyIndex: menu.spicy_index,
                                   portions: menu.portions,
+                                  price: menu.price || menu.portions?.[0]?.price || 0,
                                   rating: menu.rating,
                                   offer: menu.offer,
                                   isSpecial: menu.is_special,

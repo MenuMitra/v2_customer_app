@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AuthPrompt from "../components/Auth/AuthPrompt";
 import { useCart } from "../contexts/CartContext";
 import axios from "axios";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useOutlet } from "../contexts/OutletContext";
 import OrderExistsModal from "../components/Modal/variants/OrderExistsModal";
 import { useAuth } from "../contexts/AuthContext";
@@ -98,6 +98,27 @@ function CheckoutContent() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const { addToast } = useToastContext();
   const queryClient = useQueryClient();
+  const location = useLocation();
+
+  console.log('CheckoutContent Render:', {
+    cartItemsCount: cartItems.length,
+    cartItems: cartItems,
+    outletId,
+    sectionId,
+    outletDetails
+  });
+
+  // Check for existing order in location state on mount
+  useEffect(() => {
+    if (location.state?.existingOrder) {
+      setExistingOrderModal({
+        isOpen: true,
+        orderDetails: location.state.existingOrder,
+      });
+      // Clear state to prevent modal from reopening on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, location.pathname, navigate]);
 
   // Keep all your handlers and effects here
 
@@ -122,9 +143,10 @@ function CheckoutContent() {
   // Transform cart items for API
   const getOrderItems = () => {
     return cartItems.map((item) => ({
-      menu_id: item.menuId,
-      portion_id: item.portionId,
-      quantity: item.quantity,
+      menu_id: Number(item.menuId),
+      portion_id: Number(item.portionId),
+      quantity: Number(item.quantity),
+      comment: item.comment || "",
     }));
   };
 
@@ -141,6 +163,7 @@ function CheckoutContent() {
         orderItems: getOrderItems(),
       }),
     enabled: !!outletId && cartItems.length > 0,
+    initialData: location.state?.checkoutPreview,
     retry: 2,
     onError: (err) => {
       if (err.response?.status === 401) {
@@ -165,7 +188,7 @@ function CheckoutContent() {
     // Remove from localStorage if you store cart there
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     const updatedCart = cart.filter(
-      (item) => !(item.menuId === menuId && item.portionId === portionId)
+      (item) => !(item.menuId == menuId && item.portionId == portionId)
     );
     localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
@@ -397,16 +420,25 @@ function CheckoutContent() {
       const orderItems = cartItems.map((item) => ({
         menu_id: item.menuId.toString(),
         quantity: item.quantity,
-        portion_name: item.portionName.toLowerCase(),
+        portion_name: item.portionName?.toLowerCase() || "",
+        comment: item.comment || "",
       }));
+
+      // Get order settings from localStorage
+      const orderSettings = localStorage.getItem("orderSettings");
+      const orderType = orderSettings
+        ? JSON.parse(orderSettings).order_type
+        : "dine-in";
 
       await cancelAndCreateNewMutation.mutateAsync({
         orderId: existingOrderModal.orderDetails.order_id,
-        userId,
-        outletId,
-        sectionId,
-        tableId: localStorage.getItem("tableId"),
+        userId: userId.toString(),
+        outletId: outletId.toString(),
+        sectionId: sectionId.toString(),
+        tableId: localStorage.getItem("tableId") || "0",
+        orderType: orderType,
         orderItems,
+        appSource: "user_app",
       });
     } catch (error) {
       console.error("Cancel existing order error:", error);
@@ -727,16 +759,11 @@ function CheckoutContent() {
                         <span>Subtotal</span>
                         <span>
                           ₹
-                          {checkoutDetails ? (
+                          {checkoutDetails?.total_bill_with_discount || (
                             (
-                              parseFloat(checkoutDetails.total_bill_amount || 0) -
-                              parseFloat(checkoutDetails.discount_amount || 0) -
-                              (couponStatus?.success
-                                ? parseFloat(couponStatus.couponDetails.value)
-                                : 0)
+                              parseFloat(checkoutDetails?.total_bill_amount || getCartTotal()) -
+                              parseFloat(checkoutDetails?.discount_amount || 0)
                             ).toFixed(2)
-                          ) : (
-                            getCartTotal().toFixed(2)
                           )}
                         </span>
                       </div>
