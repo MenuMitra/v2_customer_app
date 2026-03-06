@@ -53,7 +53,7 @@ function ProductDetail() {
   const [searchParams] = useSearchParams();
   const { openModal } = useModal();
   const { cartItems, removeFromCart, updateQuantity } = useCart();
-  const { outletId } = useOutlet();
+  const { outletId, orderSettings } = useOutlet();
   const { user, getUserId, setShowAuthOffcanvas } = useAuth();
   const userId = getUserId();
   const { toggleFavorite, isFavoriteLoading } = useMenuItems();
@@ -92,11 +92,6 @@ function ProductDetail() {
     // Check if user is authenticated
     if (!user) {
       setShowAuthOffcanvas(true);
-      return;
-    }
-
-    if (!menuDetails?.portions?.length) {
-      openModal("ERROR", { message: "This item is currently unavailable." });
       return;
     }
 
@@ -196,31 +191,97 @@ function ProductDetail() {
     );
   }
 
-  if (!menuDetails) return null;
+  if (!menuDetails) {
+    return (
+      <>
+        <Header />
+        <div className="page-content">
+          <div className="max-w-[1200px] mx-auto px-4">
+            <div className="bg-[#fff3cd] border border-[#ffecb5] text-[#664d03] px-4 py-3 rounded-lg mt-3">
+              Menu details not available.
+            </div>
+          </div>
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
-  const firstPortion = menuDetails?.portions?.[0];
-  const basePrice = firstPortion?.price;
+  // In many outlets `get_menu_details` returns pricing fields (default_price, dine_in_price, parcel_price, etc.)
+  // and may not include `portions`. Prefer these fields for display (with fallback to default_price).
+  const orderType = orderSettings?.order_type || null;
+  const defaultPrice = menuDetails?.default_price;
+  const rawBasePrice = (() => {
+    if (orderType === "dine-in") return menuDetails?.dine_in_price ?? defaultPrice;
+    if (orderType === "parcel" || orderType === "takeaway")
+      return menuDetails?.parcel_price ?? defaultPrice;
+    if (orderType === "delivery") return menuDetails?.delivery_price ?? defaultPrice;
+    if (orderType === "drive_through")
+      return menuDetails?.drive_through_price ?? defaultPrice;
+    return defaultPrice;
+  })();
+
+  const basePrice =
+    rawBasePrice != null
+      ? Number(rawBasePrice)
+      : Number(menuDetails?.portions?.[0]?.price);
+
+  const offerPercent = Number(menuDetails?.offer || 0);
   const discountedPrice =
-    basePrice != null && menuDetails.offer > 0
-      ? Math.round(basePrice * (1 - menuDetails.offer / 100))
+    basePrice != null && !Number.isNaN(basePrice) && offerPercent > 0
+      ? Math.round(basePrice * (1 - offerPercent / 100))
       : null;
 
   return (
     <>
       <Header />
       <div className="page-content">
-        {/* Cross-outlet info (compact) */}
-        {isCrossOutlet && (
-          <div className="mx-3 mt-2">
-            <div className="flex items-center text-sm mb-2 bg-[#dc3545] text-white rounded-xl p-2">
-              <i className="fa-solid fa-circle-info mr-2"></i>
-              <span>
-                This item is from <strong>{crossOutletName}</strong>. Ordering is disabled for your current outlet.
-              </span>
+        {/* Scroll container (body scroll is not reliable in this template, especially on desktop) */}
+        <div className="max-h-[calc(100vh-140px)] overflow-y-auto overscroll-contain pb-[220px]">
+          {/* Cross-outlet info (compact) */}
+          {isCrossOutlet && (
+            <div className="mx-3 mt-2">
+              <div className="flex items-center text-sm mb-2 bg-[#dc3545] text-white rounded-xl p-2">
+                <i className="fa-solid fa-circle-info mr-2"></i>
+                <span>
+                  This item is from <strong>{crossOutletName}</strong>. Ordering is disabled for your current outlet.
+                </span>
+              </div>
+            </div>
+          )}
+          {/* IMPORTANT: don't use `bottom-content` here (it sets overflow:hidden in CSS) */}
+          <div className="content-body">
+          {/* Always-visible summary (so page never looks blank) */}
+          <div className="max-w-[1200px] mx-auto px-4 mt-3">
+            <div className="bg-white border border-[#e9ecef] rounded-2xl p-3 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 text-xs text-[#6c757d]">
+                    <FoodTypeIcon foodType={menuDetails.menu_food_type} />
+                    <span className="truncate">
+                      {menuDetails.category_name || "Category"}
+                    </span>
+                    {menuDetails.spicy_index && (
+                      <span className="ml-1">• Spicy: {menuDetails.spicy_index}</span>
+                    )}
+                  </div>
+                  <div className="mt-1 font-semibold text-[18px] text-[var(--secondary)] truncate">
+                    {menuDetails.menu_name || "Menu"}
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <div className="text-xs text-[#6c757d]">Price</div>
+                  <div className="font-bold text-[#2196f3]">
+                    {basePrice == null || Number.isNaN(basePrice)
+                      ? "Unavailable"
+                      : offerPercent > 0 && discountedPrice != null
+                        ? `₹${discountedPrice}`
+                        : `₹${basePrice}`}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        )}
-        <div className="content-body bottom-content">
           {/* Comment out or remove the existing code:
 <div className="swiper-btn-center-lr my-0">
   <Swiper
@@ -273,26 +334,31 @@ function ProductDetail() {
 </div>
 */}
 
-          {/* Add the new TripleSlider implementation */}
-          {menuDetails.images?.length ? (
-            <TripleSlider
-              slides={menuDetails.images.map((image) => ({
-                backgroundImage: image,
-                title: menuDetails.menu_name,
-              }))}
-            />
-          ) : (
-            <div className="dz-banner-heading">
-              <div className="overlay-black-light bg-[#f8f9fa]">
-                <div className="flex justify-center items-center border-2 border-[#dee2e6] aspect-square">
-                  <i className="fa-solid fa-utensils text-[100px] opacity-50 text-[#6c757d]"></i>
+          {/* Banner / images (responsive, constrained on desktop) */}
+          <div className="max-w-[1200px] mx-auto px-4 mt-3">
+            <div className="border border-[#dee2e6] rounded-2xl overflow-hidden bg-[#f8f9fa]">
+              {menuDetails.images?.length ? (
+                <TripleSlider
+                  slides={menuDetails.images.map((image) => ({
+                    backgroundImage: image,
+                    title: menuDetails.menu_name,
+                  }))}
+                />
+              ) : (
+                <div className="flex justify-center items-center w-full h-[220px] sm:h-[260px] lg:h-[320px]">
+                  <i className="fa-solid fa-utensils text-[90px] sm:text-[100px] opacity-50 text-[#6c757d]"></i>
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           <div className="account-box style-1">
             <div className="max-w-[1200px] mx-auto px-4 pb-60">
+              {!menuDetails?.menu_id && (
+                <div className="bg-[#f8d7da] border border-[#f5c2c7] text-[#842029] px-4 py-3 rounded-lg my-3">
+                  Menu details not available.
+                </div>
+              )}
               <div className="company-detail">
                 <div className="detail-content">
                   <div className="flex-1">
@@ -338,9 +404,9 @@ function ProductDetail() {
                   <span className="text-style text-soft">Price</span>
                   <div className="flex justify-between items-center">
                     <h3 className="sub-title mb-0">
-                      {basePrice == null ? (
+                      {basePrice == null || Number.isNaN(basePrice) ? (
                         "Unavailable"
-                      ) : menuDetails.offer > 0 && discountedPrice != null ? (
+                      ) : offerPercent > 0 && discountedPrice != null ? (
                         <>
                           ₹
                           {discountedPrice}
@@ -352,9 +418,9 @@ function ProductDetail() {
                         `₹${basePrice}`
                       )}
                     </h3>
-                    {menuDetails.offer > 0 && (
+                    {offerPercent > 0 && (
                       <span className="text-[#198754] text-sm font-bold ml-3">
-                        {menuDetails.offer}% Off
+                        {offerPercent}% Off
                       </span>
                     )}
                   </div>
@@ -417,31 +483,84 @@ function ProductDetail() {
                 </div>
               )}
 
-              {menuDetails.description && (
+              {/* Optional fields from get_menu_details */}
+              {(menuDetails.spicy_index || menuDetails.calories_per_serving || menuDetails.calories_per_100g) && (
                 <div className="mb-3">
-                  <h6 className="text-style text-soft mb-2 text-base font-semibold">Description</h6>
-                  <p>{menuDetails.description}</p>
+                  <h6 className="text-style text-soft mb-2 text-base font-semibold">Info</h6>
+                  <div className="text-sm text-[#6c757d]">
+                    {menuDetails.spicy_index && (
+                      <div>Spicy index: {menuDetails.spicy_index}</div>
+                    )}
+                    {menuDetails.calories_per_serving != null && (
+                      <div>Calories/serving: {menuDetails.calories_per_serving}</div>
+                    )}
+                    {menuDetails.calories_per_100g != null && (
+                      <div>Calories/100g: {menuDetails.calories_per_100g}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Show price breakdown when provided by API */}
+              {(menuDetails.default_price != null ||
+                menuDetails.dine_in_price != null ||
+                menuDetails.parcel_price != null ||
+                menuDetails.delivery_price != null ||
+                menuDetails.drive_through_price != null) && (
+                <div className="mb-3">
+                  <h6 className="text-style text-soft mb-2 text-base font-semibold">Price breakdown</h6>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {menuDetails.default_price != null && (
+                      <div className="flex justify-between bg-[#f8f9fa] border border-[#dee2e6] rounded-lg px-3 py-2">
+                        <span>Default</span>
+                        <span className="font-semibold">₹{Number(menuDetails.default_price)}</span>
+                      </div>
+                    )}
+                    {menuDetails.dine_in_price != null && (
+                      <div className="flex justify-between bg-[#f8f9fa] border border-[#dee2e6] rounded-lg px-3 py-2">
+                        <span>Dine-in</span>
+                        <span className="font-semibold">₹{Number(menuDetails.dine_in_price)}</span>
+                      </div>
+                    )}
+                    {menuDetails.parcel_price != null && (
+                      <div className="flex justify-between bg-[#f8f9fa] border border-[#dee2e6] rounded-lg px-3 py-2">
+                        <span>Parcel</span>
+                        <span className="font-semibold">₹{Number(menuDetails.parcel_price)}</span>
+                      </div>
+                    )}
+                    {menuDetails.delivery_price != null && (
+                      <div className="flex justify-between bg-[#f8f9fa] border border-[#dee2e6] rounded-lg px-3 py-2">
+                        <span>Delivery</span>
+                        <span className="font-semibold">₹{Number(menuDetails.delivery_price)}</span>
+                      </div>
+                    )}
+                    {menuDetails.drive_through_price != null && (
+                      <div className="flex justify-between bg-[#f8f9fa] border border-[#dee2e6] rounded-lg px-3 py-2">
+                        <span>Drive-thru</span>
+                        <span className="font-semibold">₹{Number(menuDetails.drive_through_price)}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
           </div>
+        </div>
         </div>
 
         <div className="footer fixed pb-[55px]">
           <div className="max-w-[1200px] mx-auto px-4">
             <button
               onClick={isCrossOutlet ? undefined : handleAddToCart}
-              className={`w-full text-left rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[#329e2b] transition-colors ${isCrossOutlet || !menuDetails.portions?.length
+              className={`w-full text-left rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[#329e2b] transition-colors ${isCrossOutlet
                 ? "opacity-50 cursor-not-allowed"
                 : ""
                 }`}
-              disabled={isCrossOutlet || !menuDetails.portions?.length}
+              disabled={isCrossOutlet}
               title={
                 isCrossOutlet
                   ? `Switch to ${crossOutletName} to order`
-                  : !menuDetails.portions?.length
-                    ? "Item unavailable"
-                    : ""
+                  : ""
               }
             >
               <i
