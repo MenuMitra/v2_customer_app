@@ -31,6 +31,14 @@ html {
   min-height: calc(100vh - 60px);
 }
 
+/* Reserve space when test env banner is present */
+html {
+  --test-env-banner-height: 0px;
+}
+html[data-has-test-env-banner="true"] {
+  --test-env-banner-height: 44px;
+}
+
 /* Ensure footer doesn't overlap content on smaller screens */
 @media (max-width: 768px) {
   .page-content {
@@ -265,7 +273,7 @@ select {
 /* Header scroll optimization - using class-based approach for stability */
 .header-bar {
   position: fixed;
-  top: 0;
+  top: var(--test-env-banner-height);
   left: 0;
   width: 100%;
   z-index: 999;
@@ -285,7 +293,8 @@ select {
 /* Spacer to prevent content jump when header is fixed */
 header.relative.block {
   /* Reserve space for the fixed header */
-  min-height: 60px;
+  min-height: calc(60px + var(--test-env-banner-height));
+  padding-top: var(--test-env-banner-height);
 }
 
 

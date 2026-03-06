@@ -60,9 +60,37 @@ export const apiService = {
       });
 
       const details = response?.data?.details;
+      const images = details?.menu_images?.map(img => img.image) || [];
+
+      // Some outlets don't return `portions` from get_menu_details.
+      // Provide a fallback "Default" portion so Add-to-Cart modal can work.
+      const rawPortions = Array.isArray(details?.portions) ? details.portions : [];
+      const fallbackPrice =
+        details?.default_price ??
+        details?.dine_in_price ??
+        details?.parcel_price ??
+        details?.delivery_price ??
+        details?.drive_through_price ??
+        null;
+      const portions =
+        rawPortions.length > 0
+          ? rawPortions
+          : (fallbackPrice != null
+            ? [
+              {
+                portion_id: 0,
+                portion_name: "Default",
+                price: Number(fallbackPrice),
+                unit_value: 1,
+                unit_type: "",
+              },
+            ]
+            : []);
+
       return {
         ...details,
-        images: details?.menu_images?.map(img => img.image) || []
+        images,
+        portions
       };
     },
     searchMenus: async ({ outletId, userId, keyword }) => {

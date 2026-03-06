@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const TestEnvironmentBanner = () => {
@@ -17,8 +18,15 @@ const TestEnvironmentBanner = () => {
     return null;
   }
 
+  useEffect(() => {
+    document.documentElement.dataset.hasTestEnvBanner = "true";
+    return () => {
+      delete document.documentElement.dataset.hasTestEnvBanner;
+    };
+  }, []);
+
   return (
-    <div className="text-white flex justify-between items-center px-2 py-2 bg-orange-500 shadow-md transition-all duration-300">
+    <div className="fixed top-0 left-0 w-full z-[1001] h-[44px] text-white flex justify-between items-center px-2 bg-orange-500 shadow-md transition-all duration-300">
       <div className="flex-grow text-center flex items-center justify-center">
         <svg
           className="w-6 h-6"
