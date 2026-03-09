@@ -149,12 +149,86 @@ export const apiService = {
   // Add a new section for checkout related APIs
   checkout: {
     getDetails: async ({ outletId, orderItems }) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H1',location:'src/api/apiService.js:checkout.getDetails',message:'Calling get_checkout_detail',data:{outletId:outletId??null,orderItems:(orderItems||[]).map(i=>({menu_id:i.menu_id,portion_id:i.portion_id,quantity:i.quantity}))},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_checkout_detail`, {
         outlet_id: outletId,
         order_items: orderItems,
         app_source: "user_app"
       });
       return response?.data?.detail || {};
+    },
+
+    createOrder: async ({
+      outletId,
+      userId,
+      sectionId,
+      tableId,
+      orderType,
+      orderItems,
+      coupon,
+      action = "create_order",
+      appSource = "user_app",
+    }) => {
+      const payload = {
+        outlet_id: String(outletId),
+        user_id: String(userId),
+        section_id: String(sectionId),
+        order_type: orderType || "dine-in",
+        order_items: (orderItems || []).map((item) => ({
+          menu_id: String(item.menu_id),
+          quantity: Number(item.quantity),
+          portion_name: item.portion_name || "",
+          comment: item.comment || "",
+        })),
+        action,
+        app_source: appSource,
+      };
+
+      if (coupon) payload.coupon = coupon;
+      if (payload.order_type === "dine-in" && tableId) {
+        payload.table_id = String(tableId);
+      }
+
+      const response = await axiosInstance.post(
+        `${ENV.V2_COMMON_BASE}/common/create_order`,
+        payload
+      );
+      return response?.data || {};
+    },
+
+    addMenusToOrder: async ({ orderId, outletId, orderItems }) => {
+      const response = await axiosInstance.post(
+        `${ENV.V2_COMMON_BASE}/common/add_menus_to_order`,
+        {
+          order_id: String(orderId),
+          outlet_id: String(outletId),
+          order_items: (orderItems || []).map((item) => ({
+            menu_id: String(item.menu_id),
+            quantity: String(item.quantity),
+            portion_name: item.portion_name || "",
+            comment: item.comment || "",
+          })),
+          app_source: "user_app",
+        }
+      );
+      return response?.data || {};
+    },
+
+    getOrderDetails: async ({ orderId, userId }) => {
+      // #region agent log
+      fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H3',location:'src/api/apiService.js:checkout.getOrderDetails',message:'Calling get_order_details',data:{orderId:orderId?String(orderId).slice(0,12):null,userId:userId??null},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+      const response = await axiosInstance.post(
+        `${ENV.V2_COMMON_BASE}/user/get_order_details`,
+        {
+          order_id: String(orderId),
+          user_id: Number(userId),
+          app_source: "user_app",
+        }
+      );
+      return response?.data?.detail || null;
     },
 
     checkExistingOrder: async ({ userId, outletId }) => {
@@ -294,9 +368,13 @@ const withErrorHandling = (apiCall) => {
       const response = await apiCall(...args);
       return response;
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H2',location:'src/api/apiService.js:withErrorHandling',message:'API call failed',data:{status:error?.response?.status||null,detail:error?.response?.data?.detail||null,message:error?.message||null,url:error?.config?.url||null},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       // Standardize error format
       const standardError = {
-        message: error.response?.data?.message || 'NOT FOUND',
+        message: error.response?.data?.message || error.response?.data?.detail || 'NOT FOUND',
+        detail: error.response?.data?.detail || null,
         status: error.response?.status,
         // originalError: error
       };

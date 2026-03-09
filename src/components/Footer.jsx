@@ -48,8 +48,9 @@ function Footer() {
             <i className="fa-solid fa-house"></i>
           </NavLink>
           <NavLink
-            onClick={() => {
+            onClick={(e) => {
               if (!user) {
+                e.preventDefault();
                 setShowAuthOffcanvas(true);
                 return;
               }
@@ -65,8 +66,9 @@ function Footer() {
             <i className="fa-solid fa-heart"></i>
           </NavLink>
           <NavLink
-            onClick={() => {
+            onClick={(e) => {
               if (!user) {
+                e.preventDefault();
                 setShowAuthOffcanvas(true);
                 return;
               }
@@ -90,8 +92,9 @@ function Footer() {
           </NavLink>
 
           <NavLink
-            onClick={() => {
+            onClick={(e) => {
               if (!user) {
+                e.preventDefault();
                 setShowAuthOffcanvas(true);
                 return;
               }

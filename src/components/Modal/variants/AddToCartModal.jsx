@@ -11,11 +11,12 @@ export const AddToCartModal = () => {
   const { closeModal, modalConfig, openModal } = useModal();
   const { addToCart, cartItems } = useCart();
   const { user, setShowAuthOffcanvas, getUserId } = useAuth();
-  const { outletId } = useOutlet();
+  const { outletId, sectionId, tableId, orderSettings } = useOutlet();
   const navigate = useNavigate();
 
   const [selectedPortion, setSelectedPortion] = useState(() => {
-    return modalConfig.data?.portions?.[0]?.portion_id || null;
+    // `portion_id` can be 0 (fallback "Default" portion). Use nullish coalescing.
+    return modalConfig.data?.portions?.[0]?.portion_id ?? null;
   });
   const [quantities, setQuantities] = useState(() => {
     const initial = {};
@@ -79,7 +80,11 @@ export const AddToCartModal = () => {
 
   useEffect(() => {
     // Handle increment/decrement action from VerticalMenuCard
-    if (modalConfig.data?.action && selectedPortion) {
+    if (
+      modalConfig.data?.action &&
+      selectedPortion !== null &&
+      selectedPortion !== undefined
+    ) {
       const action = modalConfig.data.action;
       const currentQuantity = quantities[selectedPortion] || 0;
 
@@ -183,9 +188,16 @@ export const AddToCartModal = () => {
       return;
     }
 
-    const currentQuantity = quantities[selectedPortion] || 0;
+    const currentQuantity =
+      selectedPortion === null || selectedPortion === undefined
+        ? 0
+        : (quantities[selectedPortion] || 0);
 
-    if (selectedPortion && currentQuantity > 0) {
+    if (
+      selectedPortion !== null &&
+      selectedPortion !== undefined &&
+      currentQuantity > 0
+    ) {
       const targetOutletId =
         modalConfig.data?.outlet_id || modalConfig.data?.outletId || outletId;
 
@@ -194,6 +206,13 @@ export const AddToCartModal = () => {
         menuDetails.portions?.length > 0
           ? menuDetails.portions
           : modalConfig.data?.portions || [];
+
+      const selectedPortionObj = portionsToUse.find(
+        (p) => Number(p.portion_id) === Number(selectedPortion)
+      );
+      const portionName = (selectedPortionObj?.portion_name || "")
+        .toString()
+        .toLowerCase();
 
       const menuItemData = {
         ...modalConfig.data,
@@ -204,6 +223,56 @@ export const AddToCartModal = () => {
         category_name: modalConfig.data.category_name,
         offer: modalConfig.data.offer,
         portions: portionsToUse,
+      };
+
+      const serverOrderItem = {
+        menu_id: Number(menuItemData.menuId),
+        quantity: Number(currentQuantity),
+        portion_name: portionName,
+        comment: comments[selectedPortion] || "",
+      };
+
+      const ensureActiveOrder = async () => {
+        const stored = localStorage.getItem("activeOrderId");
+        if (stored) return { orderId: String(stored), createdNew: false };
+
+        const userId = getUserId();
+        if (!userId || !targetOutletId) return null;
+
+        const existing = await apiService.checkout.checkExistingOrder({
+          userId,
+          outletId: targetOutletId,
+        });
+        const existingOrderId = existing?.order_id || existing?.orderId;
+        if (existingOrderId) {
+          localStorage.setItem("activeOrderId", String(existingOrderId));
+          return { orderId: String(existingOrderId), createdNew: false };
+        }
+
+        const storedSettingsRaw = localStorage.getItem("orderSettings");
+        const storedSettings = storedSettingsRaw
+          ? JSON.parse(storedSettingsRaw)
+          : null;
+        const orderType =
+          orderSettings?.order_type || storedSettings?.order_type || "dine-in";
+
+        const created = await apiService.checkout.createOrder({
+          outletId: targetOutletId,
+          userId,
+          sectionId: sectionId || localStorage.getItem("sectionId") || "",
+          tableId: tableId || localStorage.getItem("tableId") || "",
+          orderType,
+          orderItems: [serverOrderItem],
+          action: "create_order",
+        });
+
+        const createdOrderId = created?.order_id || created?.detail?.order_id;
+        if (createdOrderId) {
+          localStorage.setItem("activeOrderId", String(createdOrderId));
+          return { orderId: String(createdOrderId), createdNew: true };
+        }
+
+        return null;
       };
 
       const nextCartItems = (() => {
@@ -233,15 +302,68 @@ export const AddToCartModal = () => {
       })();
 
       try {
-        const checkoutPreview = await apiService.checkout.getDetails({
-          outletId: targetOutletId,
-          orderItems: nextCartItems.map((item) => ({
-            menu_id: Number(item.menuId),
-            portion_id: Number(item.portionId),
-            quantity: Number(item.quantity),
-            comment: item.comment || "",
-          })),
-        });
+        const activeOrder = await ensureActiveOrder();
+        if (!activeOrder?.orderId) {
+          openModal("ERROR", {
+            message: "Unable to create order. Please try again.",
+          });
+          return;
+        }
+
+        // If we didn't just create an order with this item, add it to the existing order
+        if (!activeOrder.createdNew) {
+          await apiService.checkout.addMenusToOrder({
+            orderId: activeOrder.orderId,
+            outletId: targetOutletId,
+            orderItems: [serverOrderItem],
+          });
+        }
+
+        // Sync UI cart pricing with server-calculated menu_details
+        try {
+          const userId = getUserId();
+          const orderDetails = await apiService.checkout.getOrderDetails({
+            orderId: activeOrder.orderId,
+            userId,
+          });
+          const serverMenu = orderDetails?.menu_details?.find(
+            (m) => Number(m.menu_id) === Number(menuItemData.menuId)
+          );
+          if (serverMenu) {
+            const serverPrice = Number(serverMenu.price);
+            const serverOffer = Number(serverMenu.offer || 0);
+            const serverPortionName = serverMenu.portion_name || "";
+
+            menuItemData.offer = Number.isFinite(serverOffer) ? serverOffer : menuItemData.offer;
+
+            // Update the selected portion in `portions` so CartContext uses the server price.
+            const updatedPortions = (menuItemData.portions || []).map((p) =>
+              Number(p.portion_id) === Number(selectedPortion)
+                ? {
+                    ...p,
+                    portion_name: serverPortionName || p.portion_name,
+                    price: Number.isFinite(serverPrice) ? serverPrice : p.price,
+                  }
+                : p
+            );
+
+            // If we had only the fallback "Default" portion, ensure at least one portion exists
+            if (updatedPortions.length === 0) {
+              updatedPortions.push({
+                portion_id: Number(selectedPortion),
+                portion_name: serverPortionName || "Default",
+                price: Number.isFinite(serverPrice) ? serverPrice : 0,
+                unit_value: 1,
+                unit_type: "",
+              });
+            }
+
+            menuItemData.portions = updatedPortions;
+          }
+        } catch (e) {
+          // If this fails, keep local pricing; checkout will still reflect server totals.
+          console.warn("Failed to sync server menu details:", e);
+        }
 
         addToCart(
           menuItemData,
@@ -252,15 +374,15 @@ export const AddToCartModal = () => {
         );
 
         closeModal("addToCart");
-        navigate("/checkout", { state: { checkoutPreview } });
+        navigate("/checkout");
         return;
       } catch (err) {
-        console.error("Failed to get checkout details:", err);
+        console.error("Failed to add menu to order:", err);
         openModal("ERROR", {
           message:
             err?.message ||
             err?.response?.data?.detail ||
-            "Failed to calculate checkout details. Please try again.",
+            "Failed to add item to cart. Please try again.",
         });
         return;
       }

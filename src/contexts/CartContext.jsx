@@ -203,11 +203,15 @@ export const CartProvider = ({ children }) => {
 
   // Remove item from cart
   const removeFromCart = (menuId, portionId) => {
-    setCartItems((prevItems) =>
-      prevItems.filter(
+    setCartItems((prevItems) => {
+      const next = prevItems.filter(
         (item) => !(item.menuId == menuId && item.portionId == portionId)
-      )
-    );
+      );
+      if (next.length === 0) {
+        localStorage.removeItem("activeOrderId");
+      }
+      return next;
+    });
   };
 
   // Update item quantity
@@ -237,6 +241,7 @@ export const CartProvider = ({ children }) => {
   const clearCart = useCallback(() => {
     setCartItems([]);
     localStorage.removeItem("cart");
+    localStorage.removeItem("activeOrderId");
   }, []); // Remove onLogout dependency since we handle it via useEffect
 
   // Update getCartTotal to handle invalid prices
