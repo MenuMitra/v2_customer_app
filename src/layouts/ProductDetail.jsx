@@ -425,6 +425,18 @@ function ProductDetail() {
                     )}
                   </div>
                 </div>
+                {/* Inline Add to Cart button directly under price */}
+                {!isCrossOutlet && (
+                  <div className="mt-3">
+                    <button
+                      onClick={handleAddToCart}
+                      className="w-full rounded-[50px] px-6 py-3 bg-[var(--primary)] text-white hover:bg-[#329e2b] transition-colors flex items-center justify-center text-sm sm:text-base font-semibold"
+                    >
+                      <i className="fa-solid fa-cart-shopping mr-2"></i>
+                      Add to cart
+                    </button>
+                  </div>
+                )}
                 {cartItem && !isCrossOutlet && (
                   <div className="dz-stepper border rounded-3xl max-w-[140px] sm:max-w-[160px]">
                     <div className="flex items-center justify-between">

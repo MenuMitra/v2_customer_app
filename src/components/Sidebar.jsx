@@ -14,12 +14,23 @@ function Sidebar() {
   const { isOpen, closeSidebar } = useSidebar();
   const { user, isAuthenticated, handleLogout } = useAuth();
   const { getCartCount, clearCart } = useCart();
+  const { setShowAuthOffcanvas } = useAuth();
   const { isDarkMode, toggleTheme } = useTheme();
   const { showThemeColorOffcanvas, toggleThemeColorOffcanvas } =
     useThemeColor();
   const cartCount = getCartCount();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const requireAuth = (e) => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      setShowAuthOffcanvas(true);
+      closeSidebar();
+      return true;
+    }
+    return false;
+  };
 
   const handleLinkClick = () => {
     closeSidebar();
@@ -159,7 +170,10 @@ function Sidebar() {
                 : "text-gray-700 hover:bg-gray-100"
               }`
             }
-            onClick={handleLinkClick}
+            onClick={(e) => {
+              if (requireAuth(e)) return;
+              handleLinkClick();
+            }}
           >
             <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-heart"></i>
@@ -171,7 +185,10 @@ function Sidebar() {
           <NavLink
             to="/checkout"
             className="block py-3 px-4 no-underline transition-all duration-200 flex items-center text-gray-700 hover:bg-gray-100"
-            onClick={handleLinkClick}
+            onClick={(e) => {
+              if (requireAuth(e)) return;
+              handleLinkClick();
+            }}
           >
             <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-shopping-cart"></i>
@@ -193,7 +210,10 @@ function Sidebar() {
                 : "text-gray-700 hover:bg-gray-100"
               }`
             }
-            onClick={handleLinkClick}
+            onClick={(e) => {
+              if (requireAuth(e)) return;
+              handleLinkClick();
+            }}
           >
             <span className="dz-icon flex items-center justify-center mr-2">
               <i className="fa-solid fa-clock-rotate-left"></i>
