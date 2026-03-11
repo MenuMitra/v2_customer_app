@@ -422,6 +422,14 @@ function CheckoutContent() {
       );
 
       if (response.data?.order_id) {
+        try {
+          localStorage.setItem(
+            "activeOrderId",
+            String(response.data.order_id)
+          );
+        } catch {
+          // ignore storage errors
+        }
         clearCart();
         localStorage.removeItem("cart");
         navigate(`/orders`);
@@ -473,9 +481,16 @@ function CheckoutContent() {
         return;
       }
 
+      const effectiveSectionId =
+        sectionId || localStorage.getItem("sectionId") || "";
+      const effectiveTableId =
+        outletDetails?.tableId || localStorage.getItem("tableId") || "";
+
       const existingOrder = await apiService.checkout.checkExistingOrder({
         userId,
         outletId,
+        sectionId: effectiveSectionId,
+        tableId: effectiveTableId,
       });
 
       if (existingOrder) {

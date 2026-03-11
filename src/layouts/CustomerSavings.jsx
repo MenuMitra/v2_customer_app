@@ -27,6 +27,16 @@ function CustomerSavingsContent() {
   if (error) return <div className="page-content bottom-content"><div className="max-w-[1200px] mx-auto px-4">Error: {error.message}</div></div>;
   if (!savingsData) return <div className="page-content bottom-content"><div className="max-w-[1200px] mx-auto px-4">No savings data available</div></div>;
 
+  const toTitleCase = (value) => {
+    if (!value || typeof value !== "string") return "";
+    return value
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   // Calculate effective totals considering special and coupon discounts
   const totalAmountSpent = Number(savingsData.total_amount_spent || 0);
   const totalSpecialDiscount = Number(savingsData.special_discount || 0);
@@ -34,8 +44,8 @@ function CustomerSavingsContent() {
   const effectiveTotalAmountSpent = Math.max(0, totalAmountSpent - totalSpecialDiscount - totalCouponDiscount);
 
   return (
-      <div className="page-content bottom-content">
-        <div className="max-w-[1200px] mx-auto px-3">
+      <div className="page-content min-h-screen">
+        <div className="max-w-[1200px] mx-auto px-3 pb-6">
           {/* Total Savings Card */}
           <div className="bg-[#027335] rounded-lg shadow-sm border-0 mb-4">
             <div className="p-4 text-white py-3">
@@ -104,7 +114,9 @@ function CustomerSavingsContent() {
               className="bg-white rounded-lg shadow-sm mb-4 border border-[#E5E7EB]"
             >
               <div className="p-3">
-                <h6 className="mb-4 font-semibold text-base">{outlet.outlet_name}</h6>
+                <h6 className="mb-4 font-semibold text-base">
+                  {toTitleCase(outlet.outlet_name || "")}
+                </h6>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-[#A1A5B7]">Total Orders</span>
                   <span className="bg-[#198754] text-white rounded-full px-3 py-1 text-xs font-medium">

@@ -231,14 +231,25 @@ export const apiService = {
       return response?.data?.detail || null;
     },
 
-    checkExistingOrder: async ({ userId, outletId }) => {
-      console.log('Checking existing order for:', { userId, outletId });
+    checkExistingOrder: async ({ userId, outletId, tableId, sectionId }) => {
+      console.log('Checking existing order for:', {
+        userId,
+        outletId,
+        tableId,
+        sectionId,
+      });
       try {
         const payload = {
           user_id: userId?.toString(),
           outlet_id: outletId?.toString(),
           app_source: "user_app"
         };
+        if (tableId) {
+          payload.table_id = tableId.toString();
+        }
+        if (sectionId) {
+          payload.section_id = sectionId.toString();
+        }
         console.log('checkExistingOrder payload:', payload);
         const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/common/check_order_exist`, payload);
 
@@ -373,10 +384,13 @@ const withErrorHandling = (apiCall) => {
       // #endregion
       // Standardize error format
       const standardError = {
-        message: error.response?.data?.message || error.response?.data?.detail || 'NOT FOUND',
+        message:
+          error.response?.data?.message ||
+          error.response?.data?.detail ||
+          "NOT FOUND",
         detail: error.response?.data?.detail || null,
         status: error.response?.status,
-        // originalError: error
+        data: error.response?.data || null,
       };
       throw standardError;
     }
