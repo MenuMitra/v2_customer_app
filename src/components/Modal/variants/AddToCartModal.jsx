@@ -239,9 +239,16 @@ export const AddToCartModal = () => {
         const userId = getUserId();
         if (!userId || !targetOutletId) return null;
 
+        const effectiveSectionId =
+          sectionId || localStorage.getItem("sectionId") || "";
+        const effectiveTableId =
+          tableId || localStorage.getItem("tableId") || "";
+
         const existing = await apiService.checkout.checkExistingOrder({
           userId,
           outletId: targetOutletId,
+          sectionId: effectiveSectionId,
+          tableId: effectiveTableId,
         });
         const existingOrderId = existing?.order_id || existing?.orderId;
         if (existingOrderId) {
@@ -256,15 +263,35 @@ export const AddToCartModal = () => {
         const orderType =
           orderSettings?.order_type || storedSettings?.order_type || "dine-in";
 
-        const created = await apiService.checkout.createOrder({
-          outletId: targetOutletId,
-          userId,
-          sectionId: sectionId || localStorage.getItem("sectionId") || "",
-          tableId: tableId || localStorage.getItem("tableId") || "",
-          orderType,
-          orderItems: [serverOrderItem],
-          action: "create_order",
-        });
+        const created = await apiService.checkout
+          .createOrder({
+            outletId: targetOutletId,
+            userId,
+            sectionId: effectiveSectionId,
+            tableId: effectiveTableId,
+            orderType,
+            orderItems: [serverOrderItem],
+            action: "create_order",
+          })
+          .catch((err) => {
+            const detail =
+              typeof err?.detail === "string" ? err.detail.toLowerCase() : "";
+            const isTableOccupied =
+              err?.status === 400 &&
+              detail.includes("table") &&
+              detail.includes("occupied");
+
+            const existingOrderIdFromError =
+              err?.data?.existing_order_id || err?.data?.order_id;
+
+            if (isTableOccupied && existingOrderIdFromError) {
+              const orderIdStr = String(existingOrderIdFromError);
+              localStorage.setItem("activeOrderId", orderIdStr);
+              return { detail: { order_id: existingOrderIdFromError } };
+            }
+
+            throw err;
+          });
 
         const createdOrderId = created?.order_id || created?.detail?.order_id;
         if (createdOrderId) {
