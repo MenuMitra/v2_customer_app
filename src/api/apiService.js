@@ -149,9 +149,6 @@ export const apiService = {
   // Add a new section for checkout related APIs
   checkout: {
     getDetails: async ({ outletId, orderItems }) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H1',location:'src/api/apiService.js:checkout.getDetails',message:'Calling get_checkout_detail',data:{outletId:outletId??null,orderItems:(orderItems||[]).map(i=>({menu_id:i.menu_id,portion_id:i.portion_id,quantity:i.quantity}))},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_checkout_detail`, {
         outlet_id: outletId,
         order_items: orderItems,
@@ -217,9 +214,6 @@ export const apiService = {
     },
 
     getOrderDetails: async ({ orderId, userId }) => {
-      // #region agent log
-      fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H3',location:'src/api/apiService.js:checkout.getOrderDetails',message:'Calling get_order_details',data:{orderId:orderId?String(orderId).slice(0,12):null,userId:userId??null},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       const response = await axiosInstance.post(
         `${ENV.V2_COMMON_BASE}/user/get_order_details`,
         {
@@ -251,7 +245,7 @@ export const apiService = {
           payload.section_id = sectionId.toString();
         }
         console.log('checkExistingOrder payload:', payload);
-        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/common/check_order_exist`, payload);
+        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/check_order_exist`, payload);
 
         console.log('checkExistingOrder response:', response.data);
         return response.data?.detail || null;
@@ -263,13 +257,37 @@ export const apiService = {
     },
 
     addToExistingOrder: async ({ orderId, userId, outletId, orderItems }) => {
-      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/add_to_existing_order`, {
-        order_id: orderId.toString(),
-        user_id: userId.toString(),
-        outlet_id: outletId.toString(),
-        app_source: "user_app",
-        order_items: orderItems
+      const sanitizedItems = (orderItems || []).map((item) => {
+        const portionId = item?.portion_id ?? item?.portionId ?? null;
+        const payload = {
+          menu_id: Number(item?.menu_id ?? item?.menuId),
+          quantity: Number(item?.quantity ?? 0),
+          comment: item?.comment || "",
+        };
+
+        // Backend may fail when portion_id is 0/invalid; omit it to allow default pricing.
+        if (
+          portionId !== null &&
+          portionId !== undefined &&
+          Number.isFinite(Number(portionId)) &&
+          Number(portionId) !== 0
+        ) {
+          payload.portion_id = Number(portionId);
+        }
+
+        return payload;
       });
+
+      const response = await axiosInstance.post(
+        `${ENV.V2_COMMON_BASE}/user/add_to_existing_order`,
+        {
+          order_id: orderId.toString(),
+          user_id: userId.toString(),
+          outlet_id: outletId.toString(),
+          app_source: "user_app",
+          order_items: sanitizedItems,
+        }
+      );
       return response.data?.detail || null;
     },
 
@@ -379,9 +397,6 @@ const withErrorHandling = (apiCall) => {
       const response = await apiCall(...args);
       return response;
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H2',location:'src/api/apiService.js:withErrorHandling',message:'API call failed',data:{status:error?.response?.status||null,detail:error?.response?.data?.detail||null,message:error?.message||null,url:error?.config?.url||null},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       // Standardize error format
       const standardError = {
         message:

@@ -192,10 +192,6 @@ function CheckoutContent() {
 
   const orderItems = useMemo(() => getOrderItems(), [cartItems]);
 
-  // #region agent log
-  fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H1',location:'src/layouts/Checkout.jsx:checkout-query',message:'Checkout query gating + payload snapshot',data:{cartCount:cartItems?.length||0,effectiveOutletId:effectiveOutletId??null,orderItems:(orderItems||[]).map(i=>({menu_id:i.menu_id,portion_id:i.portion_id,quantity:i.quantity,hasComment:!!i.comment}))},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   // React Query for checkout details
   const {
     data: checkoutDetails,
@@ -233,10 +229,6 @@ function CheckoutContent() {
     typeof checkoutError?.detail === "string" &&
     checkoutError.detail.toLowerCase().includes("no price info");
 
-  // #region agent log
-  fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H3',location:'src/layouts/Checkout.jsx:fallback-gating',message:'Fallback gating snapshot',data:{checkoutErrorStatus:checkoutError?.status??null,checkoutErrorDetail:typeof checkoutError?.detail==='string'?checkoutError.detail.slice(0,80):null,shouldFallbackToOrderDetails,activeOrderId:activeOrderId?String(activeOrderId).slice(0,12):null,activeUserId:activeUserId??null},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   const {
     data: fallbackOrderDetails,
     isLoading: fallbackLoading,
@@ -251,10 +243,6 @@ function CheckoutContent() {
     enabled: !!activeOrderId && !!activeUserId && shouldFallbackToOrderDetails,
     retry: 1,
   });
-
-  // #region agent log
-  fetch('http://127.0.0.1:7434/ingest/1c909ce8-7d62-4b08-930f-e950a96c93cb',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'6e9328'},body:JSON.stringify({sessionId:'6e9328',runId:'pre-fix',hypothesisId:'H3',location:'src/layouts/Checkout.jsx:fallback-state',message:'Fallback query state',data:{enabled:!!activeOrderId && !!activeUserId && shouldFallbackToOrderDetails,isLoading:!!fallbackLoading,hasData:!!fallbackOrderDetails,hasError:!!fallbackError},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
 
   const effectiveCheckoutDetails =
     (fallbackOrderDetails?.order_details
@@ -851,10 +839,54 @@ function CheckoutContent() {
                     </div>
                   ) : (
                     <>
+                      {(() => {
+                        const parseMoney = (v) => {
+                          const n = Number(v);
+                          return Number.isFinite(n) ? n : 0;
+                        };
+                        const fmt = (n) => parseMoney(n).toFixed(2);
+
+                        const totalBill = effectiveCheckoutDetails
+                          ? parseMoney(effectiveCheckoutDetails.total_bill_amount)
+                          : parseMoney(getCartTotal());
+                        const discountAmount = effectiveCheckoutDetails
+                          ? parseMoney(effectiveCheckoutDetails.discount_amount)
+                          : 0;
+                        const totalAfterDiscount = effectiveCheckoutDetails
+                          ? (effectiveCheckoutDetails.total_bill_with_discount != null
+                            ? parseMoney(effectiveCheckoutDetails.total_bill_with_discount)
+                            : Math.max(0, totalBill - discountAmount))
+                          : Math.max(0, totalBill - discountAmount);
+                        const serviceCharge = effectiveCheckoutDetails
+                          ? parseMoney(effectiveCheckoutDetails.service_charges_amount)
+                          : 0;
+                        const gstAmount = effectiveCheckoutDetails
+                          ? parseMoney(effectiveCheckoutDetails.gst_amount)
+                          : 0;
+
+                        // Prefer API grand_total/final_grand_total if present, otherwise derive.
+                        const apiGrandTotal = effectiveCheckoutDetails?.grand_total;
+                        const grandTotal = apiGrandTotal != null
+                          ? parseMoney(apiGrandTotal)
+                          : totalAfterDiscount + serviceCharge;
+
+                        const apiFinal = effectiveCheckoutDetails?.final_grand_total;
+                        const finalPayable = apiFinal != null
+                          ? parseMoney(apiFinal)
+                          : grandTotal + gstAmount;
+
+                        const couponDiscount = couponStatus?.success
+                          ? parseMoney(couponStatus.couponDetails.value)
+                          : 0;
+
+                        const payableAfterCoupon = Math.max(0, finalPayable - couponDiscount);
+
+                        return (
+                          <>
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-bold text-lg">Total Bill Amount</span>
                         <span className="font-bold text-lg">
-                          ₹{effectiveCheckoutDetails?.total_bill_amount || getCartTotal().toFixed(2)}
+                          ₹{fmt(totalBill)}
                         </span>
                       </div>
                       <hr className="my-2 border-gray-300" />
@@ -864,7 +896,7 @@ function CheckoutContent() {
                         <span>
                           Discount ({effectiveCheckoutDetails?.discount_percent ?? effectiveCheckoutDetails?.offer ?? 0}%)
                         </span>
-                        <span>-₹{effectiveCheckoutDetails?.discount_amount || "0.00"}</span>
+                        <span>-₹{fmt(discountAmount)}</span>
                       </div>
 
                       {/* Add Coupon Discount Line - Only show when coupon is successfully applied */}
@@ -882,15 +914,7 @@ function CheckoutContent() {
                       {/* Total after discount */}
                       <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>Total after discount</span>
-                        <span>
-                          ₹
-                          {effectiveCheckoutDetails?.total_bill_with_discount || (
-                            (
-                              parseFloat(effectiveCheckoutDetails?.total_bill_amount || getCartTotal()) -
-                              parseFloat(effectiveCheckoutDetails?.discount_amount || 0)
-                            ).toFixed(2)
-                          )}
-                        </span>
+                        <span>₹{fmt(totalAfterDiscount)}</span>
                       </div>
 
                       {/* Service Charges */}
@@ -899,20 +923,20 @@ function CheckoutContent() {
                           Service Charges ({effectiveCheckoutDetails?.service_charges_percent || 0}%)
                         </span>
                         <span>
-                          +₹{effectiveCheckoutDetails?.service_charges_amount || "0.00"}
+                          +₹{fmt(serviceCharge)}
                         </span>
                       </div>
 
                       {/* Grand Total (before GST) */}
                       <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>Grand Total</span>
-                        <span>₹{effectiveCheckoutDetails?.grand_total || "0.00"}</span>
+                        <span>₹{fmt(grandTotal)}</span>
                       </div>
 
                       {/* GST */}
                       <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>GST ({effectiveCheckoutDetails?.gst_percent || 0}%)</span>
-                        <span>+₹{effectiveCheckoutDetails?.gst_amount || "0.00"}</span>
+                        <span>+₹{fmt(gstAmount)}</span>
                       </div>
                       <hr className="my-2 border-gray-300" />
 
@@ -922,17 +946,12 @@ function CheckoutContent() {
                           Payable Amount
                         </span>
                         <span className="font-bold text-lg">
-                          ₹
-                          {(() => {
-                            const apiPayable = parseFloat(effectiveCheckoutDetails?.final_grand_total || 0);
-                            const couponDiscount = couponStatus?.success
-                              ? parseFloat(couponStatus.couponDetails.value)
-                              : 0;
-                            if (!effectiveCheckoutDetails) return getCartTotal().toFixed(2);
-                            return Math.max(0, apiPayable - couponDiscount).toFixed(2);
-                          })()}
+                          ₹{fmt(payableAfterCoupon)}
                         </span>
                       </div>
+                          </>
+                        );
+                      })()}
                     </>
                   )}
                 </div>
