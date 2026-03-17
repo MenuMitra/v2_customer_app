@@ -13,16 +13,16 @@ function Profile() {
     useAuth();
   const { clearCart } = useCart();
   const navigate = useNavigate();
-  const { outletCode, sectionId, tableId } = useOutlet();
+  const { outletCode, sectionId, tableNumber } = useOutlet();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // Memoize navigation target to prevent recalculation on every render
   const navigationTarget = useMemo(() => {
     const code = outletCode || localStorage.getItem("outletCode");
     const sec = sectionId || localStorage.getItem("sectionId");
-    const tbl = tableId || localStorage.getItem("tableId");
+    const tbl = tableNumber || localStorage.getItem("tableNumber");
     return code && sec && tbl ? `/o${code}/s${sec}/t${tbl}` : "/";
-  }, [outletCode, sectionId, tableId]);
+  }, [outletCode, sectionId, tableNumber]);
 
   const onLogoutClick = useCallback((e) => {
     e.preventDefault();

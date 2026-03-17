@@ -389,7 +389,7 @@ function CheckoutContent() {
       }
 
       // Add table_id only for dine-in orders
-      if (orderType === "dine-in") {
+      if (payload.order_type === "dine-in") {
         const tableId =
           outletDetails?.tableId || localStorage.getItem("tableId");
         if (tableId) {
@@ -546,7 +546,7 @@ function CheckoutContent() {
         userId: userId.toString(),
         outletId: outletId.toString(),
         sectionId: sectionId.toString(),
-        tableId: localStorage.getItem("tableId") || "0",
+        tableId: localStorage.getItem("tableId") || "",
         orderType: orderType,
         orderItems,
         appSource: "user_app",

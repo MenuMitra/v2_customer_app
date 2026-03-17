@@ -67,7 +67,7 @@ const MenuMitra = () => {
   const renderFooter = () => (
     <div className="text-center">
       <p className="text-gray-500 mb-0 text-sm">version 2.2.0</p>
-      <p className="text-gray-500 mb-0 text-sm">13 Aug 2025</p>
+      <p className="text-gray-500 mb-0 text-sm">17 March 2026</p>
     </div>
   );
 
