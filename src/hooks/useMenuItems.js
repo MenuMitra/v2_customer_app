@@ -45,6 +45,10 @@ export const useMenuItems = () => {
           isActive: menu.is_active,
           image: menu.images?.[0]?.image
         })) || []
+        ,
+        // Backend sends combos separately from menus/categories.
+        // We carry them so UI can render combos when combo category is selected.
+        combos: data.combos || []
       };
     },
     enabled: !!outletId
@@ -103,6 +107,7 @@ export const useMenuItems = () => {
   return {
     menuCategories: data?.categories || [],
     menuItems: data?.menus || [],
+    combos: data?.combos || [],
     isLoading,
     error,
     refetch,

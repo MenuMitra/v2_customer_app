@@ -74,6 +74,10 @@ const VerticalMenuCard = ({
   const cartItemsForMenu = menuItem?.menuId
     ? cartItems.filter((item) => item.menuId == menuItem.menuId)
     : [];
+  const totalQuantityForMenu = cartItemsForMenu.reduce(
+    (sum, item) => sum + (Number(item?.quantity) || 0),
+    0
+  );
 
   // Get the comment for this menu item with safety check
   const menuComment = menuItem?.menuId
@@ -137,12 +141,9 @@ const VerticalMenuCard = ({
       return;
     }
 
-    openModal("addToCart", {
-      ...menuItem,
-      menuId: menuItem?.menuId ?? menuItem?.menu_id,
-      menuCatId: menuItem?.menuCatId ?? menuItem?.menu_cat_id ?? menuItem?.category_id,
-      outlet_id: menuItem?.outlet_id ?? menuItem?.outletId ?? outletId,
-    });
+    // For "Add to cart" on menu cards, always open Menu Details.
+    // Actual cart update happens from the ProductDetail "Add to cart" button.
+    navigate(detailPageUrl);
   };
 
   // Handle quantity changes
@@ -162,7 +163,10 @@ const VerticalMenuCard = ({
       menuId: menuItem?.menuId ?? menuItem?.menu_id,
       menuCatId: menuItem?.menuCatId ?? menuItem?.menu_cat_id ?? menuItem?.category_id,
       outlet_id: menuItem?.outlet_id ?? menuItem?.outletId ?? outletId,
-      action: increment ? 'increment' : 'decrement'
+      action: increment ? 'increment' : 'decrement',
+      // Add to cart in "cart-only" mode: do not create/update server order,
+      // and do not redirect to /checkout from this modal.
+      cartOnly: true
     });
   };
 
@@ -292,30 +296,53 @@ const VerticalMenuCard = ({
               </button>
 
               <div className="flex items-center justify-center flex-1 min-w-0 px-1">
-                {cartItemsForMenu.length > 0 && menuItem?.portions ? (
-                  <div className="flex gap-0 w-full">
-                    {menuItem.portions
-                      .map((portion) => {
-                        const cartItem = cartItemsForMenu.find(
-                          (item) => item.portionId === portion.portion_id
-                        );
-                        return {
-                          ...portion,
-                          quantity: cartItem?.quantity || 0,
-                          comment: cartItem?.comment || "",
-                        };
-                      })
-                      .filter((portion) => portion.quantity > 0)
-                      .map((portion, index, filteredArray) => (
-                        <div
-                          key={portion.portion_id}
-                          className={`flex-1 text-center ${index < filteredArray.length - 1 ? "border-r border-gray-300" : ""
-                            }`}
-                        >
-                          <div className="font-bold text-sm sm:text-base">{portion.quantity}</div>
+                {cartItemsForMenu.length > 0 ? (
+                  (() => {
+                    const matchedPortions =
+                      menuItem?.portions?.length
+                        ? menuItem.portions
+                            .map((portion) => {
+                              const cartItem = cartItemsForMenu.find(
+                                (item) => item.portionId === portion.portion_id
+                              );
+                              return {
+                                ...portion,
+                                quantity: cartItem?.quantity || 0,
+                              };
+                            })
+                            .filter((portion) => portion.quantity > 0)
+                        : [];
+
+                    if (!matchedPortions.length) {
+                      // Fallback: show total quantity even if portion_id mapping differs.
+                      return (
+                        <div className="text-center w-full">
+                          <span className="font-bold text-sm sm:text-base">
+                            {totalQuantityForMenu}
+                          </span>
                         </div>
-                      ))}
-                  </div>
+                      );
+                    }
+
+                    return (
+                      <div className="flex gap-0 w-full">
+                        {matchedPortions.map((portion, index, filteredArray) => (
+                          <div
+                            key={portion.portion_id}
+                            className={`flex-1 text-center ${
+                              index < filteredArray.length - 1
+                                ? "border-r border-gray-300"
+                                : ""
+                            }`}
+                          >
+                            <div className="font-bold text-sm sm:text-base">
+                              {portion.quantity}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()
                 ) : (
                   <div className="text-center w-full">
                     <span className="font-bold text-sm sm:text-base">0</span>

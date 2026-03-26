@@ -20,7 +20,7 @@ import { ENV } from "../config";
 
 function Home() {
   // Keep core hooks and context values
-  const { menuItems, menuCategories, isLoading } = useMenuItems();
+  const { menuItems, menuCategories, combos, isLoading } = useMenuItems();
   const { cartItems } = useCart();
   const { orderSettings, isOutletOnlyUrl, outletId } = useOutlet();
   const { getUserId } = useAuth();
@@ -123,6 +123,22 @@ function Home() {
       menusByCategory,
     };
   }, [menuItems, menuCategories]); // Only recompute when menu data changes
+
+  const selectedCategory = useMemo(() => {
+    if (!selectedCategoryId) return null;
+    return (
+      categoriesData.categories.find(
+        (c) => String(c.menuCatId) === String(selectedCategoryId)
+      ) || null
+    );
+  }, [selectedCategoryId, categoriesData.categories]);
+
+  const comboCategoryFromCategories = categoriesData.categories.find(
+    (c) => String(c?.categoryName || "").toLowerCase().includes("combo")
+  );
+  const isComboCategory =
+    !!comboCategoryFromCategories &&
+    String(comboCategoryFromCategories.menuCatId) === String(selectedCategoryId);
 
   // IMPROVEMENT: Use useMemo for filtered menus instead of useState + useEffect
   // This eliminates the need for filteredMenuItems state and its update effects
@@ -238,7 +254,7 @@ function Home() {
               <div className="title-bar mt-0">
                 <span className="title mb-0 text-lg font-semibold">Menus</span>
               </div>
-              <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar">
+              <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar pb-[220px] overscroll-contain">
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   {isLoading ? (
                     // Skeleton for VerticalMenuCards
@@ -308,6 +324,80 @@ function Home() {
                         </div>
                       </div>
                     ))
+                  ) : isComboCategory ? (
+                    <>
+                      {combos?.length
+                        ? combos.map((combo) => (
+                            <div
+                              key={combo.combo_master_id}
+                              className="rounded-2xl border border-gray-200 bg-white shadow-sm p-3"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <div className="font-semibold text-sm sm:text-base text-[#212529] truncate">
+                                    {combo.name}
+                                  </div>
+                                  <div className="text-gray-500 text-xs mt-1">
+                                    {(combo.combo_food_type || "")
+                                      .toString()
+                                      .toUpperCase()}
+                                  </div>
+                                </div>
+                                <div className="font-semibold text-[#3AB4F2] whitespace-nowrap">
+                                  {combo.price != null
+                                    ? `₹${Number(combo.price).toFixed(2)}`
+                                    : "₹0.00"}
+                                </div>
+                              </div>
+                            </div>
+                          ))
+                        : null}
+
+                      {/* Also show regular menus for this category (backend may send both) */}
+                      {visibleMenus.length > 0
+                        ? visibleMenus.map((menuItem) => (
+                            <div key={menuItem.menuId}>
+                              <VerticalMenuCard
+                                image={
+                                  menuItem.image ? (
+                                    menuItem.image
+                                  ) : (
+                                    <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]" />
+                                  )
+                                }
+                                title={menuItem.menuName}
+                                currentPrice={
+                                  menuItem.price ||
+                                  menuItem.portions?.[0]?.price ||
+                                  0
+                                }
+                                reviewCount={
+                                  menuItem.rating
+                                    ? parseInt(menuItem.rating)
+                                    : null
+                                }
+                                isFavorite={
+                                  favoriteMenuIds.has(menuItem.menuId) ||
+                                  menuItem.is_favourite === 1
+                                }
+                                discount={
+                                  menuItem.offer > 0
+                                    ? `${menuItem.offer}%`
+                                    : null
+                                }
+                                menuItem={menuItem}
+                                onFavoriteUpdate={handleFavoriteClick}
+                              />
+                            </div>
+                          ))
+                        : combos?.length
+                        ? null
+                        : (
+                            <div className="col-span-2 text-center py-4">
+                              <p className="text-[#6c757d]">No items found.</p>
+                            </div>
+                          )}
+                    </>
                   ) : isSearching ? (
                     filteredMenus.length > 0 ? (
                       visibleMenus.map((menuItem) => (

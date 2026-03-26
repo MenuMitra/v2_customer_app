@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 
-function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
+function CancelOrderModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  orderNumber,
+  remainingSeconds
+}) {
   const [reason, setReason] = useState('');
 
   const predefinedReasons = [
@@ -27,6 +33,13 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
   ];
 
   const handleConfirm = () => {
+    if (
+      typeof remainingSeconds === 'number' &&
+      Number.isFinite(remainingSeconds) &&
+      remainingSeconds <= 0
+    ) {
+      return;
+    }
     if (!reason.trim()) return;
     console.log('[CancelOrderModal] handleConfirm called with reason:', reason);
     onConfirm(reason);
@@ -134,7 +147,12 @@ function CancelOrderModal({ isOpen, onClose, onConfirm, orderNumber }) {
               type="button" 
               className="flex-1 bg-red-600 text-white border-0 rounded-3xl py-2.5 px-4 font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleConfirm}
-              disabled={!reason.trim()}
+              disabled={
+                !reason.trim() ||
+                (typeof remainingSeconds === 'number' &&
+                  Number.isFinite(remainingSeconds) &&
+                  remainingSeconds <= 0)
+              }
             >
               <i className="fas fa-times-circle mr-2"></i>
               Confirm Cancel

@@ -13,6 +13,7 @@ export const AddToCartModal = () => {
   const { user, setShowAuthOffcanvas, getUserId } = useAuth();
   const { outletId, sectionId, tableId, orderSettings } = useOutlet();
   const navigate = useNavigate();
+  const cartOnly = !!modalConfig.data?.cartOnly;
 
   const [selectedPortion, setSelectedPortion] = useState(() => {
     // `portion_id` can be 0 (fallback "Default" portion). Use nullish coalescing.
@@ -329,6 +330,36 @@ export const AddToCartModal = () => {
       })();
 
       try {
+        // CART-ONLY MODE:
+        // - Do NOT create/modify server orders
+        // - Do NOT redirect to /checkout
+        // - Just update local cart and return to menu list
+        if (cartOnly) {
+          addToCart(
+            menuItemData,
+            Number(selectedPortion),
+            currentQuantity,
+            comments[selectedPortion] || "",
+            targetOutletId
+          );
+
+          closeModal("addToCart");
+
+          // Keep QR outlet context by navigating to stored outlet URL.
+          const outletCode = localStorage.getItem("outletCode");
+          const storedSectionId = localStorage.getItem("sectionId");
+          const storedTableNumber =
+            localStorage.getItem("tableNumber") ||
+            localStorage.getItem("tableId");
+
+          if (outletCode && storedSectionId && storedTableNumber) {
+            navigate(`/o${outletCode}/s${storedSectionId}/t${storedTableNumber}`);
+          } else {
+            navigate("/");
+          }
+          return;
+        }
+
         const activeOrder = await ensureActiveOrder();
         if (!activeOrder?.orderId) {
           openModal("ERROR", {
@@ -416,7 +447,9 @@ export const AddToCartModal = () => {
     }
 
     closeModal("addToCart");
-    navigate("/checkout");
+    if (!cartOnly) {
+      navigate("/checkout");
+    }
   };
 
   const hasValidQuantity = () => {

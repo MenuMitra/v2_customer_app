@@ -159,14 +159,20 @@ function CheckoutContent() {
   const getOrderItems = () => {
     return cartItems.map((item) => {
       const portionId = item.portionId ?? null;
+      const portionName =
+        item.portionName && typeof item.portionName === "string"
+          ? item.portionName
+          : "Default";
       const payload = {
         menu_id: Number(item.menuId),
         quantity: Number(item.quantity),
+        // Backend pricing requires portion_name even when portion_id is 0/omitted.
+        portion_name: portionName,
         comment: item.comment || "",
       };
 
       // Backend billing doesn't recognize our fallback portion_id=0.
-      // When portion id is missing/0, omit it and let backend decide pricing defaults (if supported).
+      // When portion id is missing/0, omit it and let backend decide pricing defaults via portion_name.
       if (portionId !== null && portionId !== undefined && Number(portionId) !== 0) {
         payload.portion_id = Number(portionId);
       }

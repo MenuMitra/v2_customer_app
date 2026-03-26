@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AuthPrompt from "../components/Auth/AuthPrompt";
@@ -53,7 +53,18 @@ function OrdersContent() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState(null);
   const [selectedOrderNumber, setSelectedOrderNumber] = useState(null);
+  const [selectedOrderForCancel, setSelectedOrderForCancel] = useState(null);
   const [_setCancelOrderStatus] = useState(true);
+
+  // Force a re-render every second so the cancel button hides exactly at 90 seconds.
+  useEffect(() => {
+    const id = setInterval(() => {
+      // Using an unused state update to trigger re-render.
+      // eslint-disable-next-line no-unused-vars
+      _setCancelOrderStatus((prev) => prev);
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Query for ongoing orders
   const {
@@ -85,6 +96,15 @@ function OrdersContent() {
         totalAmount: order.final_grand_total,
         paymentMethod: order.payment_method || "Not selected",
         time: order.time,
+        // Backend may provide server-side creation time in different fields.
+        // Keep these for countdown/cancel window calculation.
+        createdAt:
+          order.order_created_time ||
+          order.order_created_at ||
+          order.created_time ||
+          order.created_at ||
+          order.timestamp ||
+          null,
         tableNumber: order.table_number,
         sectionName: order.section_name
       }));
@@ -92,6 +112,48 @@ function OrdersContent() {
     enabled: !!userId && !!outletId,
     refetchInterval: 10000,
   });
+
+  const calcRemainingSeconds = (order) => {
+    const createdAtRaw = order?.createdAt;
+    // Prefer createdAt if backend provides it (epoch ms or seconds or ISO)
+    if (createdAtRaw != null) {
+      const asNumber = Number(createdAtRaw);
+      if (Number.isFinite(asNumber)) {
+        // Heuristic: if it's in seconds (10 digits), convert to ms.
+        const createdMs =
+          asNumber > 1e12 ? asNumber : Math.floor(asNumber * 1000);
+        const remainingMs = 90_000 - (Date.now() - createdMs);
+        return Math.max(0, Math.ceil(remainingMs / 1000));
+      }
+
+      // ISO string parsing
+      const createdDate = new Date(createdAtRaw);
+      if (!Number.isNaN(createdDate.getTime())) {
+        const remainingMs = 90_000 - (Date.now() - createdDate.getTime());
+        return Math.max(0, Math.ceil(remainingMs / 1000));
+      }
+    }
+
+    // Fallback: parse time like "12:13 PM" or "08:41:22 PM"
+    const orderTime = order?.time;
+    if (typeof orderTime !== "string") return 0;
+
+    const match = orderTime.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i);
+    if (!match) return 0;
+
+    const hoursRaw = Number(match[1]);
+    const minutesRaw = Number(match[2]);
+    const secondsRaw = match[3] ? Number(match[3]) : 0;
+    const period = match[4].toUpperCase();
+
+    const d = new Date();
+    const hours12 = hoursRaw % 12;
+    const hours24 = period === "PM" ? hours12 + 12 : hours12;
+    d.setHours(hours24, minutesRaw, secondsRaw, 0);
+
+    const remainingMs = 90_000 - (Date.now() - d.getTime());
+    return Math.max(0, Math.ceil(remainingMs / 1000));
+  };
 
   // Query for order history
   const {
@@ -477,9 +539,10 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
   };
 
   // Update the handleCancelOrder function
-  const handleCancelOrder = (orderId, orderNumber) => {
-    setSelectedOrderId(orderId);
-    setSelectedOrderNumber(orderNumber);
+  const handleCancelOrder = (order) => {
+    setSelectedOrderId(order.orderId);
+    setSelectedOrderNumber(order.orderNumber);
+    setSelectedOrderForCancel(order);
     setShowCancelModal(true);
   };
 
@@ -505,6 +568,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
     setShowCancelModal(false);
     setSelectedOrderId(null);
     setSelectedOrderNumber(null);
+    setSelectedOrderForCancel(null);
   };
 
   // const handleLogin = () => {
@@ -559,7 +623,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
   return (
     <>
       <div className="page-content">
-        <div className="max-w-[1200px] mx-auto px-4 pb-24">
+        <div className="max-w-[1200px] mx-auto px-4 max-h-[calc(100vh-140px)] overflow-y-auto overscroll-contain pb-[220px]">
           {/* Show ongoing orders section */}
           {!ongoingError && ongoingOrdersData?.length > 0 && (
             <div className="mb-4">
@@ -575,13 +639,21 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                       <div className="flex items-center justify-between w-full">
                         {/* Left side with icon and order details */}
                         <div className="flex items-center">
-                          {order.status === "placed" ? (
-                            <Timer orderTime={order.time} />
-                          ) : (
-                            <span className={`icon-box ${order.iconBgClass}`}>
-                              <i className="fa-solid fa-bag-shopping text-white"></i>
-                            </span>
-                          )}
+                          {/* Always show countdown based on backend created time if available.
+                              Cancel button itself still depends on backend status. */}
+                          {(() => {
+                            const remainingSeconds = calcRemainingSeconds(order);
+                            if (remainingSeconds > 0 || order.status === "placed") {
+                              return (
+                                <Timer initialSeconds={remainingSeconds} />
+                              );
+                            }
+                            return (
+                              <span className={`icon-box ${order.iconBgClass}`}>
+                                <i className="fa-solid fa-bag-shopping text-white"></i>
+                              </span>
+                            );
+                          })()}
                           <div className="ml-3">
                             <h6 className="mb-0 font-semibold">Order #{order.orderNumber}</h6>
                             <span className="text-soft text-sm">
@@ -593,17 +665,25 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                         {/* Right side with dine-in status and cancel button */}
                         <div className="flex flex-col items-end">
                           <span className="text-soft mb-2 text-sm">{order.orderType?.toUpperCase()}</span>
-                          {order.status === "placed" && (
+                          {(() => {
+                            const remainingSeconds = calcRemainingSeconds(order);
+                            // Backend allows cancel within 90 seconds even if status has progressed
+                            // (e.g. "cooking"). Hide only when remaining time reaches 0.
+                            const canCancel =
+                              remainingSeconds > 0 &&
+                              String(order.status || "").toLowerCase() !== "cancelled";
+                            return canCancel ? (
                             <button
                               className="px-3 py-1.5 text-sm text-white bg-[#FF0000] rounded hover:bg-[#cc0000] transition-colors"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleCancelOrder(order.orderId, order.orderNumber);
+                                handleCancelOrder(order);
                               }}
                             >
                               Cancel Order
                             </button>
-                          )}
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -1017,6 +1097,9 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
         onConfirm={handleConfirmCancel}
         orderId={selectedOrderId}
         orderNumber={selectedOrderNumber}
+        remainingSeconds={
+          selectedOrderForCancel ? calcRemainingSeconds(selectedOrderForCancel) : null
+        }
       />
     </>
   );

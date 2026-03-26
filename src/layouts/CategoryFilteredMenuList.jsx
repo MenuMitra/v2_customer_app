@@ -30,6 +30,25 @@ function CategoryFilteredMenuList() {
         enabled: !!outletId && !!categoryId
     });
 
+    const { data: combosData, isLoading: combosLoading, error: combosError } = useQuery({
+        queryKey: ['combosByOutlet', outletId],
+        queryFn: () => apiService.common.getAllMenuListByCategory({ outletId }),
+        enabled: !!outletId && !!categoryId,
+        staleTime: 0
+    });
+
+    const combos = (combosData && combosData.combos) ? combosData.combos : [];
+    // Determine whether current category is "Combo" using the API's category list.
+    // This avoids relying on `location.state.categoryName` (which can be missing) or on `data.category`
+    // (which can be null if the backend returns combos separately).
+    const comboCategoryFromApi = combosData?.category?.find(
+        (c) =>
+            (c?.category_name || "").toLowerCase().includes("combo")
+    );
+    const isComboCategory =
+        comboCategoryFromApi &&
+        String(comboCategoryFromApi.menu_cat_id) === String(categoryId);
+
     // Mutations for favorite functionality
     const addToFavorites = useMutation({
         mutationFn: (menuId) => apiService.favorites.add({
@@ -68,6 +87,9 @@ function CategoryFilteredMenuList() {
             console.error('Failed to update favorite status:', err);
         }
     };
+
+    const resolvedCategoryName =
+        categoryName || data?.category?.category_name || "";
 
     if (isLoading) {
         return (
@@ -109,7 +131,7 @@ function CategoryFilteredMenuList() {
                     {category && (
                         <div className="category-header mb-4">
                             <h4 className="title mb-1 text-xl font-semibold">
-                                {categoryName || category.category_name}
+                                {resolvedCategoryName || category.category_name}
                             </h4>
                             {menuCount && (
                                 <small className="text-[#6c757d] text-sm">
@@ -121,6 +143,43 @@ function CategoryFilteredMenuList() {
 
                     <div className="max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
                         <div className="grid grid-cols-1 gap-3">
+                            {isComboCategory && (
+                                <>
+                                    {combosLoading ? null : combosError ? null : combos?.length ? (
+                                        <>
+                                            {combos.map((combo) => (
+                                                <div
+                                                    key={combo.combo_master_id}
+                                                    className="rounded-2xl border border-gray-200 bg-white shadow-sm p-3"
+                                                >
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <div className="font-semibold text-base text-[#212529] truncate">
+                                                                {combo.name}
+                                                            </div>
+                                                            <div className="text-gray-500 text-xs mt-1">
+                                                                {(combo.combo_food_type || "")
+                                                                    .toString()
+                                                                    .toUpperCase()}
+                                                            </div>
+                                                        </div>
+                                                        <div className="font-semibold text-[#3AB4F2] whitespace-nowrap">
+                                                            {combo.price != null
+                                                                ? `₹${Number(combo.price).toFixed(2)}`
+                                                                : "₹0.00"}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    ) : combosLoading ? null : (
+                                        <div className="bg-[#cff4fc] border border-[#b6effb] text-[#055160] px-4 py-3 rounded-lg">
+                                            No combos found.
+                                        </div>
+                                    )}
+                                </>
+                            )}
+
                             {menus.map((menu) => (
                                 <div key={menu.menu_id}>
                                     <VerticalMenuCard
