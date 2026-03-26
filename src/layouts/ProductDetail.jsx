@@ -111,7 +111,8 @@ function ProductDetail() {
       })),
     };
 
-    openModal("addToCart", formattedMenuDetails);
+    // Add to cart only (no create_order / no redirect to /checkout)
+    openModal("addToCart", { ...formattedMenuDetails, cartOnly: true });
   };
 
   const handleFavoriteToggle = async (e) => {

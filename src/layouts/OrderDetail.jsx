@@ -450,8 +450,10 @@ function OrderDetail() {
     return (
       <>
         <Header />
-        <div className="page-content bottom-content">
-          <div className="max-w-[1200px] mx-auto px-4 text-center py-8 text-[#6c757d]">Loading...</div>
+        <div className="page-content">
+          <div className="max-w-[1200px] mx-auto px-4 text-center py-8 text-[#6c757d]">
+            Loading...
+          </div>
         </div>
         <Footer />
       </>
@@ -462,8 +464,10 @@ function OrderDetail() {
     return (
       <>
         <Header />
-        <div className="page-content bottom-content">
-          <div className="max-w-[1200px] mx-auto px-4 text-center py-8 text-[#dc3545]">Error: {error}</div>
+        <div className="page-content">
+          <div className="max-w-[1200px] mx-auto px-4 text-center py-8 text-[#dc3545]">
+            Error: {error}
+          </div>
         </div>
         <Footer />
       </>
@@ -473,8 +477,8 @@ function OrderDetail() {
   return (
     <>
       <Header />
-      <div className="page-content bottom-content">
-        <div className="max-w-[1200px] mx-auto px-4 pb-4">
+      <div className="page-content">
+        <div className="max-w-[1200px] mx-auto px-4 h-[calc(100vh-140px)] overflow-y-auto overscroll-contain pb-[220px]">
           {/* Order Header Card */}
           <div className="card mt-3">
             <div className="card-body">

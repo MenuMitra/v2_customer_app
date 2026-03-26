@@ -57,7 +57,7 @@ export const OutletProvider = ({ children }) => {
       return {
         outletCode: matches[1],
         sectionId: matches[2],
-        tableId: matches[3],
+        tableNumber: matches[3],
       };
     }
     return null;
@@ -78,7 +78,7 @@ export const OutletProvider = ({ children }) => {
       return {
         outletCode: oMatch[1],
         sectionId: sMatch[1],
-        tableId: tMatch[1],
+        tableNumber: tMatch[1],
       };
     }
     return null;
@@ -105,18 +105,21 @@ export const OutletProvider = ({ children }) => {
     const stored = getStoredOutlet();
 
     if (params) {
-      const { outletCode, sectionId, tableId } = params;
+      const { outletCode, sectionId, tableNumber } = params;
       // Existing full URL handling
       updateOrderSettings({ order_type: "dine-in" });
       if (
         !stored ||
         stored.outletCode !== outletCode ||
         stored.sectionId !== sectionId ||
-        stored.tableId !== tableId
+        stored.tableNumber !== tableNumber
       ) {
         localStorage.setItem("outletCode", outletCode);
         localStorage.setItem("sectionId", sectionId);
-        localStorage.setItem("tableId", tableId);
+        // `/t{n}` from the URL is a human table number, not backend table_id.
+        localStorage.setItem("tableNumber", tableNumber);
+        // Clear any stale backend table_id; it will be set from API response.
+        localStorage.removeItem("tableId");
 
         fetchOutletDetailsByCode(outletCode).then((details) => {
           if (details) {
@@ -179,9 +182,9 @@ export const OutletProvider = ({ children }) => {
 
   const fetchOutletDetailsByCode = async (outletCode) => {
     try {
-      // Get section_id and table_id from localStorage
+      // Get section_id and table_number from localStorage
       const sectionId = localStorage.getItem("sectionId");
-      const tableId = localStorage.getItem("tableId");
+      const tableNumber = localStorage.getItem("tableNumber");
 
       const auth = JSON.parse(localStorage.getItem("auth")) || {};
       const accessToken = auth.accessToken;
@@ -191,7 +194,7 @@ export const OutletProvider = ({ children }) => {
         {
           outlet_code: outletCode,
           section_id: sectionId || "",
-          table_number: tableId || "",
+          table_number: tableNumber || "",
           app_source: "user_app",
           user_id: auth.userId || null, // this should be optional !!!
         },
@@ -243,13 +246,18 @@ export const OutletProvider = ({ children }) => {
             localStorage.getItem("tableId"),
           tableNumber:
             details.table_number?.toString() ||
-            details.table_id?.toString() ||
-            existingOutletInfo.tableNumber,
+            existingOutletInfo.tableNumber ||
+            localStorage.getItem("tableNumber"),
         };
 
         // Update localStorage with merged data
         localStorage.setItem("sectionId", formattedOutletInfo.sectionId);
-        localStorage.setItem("tableId", formattedOutletInfo.tableId);
+        if (formattedOutletInfo.tableId) {
+          localStorage.setItem("tableId", formattedOutletInfo.tableId);
+        }
+        if (formattedOutletInfo.tableNumber) {
+          localStorage.setItem("tableNumber", formattedOutletInfo.tableNumber);
+        }
         localStorage.setItem(
           "selectedOutlet",
           JSON.stringify(formattedOutletInfo)
@@ -272,6 +280,7 @@ export const OutletProvider = ({ children }) => {
       ...newInfo,
       sectionId: newInfo.sectionId || localStorage.getItem("sectionId"),
       tableId: newInfo.tableId || localStorage.getItem("tableId"),
+      tableNumber: newInfo.tableNumber || localStorage.getItem("tableNumber"),
     };
     localStorage.setItem("selectedOutlet", JSON.stringify(updatedInfo));
     setOutletInfo(updatedInfo);
@@ -285,6 +294,7 @@ export const OutletProvider = ({ children }) => {
     localStorage.removeItem("outletCode");
     localStorage.removeItem("sectionId");
     localStorage.removeItem("tableId");
+    localStorage.removeItem("tableNumber");
     localStorage.removeItem("orderSettings");
     setOutletInfo(null);
     setOutletId(null);

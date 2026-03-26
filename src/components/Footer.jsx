@@ -4,7 +4,7 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 
 function Footer() {
-  const { outletCode, sectionId, tableId } = useOutlet();
+  const { outletCode, sectionId, tableNumber } = useOutlet();
   const { getCartCount } = useCart();
   const cartCount = getCartCount();
   const location = useLocation();
@@ -33,8 +33,8 @@ function Footer() {
         <div className="flex items-center max-w-[1000px] mx-auto px-0">
           <NavLink
             to={
-              outletCode && sectionId && tableId
-                ? `/o${outletCode}/s${sectionId}/t${tableId}`
+              outletCode && sectionId && tableNumber
+                ? `/o${outletCode}/s${sectionId}/t${tableNumber}`
                 : "/"
             }
             className={({ isActive }) =>

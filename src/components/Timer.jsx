@@ -1,50 +1,65 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
-const Timer = ({ orderTime }) => {
-  console.log('Timer component received orderTime:', orderTime);
+const TOTAL_SECONDS = 90;
+
+function safeNumber(n) {
+  const x = Number(n);
+  return Number.isFinite(x) ? x : null;
+}
+
+function parseOrderTimeToTodayDate(orderTime) {
+  if (!orderTime || typeof orderTime !== "string") return null;
+
+  // Supported examples:
+  // - "12:13 PM"
+  // - "08:41:22 PM"
+  // - "12:13:02 AM"
+  const trimmed = orderTime.trim();
+  const match = trimmed.match(
+    /^(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(AM|PM)$/i
+  );
+  if (!match) return null;
+
+  const hoursRaw = Number(match[1]);
+  const minutesRaw = Number(match[2]);
+  const secondsRaw = match[3] ? Number(match[3]) : 0;
+  const period = match[4].toUpperCase();
+
+  const d = new Date();
+  const hours12 = hoursRaw % 12;
+  const hours24 = period === "PM" ? hours12 + 12 : hours12;
+
+  d.setHours(hours24, minutesRaw, secondsRaw, 0);
+  return d;
+}
+
+const Timer = ({ orderTime, initialSeconds }) => {
+  const initialFromProp = useMemo(() => {
+    const n = safeNumber(initialSeconds);
+    if (n === null) return null;
+    return Math.max(0, Math.min(TOTAL_SECONDS, Math.floor(n)));
+  }, [initialSeconds]);
 
   const [seconds, setSeconds] = useState(() => {
-    try {
-      // Add error handling for time parsing
-      if (!orderTime) {
-        console.error('No orderTime provided to Timer component');
-        return 0;
-      }
+    if (initialFromProp !== null) return initialFromProp;
+    const orderDateTime = parseOrderTimeToTodayDate(orderTime);
+    if (!orderDateTime) return 0;
 
-      // Calculate initial seconds remaining when component mounts
-      const [timeStr, period] = orderTime.split(" ");
-      const [hours, minutes, seconds] = timeStr.split(":");
-      const orderDateTime = new Date();
-      
-      console.log('Parsing time:', { hours, minutes, seconds, period });
-      
-      // Set the order time
-      if (period === "PM" && hours !== "12") {
-        orderDateTime.setHours(parseInt(hours) + 12);
-      } else if (period === "AM" && hours === "12") {
-        orderDateTime.setHours(0);
-      } else {
-        orderDateTime.setHours(parseInt(hours));
-      }
-      orderDateTime.setMinutes(parseInt(minutes));
-      orderDateTime.setSeconds(parseInt(seconds));
-
-      const currentTime = new Date();
-      const timeDifferenceInSeconds = Math.floor(
-        (currentTime - orderDateTime) / 1000
-      );
-      
-      const remainingSeconds = Math.max(90 - timeDifferenceInSeconds, 0);
-      console.log('Calculated remaining seconds:', remainingSeconds);
-      
-      return remainingSeconds;
-    } catch (error) {
-      console.error('Error in Timer initialization:', error);
-      return 0;
-    }
+    const diffMs = Date.now() - orderDateTime.getTime();
+    const remainingMs = TOTAL_SECONDS * 1000 - diffMs;
+    const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+    return remainingSeconds;
   });
+
   const [isCompleted, setIsCompleted] = useState(seconds === 0);
-  const TOTAL_SECONDS = 90;
+
+  useEffect(() => {
+    // If parent switches to a new initial value, sync.
+    if (initialFromProp !== null) {
+      setSeconds(initialFromProp);
+      setIsCompleted(initialFromProp === 0);
+    }
+  }, [initialFromProp]);
 
   useEffect(() => {
     if (seconds <= 0) {
@@ -54,7 +69,9 @@ const Timer = ({ orderTime }) => {
 
     const timer = setInterval(() => {
       setSeconds(prevSeconds => {
-        const newSeconds = Math.max(0, prevSeconds - 1);
+        const prev = safeNumber(prevSeconds);
+        if (prev === null) return 0;
+        const newSeconds = Math.max(0, prev - 1);
         if (newSeconds === 0) {
           setIsCompleted(true);
         }
