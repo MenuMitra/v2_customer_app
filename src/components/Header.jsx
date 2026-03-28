@@ -8,7 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 import OutletInfoBanner from "./OutletInfoBanner";
 import { useLocation } from "react-router-dom";
 import logo2 from "../assets/mm-logo.png";
-
+import { useOutlet } from "../contexts/OutletContext";
 
 function Header() {
   const mainBarRef = useRef(null);
@@ -17,6 +17,41 @@ function Header() {
   const location = useLocation();
   // const [userName, setUserName] = useState("");
   const navigate = useNavigate();
+  const {
+    outletCode,
+    sectionId,
+    tableNumber,
+    outletName,
+    sectionName,
+  } = useOutlet();
+
+  const hasTableQrContext = Boolean(
+    outletCode &&
+      sectionId != null &&
+      String(sectionId) !== "" &&
+      tableNumber != null &&
+      String(tableNumber) !== ""
+  );
+
+  const displayTableLabel =
+    Array.isArray(tableNumber) && tableNumber.length > 0
+      ? tableNumber.join(", ")
+      : tableNumber;
+
+  const qrLocationSubtitle =
+    hasTableQrContext &&
+    [
+      outletName || (outletCode ? `Outlet #${outletCode}` : ""),
+      sectionName ||
+        (sectionId != null && String(sectionId) !== ""
+          ? `Section ${sectionId}`
+          : ""),
+      displayTableLabel != null && String(displayTableLabel) !== ""
+        ? `Table ${displayTableLabel}`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
 
   // Treat dynamic outlet root like "/o123/s45/t6" as home as well
   const isHomePath =
@@ -180,6 +215,17 @@ function Header() {
                 </a>
               </div>
             </div>
+            {qrLocationSubtitle ? (
+              <div className="pb-2 pt-0 border-b border-gray-100">
+                <p
+                  className="m-0 text-[11px] sm:text-xs text-gray-600 leading-snug truncate"
+                  title={qrLocationSubtitle}
+                >
+                  <i className="fa-solid fa-qrcode mr-1 text-gray-400" aria-hidden />
+                  {qrLocationSubtitle}
+                </p>
+              </div>
+            ) : null}
           </div>
         </div>
       </header>

@@ -13,7 +13,8 @@ export const AddToCartModal = () => {
   const { user, setShowAuthOffcanvas, getUserId } = useAuth();
   const { outletId, sectionId, tableId, orderSettings } = useOutlet();
   const navigate = useNavigate();
-  const cartOnly = !!modalConfig.data?.cartOnly;
+  const cartOnly =
+    !!modalConfig.data?.cartOnly || !!modalConfig.data?.isCombo;
 
   const [selectedPortion, setSelectedPortion] = useState(() => {
     // `portion_id` can be 0 (fallback "Default" portion). Use nullish coalescing.
@@ -459,6 +460,8 @@ export const AddToCartModal = () => {
   useEffect(() => {
     const fetchMenuDetails = async () => {
       try {
+        if (modalConfig.data?.isCombo) return;
+
         const userId = getUserId();
         const menuId = modalConfig.data?.menuId || modalConfig.data?.menu_id;
         const menuCatId = modalConfig.data?.menuCatId || modalConfig.data?.menu_cat_id || modalConfig.data?.category_id;
@@ -509,7 +512,10 @@ export const AddToCartModal = () => {
       }
     };
 
-    if (modalConfig.data?.menuId || modalConfig.data?.menu_id) {
+    if (
+      (modalConfig.data?.menuId || modalConfig.data?.menu_id) &&
+      !modalConfig.data?.isCombo
+    ) {
       fetchMenuDetails();
     }
   }, [modalConfig.data, cartItems, getUserId, outletId]);

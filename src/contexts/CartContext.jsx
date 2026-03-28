@@ -114,10 +114,19 @@ export const CartProvider = ({ children }) => {
     setCartItems((prevItems) => {
       console.log('Previous cart items:', prevItems);
 
-      const existingItemIndex = prevItems.findIndex(
-        (item) =>
-          item.menuId == menuItem.menuId && item.portionId == portionId
-      );
+      const existingItemIndex = prevItems.findIndex((item) => {
+        if (menuItem.isCombo) {
+          return (
+            item.isCombo &&
+            String(item.comboMasterId) === String(menuItem.comboMasterId)
+          );
+        }
+        return (
+          !item.isCombo &&
+          item.menuId == menuItem.menuId &&
+          item.portionId == portionId
+        );
+      });
 
       console.log('Existing item index:', existingItemIndex);
 
@@ -155,6 +164,8 @@ export const CartProvider = ({ children }) => {
         return updatedItems;
       } else if (quantity > 0) {
         const newItem = {
+          isCombo: !!menuItem.isCombo,
+          comboMasterId: menuItem.isCombo ? menuItem.comboMasterId : undefined,
           menuId: menuItem.menuId,
           menuName: menuItem.menuName,
           portionId: portionId,
@@ -184,12 +195,21 @@ export const CartProvider = ({ children }) => {
       user_id: userId,
       section_id: orderSettings.section_id,
       order_type: orderSettings.order_type,
-      order_items: cartItems.map((item) => ({
-        menu_id: item.menuId,
-        quantity: item.quantity,
-        portion_name: item.portionName?.toLowerCase() || "",
-        comment: item.comment || "",
-      })),
+      order_items: cartItems.map((item) =>
+        item.isCombo && item.comboMasterId != null
+          ? {
+              combo_master_id: item.comboMasterId,
+              quantity: item.quantity,
+              portion_name: (item.portionName || "").toLowerCase() || "default",
+              comment: item.comment || "",
+            }
+          : {
+              menu_id: item.menuId,
+              quantity: item.quantity,
+              portion_name: item.portionName?.toLowerCase() || "",
+              comment: item.comment || "",
+            }
+      ),
       action: orderSettings.action,
     };
 
