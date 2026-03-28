@@ -55,6 +55,8 @@ export const AuthProvider = ({ children }) => {
     
     console.log('Storing auth data:', auth);
     localStorage.setItem('auth', JSON.stringify(auth));
+
+    window.dispatchEvent(new CustomEvent('outlet:refresh'));
     
     setUser({
       id: userData.user_id,

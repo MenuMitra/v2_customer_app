@@ -13,6 +13,7 @@ function OutletInfoBanner() {
     isOutletOnlyUrl,
     tableNumber,
     sectionName,
+    sectionId,
     orderSettings,
   } = useOutlet();
   const navigate = useNavigate();
@@ -103,13 +104,19 @@ function OutletInfoBanner() {
             </button>
           ) : (
             <div className="flex items-center">
-              <span className="font-normal text-gray-300">
-                {sectionName ? sectionName : "SectionName"}-
+              <span className="font-normal text-gray-600 text-sm">
+                {sectionName ||
+                  (sectionId != null && String(sectionId) !== ""
+                    ? `Section ${sectionId}`
+                    : "—")}
+                {" · "}
                 {tableNumber &&
                 Array.isArray(tableNumber) &&
                 tableNumber.length > 0
-                  ? tableNumber.join(", ")
-                  : tableNumber || "N/A"}
+                  ? `Table ${tableNumber.join(", ")}`
+                  : tableNumber != null && String(tableNumber) !== ""
+                    ? `Table ${tableNumber}`
+                    : "—"}
               </span>
             </div>
           )}

@@ -108,19 +108,44 @@ export const OutletProvider = ({ children }) => {
       const { outletCode, sectionId, tableNumber } = params;
       // Existing full URL handling
       updateOrderSettings({ order_type: "dine-in" });
-      if (
+
+      const urlChanged =
         !stored ||
-        stored.outletCode !== outletCode ||
-        stored.sectionId !== sectionId ||
-        stored.tableNumber !== tableNumber
-      ) {
-        localStorage.setItem("outletCode", outletCode);
-        localStorage.setItem("sectionId", sectionId);
-        // `/t{n}` from the URL is a human table number, not backend table_id.
-        localStorage.setItem("tableNumber", tableNumber);
+        String(stored.outletCode) !== String(outletCode) ||
+        String(stored.sectionId) !== String(sectionId) ||
+        String(stored.tableNumber) !== String(tableNumber);
+
+      if (urlChanged) {
         // Clear any stale backend table_id; it will be set from API response.
         localStorage.removeItem("tableId");
+      }
 
+      // Merge QR path into `selectedOutlet` immediately so Header / useOutlet()
+      // show section + table before the API returns (and after refresh).
+      const sameOutlet =
+        stored && String(stored.outletCode) === String(outletCode);
+      const merged = {
+        ...(sameOutlet ? stored : {}),
+        outletCode,
+        sectionId,
+        tableNumber,
+      };
+      if (!sameOutlet) {
+        delete merged.outletId;
+        delete merged.outletName;
+        delete merged.sectionName;
+        delete merged.tableId;
+      }
+
+      localStorage.setItem("outletCode", outletCode);
+      localStorage.setItem("sectionId", sectionId);
+      localStorage.setItem("tableNumber", tableNumber);
+      localStorage.setItem("selectedOutlet", JSON.stringify(merged));
+      setOutletInfo(merged);
+      setOutletDetails(merged);
+      setOutletId(merged.outletId || null);
+
+      if (urlChanged || !merged.outletId) {
         fetchOutletDetailsByCode(outletCode).then((details) => {
           if (details) {
             localStorage.setItem("selectedOutlet", JSON.stringify(details));
@@ -273,6 +298,26 @@ export const OutletProvider = ({ children }) => {
       throw error;
     }
   };
+
+  // After login, refetch outlet so APIs that need `user_id` can fill `section_name`, etc.
+  useEffect(() => {
+    const onRefresh = () => {
+      const code = localStorage.getItem("outletCode");
+      if (!code) return;
+      fetchOutletDetailsByCode(code)
+        .then((details) => {
+          if (details) {
+            localStorage.setItem("selectedOutlet", JSON.stringify(details));
+            setOutletInfo(details);
+            setOutletId(details.outletId);
+            setOutletDetails(details);
+          }
+        })
+        .catch(() => {});
+    };
+    window.addEventListener("outlet:refresh", onRefresh);
+    return () => window.removeEventListener("outlet:refresh", onRefresh);
+  }, []);
 
   const updateOutletInfo = (newInfo) => {
     // Ensure we preserve section and table IDs when updating

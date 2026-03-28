@@ -163,6 +163,16 @@ function CheckoutContent() {
         item.portionName && typeof item.portionName === "string"
           ? item.portionName
           : "Default";
+
+      if (item.isCombo && item.comboMasterId != null) {
+        return {
+          combo_master_id: Number(item.comboMasterId),
+          quantity: Number(item.quantity),
+          portion_name: portionName,
+          comment: item.comment || "",
+        };
+      }
+
       const payload = {
         menu_id: Number(item.menuId),
         quantity: Number(item.quantity),
@@ -365,12 +375,24 @@ function CheckoutContent() {
       const accessToken = auth?.accessToken;
       const userId = auth?.userId;
 
-      const orderItems = cartItems.map((item) => ({
-        menu_id: item.menuId,
-        quantity: item.quantity,
-        portion_name: item.portionName?.toLowerCase() || "",
-        comment: item.comment || "", // Add the comment field here
-      }));
+      const orderItems = cartItems.map((item) => {
+        if (item.isCombo && item.comboMasterId != null) {
+          return {
+            combo_master_id: String(item.comboMasterId),
+            quantity: item.quantity,
+            portion_name:
+              (item.portionName || "default").toString().toLowerCase() ||
+              "default",
+            comment: item.comment || "",
+          };
+        }
+        return {
+          menu_id: item.menuId,
+          quantity: item.quantity,
+          portion_name: item.portionName?.toLowerCase() || "",
+          comment: item.comment || "",
+        };
+      });
 
       // Get order settings from localStorage
       const orderSettings = localStorage.getItem("orderSettings");
@@ -534,12 +556,22 @@ function CheckoutContent() {
         return;
       }
 
-      const orderItems = cartItems.map((item) => ({
-        menu_id: item.menuId.toString(),
-        quantity: item.quantity,
-        portion_name: item.portionName?.toLowerCase() || "",
-        comment: item.comment || "",
-      }));
+      const orderItems = cartItems.map((item) => {
+        if (item.isCombo && item.comboMasterId != null) {
+          return {
+            combo_master_id: item.comboMasterId,
+            quantity: item.quantity,
+            portion_name: item.portionName?.toLowerCase() || "default",
+            comment: item.comment || "",
+          };
+        }
+        return {
+          menu_id: item.menuId.toString(),
+          quantity: item.quantity,
+          portion_name: item.portionName?.toLowerCase() || "",
+          comment: item.comment || "",
+        };
+      });
 
       // Get order settings from localStorage
       const orderSettings = localStorage.getItem("orderSettings");
@@ -572,12 +604,23 @@ function CheckoutContent() {
         return;
       }
 
-      const orderItems = cartItems.map((item) => ({
-        menu_id: item.menuId,
-        portion_id: item.portionId,
-        quantity: item.quantity,
-        comment: item.comment || "",
-      }));
+      const orderItems = cartItems.map((item) => {
+        if (item.isCombo && item.comboMasterId != null) {
+          return {
+            combo_master_id: item.comboMasterId,
+            quantity: item.quantity,
+            comment: item.comment || "",
+            portion_name: item.portionName,
+            portionName: item.portionName,
+          };
+        }
+        return {
+          menu_id: item.menuId,
+          portion_id: item.portionId,
+          quantity: item.quantity,
+          comment: item.comment || "",
+        };
+      });
 
       await addToExistingMutation.mutateAsync({
         orderId: existingOrderModal.orderDetails.order_id,
@@ -709,8 +752,11 @@ function CheckoutContent() {
                     return (
                       <li
                         key={`${item.menuId}-${item.portionId}`}
-                        className="mb-3 border-0 cursor-pointer cart-item"
+                        className={`mb-3 border-0 cart-item ${
+                          item.isCombo ? "" : "cursor-pointer"
+                        }`}
                         onClick={() => {
+                          if (item.isCombo) return;
                           if (!menuCatId) {
                             addToast({
                               message: "No menu_cat_id found for this item!",

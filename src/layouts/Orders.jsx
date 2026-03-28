@@ -10,6 +10,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import apiService from "../api/apiService";
 import { useQuery } from '@tanstack/react-query';
+import { useToast } from "../components/Toast/ToastContext";
 
 // Update the NoOrders component with new icon
 const NoOrders = ({ message }) => {
@@ -40,6 +41,7 @@ const NoOrders = ({ message }) => {
 function OrdersContent() {
   const { outletId } = useOutlet();
   const navigate = useNavigate();
+  const toast = useToast();
 
   // Get userId from auth
   const auth = JSON.parse(localStorage.getItem("auth")) || {};
@@ -558,9 +560,19 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
       await refetchOngoingOrders();
       await refetchOrderHistory();
       handleCloseCancelModal();
+      toast.show({
+        type: "success",
+        message: "Order cancelled successfully",
+      });
     } catch (err) {
       _setCancelOrderStatus(false);
       console.error("Error cancelling order:", err);
+      const msg =
+        err?.message ||
+        err?.detail ||
+        (typeof err?.data?.detail === "string" ? err.data.detail : null) ||
+        "Could not cancel this order";
+      toast.show({ type: "error", message: msg });
     }
   };
 
@@ -667,11 +679,11 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                           <span className="text-soft mb-2 text-sm">{order.orderType?.toUpperCase()}</span>
                           {(() => {
                             const remainingSeconds = calcRemainingSeconds(order);
-                            // Backend allows cancel within 90 seconds even if status has progressed
-                            // (e.g. "cooking"). Hide only when remaining time reaches 0.
+                            // API only accepts cancel when order is still "placed"
+                            // (e.g. "cooking" returns: not in placed status, cannot be cancelled).
+                            const statusNorm = String(order.status || "").toLowerCase();
                             const canCancel =
-                              remainingSeconds > 0 &&
-                              String(order.status || "").toLowerCase() !== "cancelled";
+                              remainingSeconds > 0 && statusNorm === "placed";
                             return canCancel ? (
                             <button
                               className="px-3 py-1.5 text-sm text-white bg-[#FF0000] rounded hover:bg-[#cc0000] transition-colors"

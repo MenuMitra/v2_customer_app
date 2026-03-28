@@ -15,8 +15,7 @@ import { useModal } from "../contexts/ModalContext";
 import apiService from "../api/apiService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ENV } from "../config";
-
-
+import { comboToMenuItem, COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
 
 function Home() {
   // Keep core hooks and context values
@@ -118,27 +117,27 @@ function Home() {
       menuCount: totalMenuCount,
     };
 
+    const base = [allCategory, ...menuCategories];
+    const categories =
+      combos?.length > 0
+        ? [
+            ...base,
+            {
+              menuCatId: COMBO_CATEGORY_ID,
+              categoryName: "Combos",
+              menuCount: combos.length,
+            },
+          ]
+        : base;
+
     return {
-      categories: [allCategory, ...menuCategories],
+      categories,
       menusByCategory,
     };
-  }, [menuItems, menuCategories]); // Only recompute when menu data changes
+  }, [menuItems, menuCategories, combos]);
 
-  const selectedCategory = useMemo(() => {
-    if (!selectedCategoryId) return null;
-    return (
-      categoriesData.categories.find(
-        (c) => String(c.menuCatId) === String(selectedCategoryId)
-      ) || null
-    );
-  }, [selectedCategoryId, categoriesData.categories]);
-
-  const comboCategoryFromCategories = categoriesData.categories.find(
-    (c) => String(c?.categoryName || "").toLowerCase().includes("combo")
-  );
   const isComboCategory =
-    !!comboCategoryFromCategories &&
-    String(comboCategoryFromCategories.menuCatId) === String(selectedCategoryId);
+    String(selectedCategoryId) === String(COMBO_CATEGORY_ID);
 
   // IMPROVEMENT: Use useMemo for filtered menus instead of useState + useEffect
   // This eliminates the need for filteredMenuItems state and its update effects
@@ -249,6 +248,7 @@ function Home() {
               <CategorySwiper
                 categories={categoriesData.categories}
                 isLoading={isLoading}
+                activeCategoryId={selectedCategoryId}
                 onCategoryClick={handleCategoryClick}
               />
               <div className="title-bar mt-0">
@@ -327,30 +327,28 @@ function Home() {
                   ) : isComboCategory ? (
                     <>
                       {combos?.length
-                        ? combos.map((combo) => (
-                            <div
-                              key={combo.combo_master_id}
-                              className="rounded-2xl border border-gray-200 bg-white shadow-sm p-3"
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                  <div className="font-semibold text-sm sm:text-base text-[#212529] truncate">
-                                    {combo.name}
-                                  </div>
-                                  <div className="text-gray-500 text-xs mt-1">
-                                    {(combo.combo_food_type || "")
-                                      .toString()
-                                      .toUpperCase()}
-                                  </div>
-                                </div>
-                                <div className="font-semibold text-[#3AB4F2] whitespace-nowrap">
-                                  {combo.price != null
-                                    ? `₹${Number(combo.price).toFixed(2)}`
-                                    : "₹0.00"}
-                                </div>
+                        ? combos.map((combo) => {
+                            const shaped = comboToMenuItem(combo, outletId);
+                            return (
+                              <div key={combo.combo_master_id}>
+                                <VerticalMenuCard
+                                  image={
+                                    <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]" />
+                                  }
+                                  title={shaped.menuName}
+                                  currentPrice={
+                                    shaped.price ||
+                                    shaped.portions?.[0]?.price ||
+                                    0
+                                  }
+                                  isFavorite={false}
+                                  discount={null}
+                                  menuItem={shaped}
+                                  onFavoriteUpdate={() => {}}
+                                />
                               </div>
-                            </div>
-                          ))
+                            );
+                          })
                         : null}
 
                       {/* Also show regular menus for this category (backend may send both) */}
@@ -430,33 +428,59 @@ function Home() {
                       </div>
                     )
                   ) : (
-                    visibleMenus.map((menuItem) => (
-                      <div key={menuItem.menuId}>
-                        <VerticalMenuCard
-                          image={
-                            menuItem.image ? (
-                              menuItem.image
-                            ) : (
-                              <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]"></i>
-                            )
-                          }
-                          title={menuItem.menuName}
-                          currentPrice={menuItem.price || menuItem.portions?.[0]?.price || 0}
-                          reviewCount={
-                            menuItem.rating ? parseInt(menuItem.rating) : null
-                          }
-                          isFavorite={
-                            favoriteMenuIds.has(menuItem.menuId) ||
-                            menuItem.is_favourite === 1
-                          }
-                          discount={
-                            menuItem.offer > 0 ? `${menuItem.offer}%` : null
-                          }
-                          menuItem={menuItem}
-                          onFavoriteUpdate={handleFavoriteClick}
-                        />
-                      </div>
-                    ))
+                    <>
+                      {selectedCategoryId === "all" &&
+                        combos?.length > 0 &&
+                        combos.map((combo) => {
+                          const shaped = comboToMenuItem(combo, outletId);
+                          return (
+                            <div key={`combo-${combo.combo_master_id}`}>
+                              <VerticalMenuCard
+                                image={
+                                  <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]" />
+                                }
+                                title={shaped.menuName}
+                                currentPrice={
+                                  shaped.price ||
+                                  shaped.portions?.[0]?.price ||
+                                  0
+                                }
+                                isFavorite={false}
+                                discount={null}
+                                menuItem={shaped}
+                                onFavoriteUpdate={() => {}}
+                              />
+                            </div>
+                          );
+                        })}
+                      {visibleMenus.map((menuItem) => (
+                        <div key={menuItem.menuId}>
+                          <VerticalMenuCard
+                            image={
+                              menuItem.image ? (
+                                menuItem.image
+                              ) : (
+                                <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]" />
+                              )
+                            }
+                            title={menuItem.menuName}
+                            currentPrice={menuItem.price || menuItem.portions?.[0]?.price || 0}
+                            reviewCount={
+                              menuItem.rating ? parseInt(menuItem.rating) : null
+                            }
+                            isFavorite={
+                              favoriteMenuIds.has(menuItem.menuId) ||
+                              menuItem.is_favourite === 1
+                            }
+                            discount={
+                              menuItem.offer > 0 ? `${menuItem.offer}%` : null
+                            }
+                            menuItem={menuItem}
+                            onFavoriteUpdate={handleFavoriteClick}
+                          />
+                        </div>
+                      ))}
+                    </>
                   )}
                 </div>
                 {/* Lazy Load Button */}

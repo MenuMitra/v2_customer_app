@@ -173,12 +173,26 @@ export const apiService = {
         user_id: String(userId),
         section_id: String(sectionId),
         order_type: orderType || "dine-in",
-        order_items: (orderItems || []).map((item) => ({
-          menu_id: String(item.menu_id),
-          quantity: Number(item.quantity),
-          portion_name: item.portion_name || "",
-          comment: item.comment || "",
-        })),
+        order_items: (orderItems || []).map((item) => {
+          if (
+            item.combo_master_id != null &&
+            item.combo_master_id !== undefined &&
+            item.combo_master_id !== ""
+          ) {
+            return {
+              combo_master_id: String(item.combo_master_id),
+              quantity: Number(item.quantity),
+              portion_name: item.portion_name || "",
+              comment: item.comment || "",
+            };
+          }
+          return {
+            menu_id: String(item.menu_id),
+            quantity: Number(item.quantity),
+            portion_name: item.portion_name || "",
+            comment: item.comment || "",
+          };
+        }),
         action,
         app_source: appSource,
       };
@@ -201,12 +215,26 @@ export const apiService = {
         {
           order_id: String(orderId),
           outlet_id: String(outletId),
-          order_items: (orderItems || []).map((item) => ({
-            menu_id: String(item.menu_id),
-            quantity: String(item.quantity),
-            portion_name: item.portion_name || "",
-            comment: item.comment || "",
-          })),
+          order_items: (orderItems || []).map((item) => {
+            if (
+              item.combo_master_id != null &&
+              item.combo_master_id !== undefined &&
+              item.combo_master_id !== ""
+            ) {
+              return {
+                combo_master_id: String(item.combo_master_id),
+                quantity: String(item.quantity),
+                portion_name: item.portion_name || "",
+                comment: item.comment || "",
+              };
+            }
+            return {
+              menu_id: String(item.menu_id),
+              quantity: String(item.quantity),
+              portion_name: item.portion_name || "",
+              comment: item.comment || "",
+            };
+          }),
           app_source: "user_app",
         }
       );
@@ -258,6 +286,24 @@ export const apiService = {
 
     addToExistingOrder: async ({ orderId, userId, outletId, orderItems }) => {
       const sanitizedItems = (orderItems || []).map((item) => {
+        const comboId =
+          item?.combo_master_id ?? item?.comboMasterId ?? null;
+        if (
+          comboId !== null &&
+          comboId !== undefined &&
+          comboId !== ""
+        ) {
+          return {
+            combo_master_id: Number(comboId),
+            quantity: Number(item?.quantity ?? 0),
+            comment: item?.comment || "",
+            portion_name:
+              (item?.portion_name || item?.portionName || "default")
+                .toString()
+                .toLowerCase() || "default",
+          };
+        }
+
         const portionId = item?.portion_id ?? item?.portionId ?? null;
         const payload = {
           menu_id: Number(item?.menu_id ?? item?.menuId),
@@ -310,12 +356,26 @@ export const apiService = {
         section_id: sectionId.toString(),
         order_type: orderType || "dine-in",
         app_source: appSource,
-        order_items: orderItems.map(item => ({
-          menu_id: item.menu_id.toString(),
-          quantity: Number(item.quantity),
-          comment: item.comment || "",
-          portion_name: item.portion_name || ""
-        }))
+        order_items: orderItems.map((item) => {
+          if (
+            item.combo_master_id != null &&
+            item.combo_master_id !== undefined &&
+            item.combo_master_id !== ""
+          ) {
+            return {
+              combo_master_id: String(item.combo_master_id),
+              quantity: Number(item.quantity),
+              comment: item.comment || "",
+              portion_name: item.portion_name || "",
+            };
+          }
+          return {
+            menu_id: item.menu_id.toString(),
+            quantity: Number(item.quantity),
+            comment: item.comment || "",
+            portion_name: item.portion_name || "",
+          };
+        }),
       };
 
       // Only add table_id if it's provided and not null/undefined
@@ -377,11 +437,11 @@ export const apiService = {
     },
 
     cancelOrder: async ({ outletId, orderId, note }) => {
-      const response = await axiosInstance.post(`/user/cancel_order`, {
-        outlet_id: outletId,
-        order_id: orderId,
-        note,
-        app_source: "user_app"
+      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/cancel_order`, {
+        outlet_id: String(outletId),
+        order_id: String(orderId),
+        note: note || "",
+        app_source: "user_app",
       });
       return response.data;
     },

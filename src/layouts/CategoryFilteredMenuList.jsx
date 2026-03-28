@@ -7,6 +7,7 @@ import VerticalMenuCard from '../components/VerticalMenuCard';
 import { useOutlet } from '../contexts/OutletContext';
 import { useAuth } from '../contexts/AuthContext';
 import apiService from '../api/apiService';
+import { comboToMenuItem, COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
 
 const DEFAULT_IMAGE = '';
 
@@ -16,6 +17,7 @@ function CategoryFilteredMenuList() {
     const categoryName = location.state?.categoryName;
     const menuCount = location.state?.menuCount;
     const { outletId } = useOutlet();
+    const isSyntheticComboRoute = String(categoryId) === COMBO_CATEGORY_ID;
     const { getUserId } = useAuth();
     const queryClient = useQueryClient();
     const userId = getUserId();
@@ -27,7 +29,7 @@ function CategoryFilteredMenuList() {
             outletId,
             categoryId
         }),
-        enabled: !!outletId && !!categoryId
+        enabled: !!outletId && !!categoryId && !isSyntheticComboRoute
     });
 
     const { data: combosData, isLoading: combosLoading, error: combosError } = useQuery({
@@ -46,8 +48,9 @@ function CategoryFilteredMenuList() {
             (c?.category_name || "").toLowerCase().includes("combo")
     );
     const isComboCategory =
-        comboCategoryFromApi &&
-        String(comboCategoryFromApi.menu_cat_id) === String(categoryId);
+        isSyntheticComboRoute ||
+        (comboCategoryFromApi &&
+            String(comboCategoryFromApi.menu_cat_id) === String(categoryId));
 
     // Mutations for favorite functionality
     const addToFavorites = useMutation({
@@ -87,6 +90,9 @@ function CategoryFilteredMenuList() {
             console.error('Failed to update favorite status:', err);
         }
     };
+
+    const handleFavoriteUpdate = (menuId, newIsFavorite) =>
+        handleFavoriteClick(newIsFavorite, menuId);
 
     const resolvedCategoryName =
         categoryName || data?.category?.category_name || "";
@@ -128,14 +134,17 @@ function CategoryFilteredMenuList() {
             <Header />
             <div className="page-content">
                 <div className="container p-b80">
-                    {category && (
+                    {(category || isSyntheticComboRoute) && (
                         <div className="category-header mb-4">
                             <h4 className="title mb-1 text-xl font-semibold">
-                                {resolvedCategoryName || category.category_name}
+                                {resolvedCategoryName ||
+                                    category?.category_name ||
+                                    (isSyntheticComboRoute ? "Combos" : "")}
                             </h4>
-                            {menuCount && (
+                            {(menuCount ||
+                                (isSyntheticComboRoute && combos?.length)) && (
                                 <small className="text-[#6c757d] text-sm">
-                                    {menuCount} Items Available
+                                    {menuCount || combos?.length} Items Available
                                 </small>
                             )}
                         </div>
@@ -147,30 +156,32 @@ function CategoryFilteredMenuList() {
                                 <>
                                     {combosLoading ? null : combosError ? null : combos?.length ? (
                                         <>
-                                            {combos.map((combo) => (
-                                                <div
-                                                    key={combo.combo_master_id}
-                                                    className="rounded-2xl border border-gray-200 bg-white shadow-sm p-3"
-                                                >
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <div className="min-w-0">
-                                                            <div className="font-semibold text-base text-[#212529] truncate">
-                                                                {combo.name}
-                                                            </div>
-                                                            <div className="text-gray-500 text-xs mt-1">
-                                                                {(combo.combo_food_type || "")
-                                                                    .toString()
-                                                                    .toUpperCase()}
-                                                            </div>
-                                                        </div>
-                                                        <div className="font-semibold text-[#3AB4F2] whitespace-nowrap">
-                                                            {combo.price != null
-                                                                ? `₹${Number(combo.price).toFixed(2)}`
-                                                                : "₹0.00"}
-                                                        </div>
+                                            {combos.map((combo) => {
+                                                const shaped = comboToMenuItem(
+                                                    combo,
+                                                    outletId
+                                                );
+                                                return (
+                                                    <div key={combo.combo_master_id}>
+                                                        <VerticalMenuCard
+                                                            image={
+                                                                <i className="fa-solid fa-utensils text-[55px] opacity-50 text-[#6c757d]" />
+                                                            }
+                                                            title={shaped.menuName}
+                                                            currentPrice={
+                                                                shaped.price ||
+                                                                shaped.portions?.[0]
+                                                                    ?.price ||
+                                                                0
+                                                            }
+                                                            isFavorite={false}
+                                                            discount={null}
+                                                            menuItem={shaped}
+                                                            onFavoriteUpdate={() => {}}
+                                                        />
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </>
                                     ) : combosLoading ? null : (
                                         <div className="bg-[#cff4fc] border border-[#b6effb] text-[#055160] px-4 py-3 rounded-lg">
@@ -204,12 +215,13 @@ function CategoryFilteredMenuList() {
                                             isActive: menu.is_active,
                                             image: menu.images?.[0]?.image || DEFAULT_IMAGE
                                         }}
-                                        onFavoriteClick={handleFavoriteClick}
+                                        onFavoriteUpdate={handleFavoriteUpdate}
                                     />
                                 </div>
                             ))}
 
-                            {menus.length === 0 && (
+                            {menus.length === 0 &&
+                                !(isComboCategory && (combosLoading || combos?.length > 0)) && (
                                 <div>
                                     <div className="bg-[#cff4fc] border border-[#b6effb] text-[#055160] px-4 py-3 rounded-lg">
                                         No menu items found in this category.
