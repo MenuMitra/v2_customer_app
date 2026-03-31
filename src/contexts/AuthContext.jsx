@@ -61,11 +61,8 @@ export const AuthProvider = ({ children }) => {
     console.log('Storing auth data:', auth);
     localStorage.setItem('auth', JSON.stringify(auth));
 
-<<<<<<< HEAD
-=======
     window.dispatchEvent(new CustomEvent('outlet:refresh'));
-    
->>>>>>> testing
+
     setUser({
       id: userId,
       name: userData.name,
