@@ -7,6 +7,7 @@ import { useOutlet } from '../contexts/OutletContext';
 import apiService from '../api/apiService';
 import QueryErrorBoundary from '../components/QueryErrorBoundary';
 import TestCacheButton from '../components/TestCacheButton';
+import { COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
 
 function Categories() {
   const navigate = useNavigate();
@@ -24,6 +25,27 @@ function Categories() {
     queryFn: () => apiService.categories.getList({ outletId }),
     enabled: !!outletId,
   });
+
+  const { data: combosData } = useQuery({
+    queryKey: ['combosByOutlet', outletId],
+    queryFn: () => apiService.common.getAllMenuListByCategory({ outletId }),
+    enabled: !!outletId,
+    staleTime: 0,
+  });
+
+  const combos = combosData?.combos || [];
+
+  const categoriesWithCombos =
+    combos.length > 0
+      ? [
+          ...categories,
+          {
+            menu_cat_id: COMBO_CATEGORY_ID,
+            category_name: "Combos",
+            menu_count: combos.length,
+          },
+        ]
+      : categories;
 
   const handleCategoryClick = (e, category) => {
     e.preventDefault();
@@ -169,8 +191,8 @@ function Categories() {
   };
 
   // Filter categories by search term
-  const filteredCategories = Array.isArray(categories)
-    ? categories.filter((c) =>
+  const filteredCategories = Array.isArray(categoriesWithCombos)
+    ? categoriesWithCombos.filter((c) =>
       (c?.category_name || "").toLowerCase().includes(searchTerm.trim().toLowerCase())
     )
     : [];

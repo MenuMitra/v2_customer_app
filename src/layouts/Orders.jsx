@@ -46,6 +46,8 @@ function OrdersContent() {
   // Get userId from auth
   const auth = JSON.parse(localStorage.getItem("auth")) || {};
   const userId = auth.userId;
+  const activeOrderId = localStorage.getItem("activeOrderId");
+  const activeOrderCreatedAt = localStorage.getItem("activeOrderCreatedAt");
 
   // State for managing active tab and expansion of date accordions
   const [activeTab, setActiveTab] = useState('completed');
@@ -114,6 +116,69 @@ function OrdersContent() {
     enabled: !!userId && !!outletId,
     refetchInterval: 10000,
   });
+
+  // Fallback details for freshly created order: backend ongoing list can lag.
+  const { data: activeOrderDetailsData } = useQuery({
+    queryKey: ['activeOrderDetails', activeOrderId, userId],
+    queryFn: async () => {
+      if (!activeOrderId || !userId) return null;
+      return apiService.checkout.getOrderDetails({
+        orderId: activeOrderId,
+        userId,
+      });
+    },
+    enabled: !!activeOrderId && !!userId,
+    refetchInterval: 10000,
+  });
+
+  const statusIsTerminal = (status) => {
+    const s = String(status || "").toLowerCase();
+    return (
+      s === "paid" ||
+      s === "cancelled" ||
+      s === "rejected" ||
+      s === "refunded" ||
+      s === "completed"
+    );
+  };
+
+  const activeFallbackOrder = (() => {
+    const details = activeOrderDetailsData?.order_details;
+    if (!details) return null;
+    if (statusIsTerminal(details.order_status)) return null;
+    return {
+      id: details.order_number || String(details.order_id),
+      orderId: details.order_id,
+      orderNumber: details.order_number || String(details.order_id),
+      itemCount: details.menu_count || activeOrderDetailsData?.menu_details?.length || 0,
+      status: details.order_status || "placed",
+      iconColor: "#FFA902",
+      iconBgClass: "bg-warning",
+      isExpanded: false,
+      parentId: "accordionExample1",
+      orderType: details.order_type,
+      outletName: details.outlet_name,
+      totalAmount: details.final_grand_total,
+      paymentMethod: details.payment_method || "Not selected",
+      time: details.time,
+      createdAt:
+        details.order_created_time ||
+        details.order_created_at ||
+        activeOrderCreatedAt ||
+        null,
+      tableNumber: details.table_number,
+      sectionName: details.section_name,
+    };
+  })();
+
+  const combinedOngoingOrders = (() => {
+    const list = ongoingOrdersData || [];
+    if (!activeFallbackOrder) return list;
+    const exists = list.some(
+      (o) => String(o.orderId) === String(activeFallbackOrder.orderId)
+    );
+    return exists ? list : [activeFallbackOrder, ...list];
+  })();
 
   const calcRemainingSeconds = (order) => {
     const createdAtRaw = order?.createdAt;
@@ -498,7 +563,7 @@ function OrdersContent() {
   pendingOrdersByDate[dateKey].orderCount++;
 });
 // Also check ongoingOrdersData for .status === 'cooking'
-(ongoingOrdersData || []).forEach(order => {
+(combinedOngoingOrders || []).forEach(order => {
   if (order.status === 'cooking') {
     // Use today for dateKey since no datetime is present; fallback to 'Today' or order.time
     const dateKey = 'Today';
@@ -637,11 +702,11 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
       <div className="page-content">
         <div className="max-w-[1200px] mx-auto px-4 max-h-[calc(100vh-140px)] overflow-y-auto overscroll-contain pb-[220px]">
           {/* Show ongoing orders section */}
-          {!ongoingError && ongoingOrdersData?.length > 0 && (
+          {!ongoingError && combinedOngoingOrders?.length > 0 && (
             <div className="mb-4">
               <h6 className="mb-3 text-base font-semibold">Ongoing Orders</h6>
               <div className="orders-list">
-                {ongoingOrdersData.map((order) => (
+                {combinedOngoingOrders.map((order) => (
                   <div
                     key={order.id}
                     className="order-item mb-3 cursor-pointer"
