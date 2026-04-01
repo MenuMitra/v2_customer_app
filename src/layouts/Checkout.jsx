@@ -158,36 +158,19 @@ function CheckoutContent() {
   // Transform cart items for API
   const getOrderItems = () => {
     return cartItems.map((item) => {
-      const portionId = item.portionId ?? null;
-      const portionName =
-        item.portionName && typeof item.portionName === "string"
-          ? item.portionName
-          : "Default";
-
       if (item.isCombo && item.comboMasterId != null) {
         return {
           combo_master_id: Number(item.comboMasterId),
           quantity: Number(item.quantity),
-          portion_name: portionName,
           comment: item.comment || "",
         };
       }
 
-      const payload = {
+      return {
         menu_id: Number(item.menuId),
         quantity: Number(item.quantity),
-        // Backend pricing requires portion_name even when portion_id is 0/omitted.
-        portion_name: portionName,
         comment: item.comment || "",
       };
-
-      // Backend billing doesn't recognize our fallback portion_id=0.
-      // When portion id is missing/0, omit it and let backend decide pricing defaults via portion_name.
-      if (portionId !== null && portionId !== undefined && Number(portionId) !== 0) {
-        payload.portion_id = Number(portionId);
-      }
-
-      return payload;
     });
   };
 
@@ -443,6 +426,7 @@ function CheckoutContent() {
             "activeOrderId",
             String(response.data.order_id)
           );
+          localStorage.setItem("activeOrderCreatedAt", String(Date.now()));
         } catch {
           // ignore storage errors
         }
