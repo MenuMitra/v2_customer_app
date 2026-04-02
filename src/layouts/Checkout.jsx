@@ -358,24 +358,21 @@ function CheckoutContent() {
       const accessToken = auth?.accessToken;
       const userId = auth?.userId;
 
-      const orderItems = cartItems.map((item) => {
-        if (item.isCombo && item.comboMasterId != null) {
-          return {
-            combo_master_id: String(item.comboMasterId),
-            quantity: item.quantity,
-            portion_name:
-              (item.portionName || "default").toString().toLowerCase() ||
-              "default",
-            comment: item.comment || "",
-          };
-        }
-        return {
-          menu_id: item.menuId,
+      const order_items = cartItems
+        .filter((item) => !item.isCombo)
+        .map((item) => ({
+          menu_id: String(item.menuId),
           quantity: item.quantity,
-          portion_name: item.portionName?.toLowerCase() || "",
           comment: item.comment || "",
-        };
-      });
+        }));
+
+      const order_combo_items = cartItems
+        .filter((item) => item.isCombo && item.comboMasterId != null)
+        .map((item) => ({
+          combo_master_id: Number(item.comboMasterId),
+          quantity: item.quantity,
+          comment: item.comment || "",
+        }));
 
       // Get order settings from localStorage
       const orderSettings = localStorage.getItem("orderSettings");
@@ -383,13 +380,14 @@ function CheckoutContent() {
         ? JSON.parse(orderSettings).order_type
         : null;
 
-      // Base payload
+      // Base payload (matches /common/create_order: menus vs combos split)
       const payload = {
         outlet_id: String(outletId),
         user_id: String(userId),
         section_id: String(sectionId),
         order_type: orderType || "dine-in", // Fallback to takeaway if no order type
-        order_items: orderItems,
+        order_items,
+        order_combo_items,
         action: "create_order",
         app_source: "user_app",
       };
@@ -485,6 +483,62 @@ function CheckoutContent() {
         sectionId || localStorage.getItem("sectionId") || "";
       const effectiveTableId =
         outletDetails?.tableId || localStorage.getItem("tableId") || "";
+
+      // Reuse locally stored active order (for in-progress/cooking cases)
+      // BEFORE falling back to `check_order_exist` (which may only return
+      // orders in specific statuses).
+      const storedActiveOrderId = activeOrderId || null;
+      if (storedActiveOrderId) {
+        try {
+          const detailsRes = await apiService.checkout.getOrderDetails({
+            orderId: storedActiveOrderId,
+            userId,
+          });
+          const details = detailsRes?.order_details;
+
+          const statusNorm = String(details?.order_status || "")
+            .toLowerCase()
+            .trim();
+
+          // If backend allows adding even after kitchen "completion",
+          // we should not treat `paid/completed` as terminal.
+          // Only truly closed/canceled orders should block reuse.
+          const isTerminal = ["cancelled", "rejected", "refunded"].includes(
+            statusNorm
+          );
+
+          if (!details) {
+            // If backend doesn't know the order_id anymore, clear it locally.
+            localStorage.removeItem("activeOrderId");
+          } else if (isTerminal) {
+            localStorage.removeItem("activeOrderId");
+          } else {
+            // If we have a table_id in this session, make sure it matches.
+            const backendTableId = details?.table_id?.toString?.();
+            const tableMatches =
+              !effectiveTableId ||
+              !backendTableId ||
+              String(backendTableId) === String(effectiveTableId);
+
+            if (tableMatches) {
+              setExistingOrderModal({
+                isOpen: true,
+                orderDetails: {
+                  ...details,
+                  order_id: details.order_id || details.orderId,
+                  order_number:
+                    details.order_number || details.orderNumber,
+                  order_status: details.order_status || details.orderStatus,
+                },
+              });
+              return;
+            }
+          }
+        } catch (e) {
+          // If status fetch fails, fallback to existing check/create logic.
+          console.warn("Failed to reuse active order:", e);
+        }
+      }
 
       const existingOrder = await apiService.checkout.checkExistingOrder({
         userId,

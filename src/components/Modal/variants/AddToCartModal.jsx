@@ -236,7 +236,49 @@ export const AddToCartModal = () => {
 
       const ensureActiveOrder = async () => {
         const stored = localStorage.getItem("activeOrderId");
-        if (stored) return { orderId: String(stored), createdNew: false };
+        if (stored) {
+          // Reuse locally stored active order only if backend still says it's active
+          // (prevents "cooking order -> create new order" when local state is stale).
+          const currentUserId = getUserId();
+          if (currentUserId) {
+            try {
+              const detailsRes = await apiService.checkout.getOrderDetails({
+                orderId: stored,
+                userId: currentUserId,
+              });
+              const details = detailsRes?.order_details;
+
+              const statusNorm = String(details?.order_status || "")
+                .toLowerCase()
+                .trim();
+              // If backend allows adding even after kitchen "completion",
+              // we should not treat `paid/completed` as terminal.
+              // Only truly closed/canceled orders should block reuse.
+              const isTerminal = ["cancelled", "rejected", "refunded"].includes(
+                statusNorm
+              );
+
+              const effectiveTableId =
+                tableId || localStorage.getItem("tableId") || "";
+              const backendTableId = details?.table_id?.toString?.() || "";
+
+              const tableMatches =
+                !effectiveTableId ||
+                !backendTableId ||
+                String(backendTableId) === String(effectiveTableId);
+
+              if (details && !isTerminal && tableMatches) {
+                return { orderId: String(stored), createdNew: false };
+              }
+
+              localStorage.removeItem("activeOrderId");
+            } catch {
+              // If details fetch fails, fallback to backend check/create logic below.
+            }
+          } else {
+            localStorage.removeItem("activeOrderId");
+          }
+        }
 
         const userId = getUserId();
         if (!userId || !targetOutletId) return null;

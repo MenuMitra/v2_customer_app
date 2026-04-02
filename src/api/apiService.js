@@ -168,31 +168,38 @@ export const apiService = {
       action = "create_order",
       appSource = "user_app",
     }) => {
+      const items = orderItems || [];
+      const order_items = [];
+      const order_combo_items = [];
+
+      for (const item of items) {
+        const hasCombo =
+          item.combo_master_id != null &&
+          item.combo_master_id !== undefined &&
+          item.combo_master_id !== "";
+
+        if (hasCombo) {
+          order_combo_items.push({
+            combo_master_id: Number(item.combo_master_id),
+            quantity: Number(item.quantity),
+            comment: item.comment || "",
+          });
+        } else {
+          order_items.push({
+            menu_id: String(item.menu_id ?? item.menuId),
+            quantity: Number(item.quantity),
+            comment: item.comment || "",
+          });
+        }
+      }
+
       const payload = {
         outlet_id: String(outletId),
         user_id: String(userId),
         section_id: String(sectionId),
         order_type: orderType || "dine-in",
-        order_items: (orderItems || []).map((item) => {
-          if (
-            item.combo_master_id != null &&
-            item.combo_master_id !== undefined &&
-            item.combo_master_id !== ""
-          ) {
-            return {
-              combo_master_id: String(item.combo_master_id),
-              quantity: Number(item.quantity),
-              portion_name: item.portion_name || "",
-              comment: item.comment || "",
-            };
-          }
-          return {
-            menu_id: String(item.menu_id),
-            quantity: Number(item.quantity),
-            portion_name: item.portion_name || "",
-            comment: item.comment || "",
-          };
-        }),
+        order_items,
+        order_combo_items,
         action,
         app_source: appSource,
       };
