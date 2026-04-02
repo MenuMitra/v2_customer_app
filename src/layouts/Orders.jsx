@@ -720,7 +720,10 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                               Cancel button itself still depends on backend status. */}
                           {(() => {
                             const remainingSeconds = calcRemainingSeconds(order);
-                            if (remainingSeconds > 0 || order.status === "placed") {
+                            const statusNorm = String(order.status || "")
+                              .toLowerCase()
+                              .trim();
+                            if (remainingSeconds > 0 && statusNorm === "placed") {
                               return (
                                 <Timer initialSeconds={remainingSeconds} />
                               );
