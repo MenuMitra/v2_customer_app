@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-import { Link, useNavigate } from "react-router-dom";
 import LazyImage from "./Shared/LazyImage";
 import { useModal } from "../contexts/ModalContext";
 import { useCart } from "../contexts/CartContext";
@@ -56,21 +55,12 @@ const VerticalMenuCard = ({
   // Convert isFavorite to boolean if it's a number
   const isFavoriteBoolean = typeof isFavorite === 'number' ? isFavorite === 1 : Boolean(isFavorite);
 
-  const navigate = useNavigate();
   const { toggleFavorite, isFavoriteLoading } = useMenuItems();
   const { openModal } = useModal();
   const { cartItems, getCartItemComment } = useCart();
   const { user, setShowAuthOffcanvas, getUserId } = useAuth();
   const { outletId } = useOutlet();
   const userId = getUserId();
-
-  // Generate the product URL from menuItem data with safety checks
-  const detailPageUrl =
-    menuItem?.isCombo
-      ? "#"
-      : menuItem?.menuId && menuItem?.menuCatId
-        ? `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}`
-        : "#";
 
   // Check if any portion of this menu exists in cart with safety check
   const cartItemsForMenu = menuItem?.menuId
@@ -145,19 +135,16 @@ const VerticalMenuCard = ({
       return;
     }
 
-    if (menuItem.isCombo) {
-      openModal("addToCart", {
-        ...menuItem,
-        menuId: menuItem.menuId ?? menuItem.menu_id,
-        outlet_id: menuItem.outlet_id ?? menuItem.outletId ?? outletId,
-        cartOnly: true,
-      });
-      return;
-    }
-
-    // For "Add to cart" on menu cards, always open Menu Details.
-    // Actual cart update happens from the ProductDetail "Add to cart" button.
-    navigate(detailPageUrl);
+    openModal("addToCart", {
+      ...menuItem,
+      menuId: menuItem.menuId ?? menuItem.menu_id,
+      menuCatId:
+        menuItem.menuCatId ??
+        menuItem.menu_cat_id ??
+        menuItem.category_id,
+      outlet_id: menuItem.outlet_id ?? menuItem.outletId ?? outletId,
+      cartOnly: true,
+    });
   };
 
   // Handle quantity changes
@@ -187,48 +174,31 @@ const VerticalMenuCard = ({
   return (
     <div className="card-item style-1">
       <div className="dz-media relative">
-        {menuItem?.isCombo ? (
-          <div
-            className="block cursor-pointer"
-            role="button"
-            tabIndex={0}
-            onKeyDown={(ev) => {
-              if (ev.key === "Enter" || ev.key === " ") {
-                ev.preventDefault();
-                handleAddToCartClick(ev);
-              }
-            }}
-            onClick={handleAddToCartClick}
-          >
-            {typeof image === "string" ? (
-              <LazyImage
-                src={image}
-                alt={title}
-                blur={true}
-                className="menu-image rounded-3xl w-full"
-              />
-            ) : (
-              <div className="flex justify-center items-center w-full aspect-square bg-[#f8f9fa]">
-                {image}
-              </div>
-            )}
-          </div>
-        ) : (
-          <Link to={detailPageUrl}>
-            {typeof image === "string" ? (
-              <LazyImage
-                src={image}
-                alt={title}
-                blur={true}
-                className="menu-image rounded-3xl w-full"
-              />
-            ) : (
-              <div className="flex justify-center items-center w-full aspect-square bg-[#f8f9fa]">
-                {image}
-              </div>
-            )}
-          </Link>
-        )}
+        <div
+          className="block cursor-pointer"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(ev) => {
+            if (ev.key === "Enter" || ev.key === " ") {
+              ev.preventDefault();
+              handleAddToCartClick(ev);
+            }
+          }}
+          onClick={handleAddToCartClick}
+        >
+          {typeof image === "string" ? (
+            <LazyImage
+              src={image}
+              alt={title}
+              blur={true}
+              className="menu-image rounded-3xl w-full"
+            />
+          ) : (
+            <div className="flex justify-center items-center w-full aspect-square bg-[#f8f9fa]">
+              {image}
+            </div>
+          )}
+        </div>
         {discount && (
           <>
             <style>{`
@@ -280,24 +250,20 @@ const VerticalMenuCard = ({
         </div>
 
         <h6 className="title mb-3 text-left">
-          {menuItem?.isCombo ? (
-            <span
-              className="cursor-pointer"
-              role="button"
-              tabIndex={0}
-              onKeyDown={(ev) => {
-                if (ev.key === "Enter" || ev.key === " ") {
-                  ev.preventDefault();
-                  handleAddToCartClick(ev);
-                }
-              }}
-              onClick={handleAddToCartClick}
-            >
-              {title}
-            </span>
-          ) : (
-            <Link to={detailPageUrl}>{title}</Link>
-          )}
+          <span
+            className="cursor-pointer"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(ev) => {
+              if (ev.key === "Enter" || ev.key === " ") {
+                ev.preventDefault();
+                handleAddToCartClick(ev);
+              }
+            }}
+            onClick={handleAddToCartClick}
+          >
+            {title}
+          </span>
         </h6>
 
         <div className="dz-meta mb-3">

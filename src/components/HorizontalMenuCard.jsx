@@ -1,6 +1,5 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { useNavigate } from "react-router-dom";
 import { useModal } from "../contexts/ModalContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useOutlet } from "../contexts/OutletContext";
@@ -83,9 +82,6 @@ const HorizontalMenuCard = ({
   const { getCartItemComment } = useCart(); // Add this
   const userId = getUserId();
 
-  // Add useNavigate hook from react-router-dom
-  const navigate = useNavigate();
-
   // Convert isFavorite to boolean if it's a number
   const isFavoriteBoolean = typeof isFavorite === 'number' ? isFavorite === 1 : Boolean(isFavorite);
 
@@ -99,35 +95,30 @@ const HorizontalMenuCard = ({
   // Check if this menu item belongs to the current outlet
   const isCurrentOutlet = true;
 
-  // Modify the click handler for the entire card
+  const openAddToCartModal = () => {
+    if (!menuItem?.menuId) return;
+    if (!user) {
+      setShowAuthOffcanvas(true);
+      return;
+    }
+    openModal("addToCart", {
+      ...menuItem,
+      menuId: menuItem?.menuId ?? menuItem?.menu_id,
+      menuCatId: menuItem?.menuCatId ?? menuItem?.menu_cat_id ?? menuItem?.category_id,
+      outlet_id: menuItem?.outlet_id ?? menuItem?.outletId ?? outletId,
+      cartOnly: true,
+    });
+  };
+
+  // Match vertical cards: tap row opens add-to-cart modal (no product-detail page).
   const handleCardClick = (e) => {
-    // Don't navigate if clicking on favorite button or cart button
     if (
-      e.target.closest('.like-button') ||
-      e.target.closest('.btn-primary')
+      e.target.closest(".like-button") ||
+      e.target.closest("button")
     ) {
       return;
     }
-
-    if (menuItem?.menuId && menuItem?.menuCatId) {
-      // Check if this is a cross-outlet favorite
-      const isCrossOutlet = menuItem.outletId && Number(menuItem.outletId) !== Number(outletId);
-
-      // Navigate with outlet override state if cross-outlet
-      const url = isCrossOutlet
-        ? `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}?overrideOutletId=${menuItem.outletId}&notCurrentOutlet=true`
-        : `/product-detail/${menuItem.menuId}/${menuItem.menuCatId}`;
-
-      navigate(url, {
-        state: isCrossOutlet
-          ? {
-            outletIdOverride: menuItem.outletId,
-            notCurrentOutlet: true,
-            outletName: menuItem.outletName
-          }
-          : undefined
-      });
-    }
+    openAddToCartModal();
   };
 
   const handleFavoriteToggle = async (e) => {
@@ -173,11 +164,10 @@ const HorizontalMenuCard = ({
 
   const handleAddToCartClick = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Prevent card click from triggering navigation
+    e.stopPropagation();
 
     if (!menuItem) return;
 
-    // Check if user is authenticated
     if (!user) {
       setShowAuthOffcanvas(true);
       return;
@@ -188,6 +178,7 @@ const HorizontalMenuCard = ({
       menuId: menuItem?.menuId ?? menuItem?.menu_id,
       menuCatId: menuItem?.menuCatId ?? menuItem?.menu_cat_id ?? menuItem?.category_id,
       outlet_id: menuItem?.outlet_id ?? menuItem?.outletId ?? outletId,
+      cartOnly: true,
     });
   };
 
