@@ -70,22 +70,31 @@ function ProductDetail() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["menuDetails", effectiveOutletId, menuId, menuCatId, userId],
+    queryKey: ["menuDetails", "menu_view", effectiveOutletId, menuId, userId],
     queryFn: () =>
-      apiService.menus.getDetails({
+      apiService.menus.viewDetails({
         outletId: effectiveOutletId,
         menuId: Number(menuId),
-        menuCatId: Number(menuCatId),
         userId,
       }),
-    enabled: !!effectiveOutletId && !!menuId && !!menuCatId,
+    enabled: !!effectiveOutletId && !!menuId,
   });
+
+  const defaultPortionId = (() => {
+    const portions = menuDetails?.portions || [];
+    const flagged = portions.find((p) => Number(p?.flag) === 1);
+    return (
+      flagged?.portion_id ??
+      portions?.[0]?.portion_id ??
+      null
+    );
+  })();
 
   // Check if item exists in cart with proper menuId comparison
   const cartItem = cartItems.find(
     (item) =>
       item.menuId == Number(menuId) &&
-      item.portionId == menuDetails?.portions?.[0]?.portion_id
+      item.portionId == defaultPortionId
   );
 
   const handleAddToCart = async () => {
