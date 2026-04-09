@@ -16,9 +16,27 @@ export const AddToCartModal = () => {
   const cartOnly =
     !!modalConfig.data?.cartOnly || !!modalConfig.data?.isCombo;
 
+  const resolvePortionPrice = (portion, menuDefault) => {
+    const v = portion?.price ?? portion?.default_price ?? menuDefault ?? null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
   const [selectedPortion, setSelectedPortion] = useState(() => {
-    // `portion_id` can be 0 (fallback "Default" portion). Use nullish coalescing.
-    return modalConfig.data?.portions?.[0]?.portion_id ?? null;
+    const portions = modalConfig.data?.portions || [];
+
+    // Combos behave like single-portion items.
+    if (modalConfig.data?.isCombo) {
+      return portions?.[0]?.portion_id ?? 0;
+    }
+
+    // UX requirement:
+    // - 1 portion: auto-select
+    // - 2+ portions: user must select (no preselect)
+    if (Array.isArray(portions) && portions.length === 1) {
+      return portions?.[0]?.portion_id ?? null;
+    }
+    return null;
   });
   const [quantities, setQuantities] = useState(() => {
     const initial = {};
@@ -55,9 +73,12 @@ export const AddToCartModal = () => {
     (item) => item.menuId == modalConfig.data?.menuId
   );
 
+  const [portionError, setPortionError] = useState("");
+
   // Update quantity when portion changes
   const handlePortionChange = (portionId) => {
     setSelectedPortion(portionId);
+    setPortionError("");
 
     // Set quantity to 1 if it's 0 or undefined
     setQuantities((prev) => ({
@@ -187,6 +208,18 @@ export const AddToCartModal = () => {
     if (!authData || !user) {
       closeModal("addToCart");
       setShowAuthOffcanvas(true);
+      return;
+    }
+
+    const portionsToUseForValidation =
+      menuDetails.portions?.length > 0
+        ? menuDetails.portions
+        : modalConfig.data?.portions || [];
+    const hasMultiplePortions =
+      !modalConfig.data?.isCombo && (portionsToUseForValidation?.length || 0) > 1;
+
+    if (hasMultiplePortions && (selectedPortion === null || selectedPortion === undefined)) {
+      setPortionError("Please select portion");
       return;
     }
 
@@ -496,6 +529,17 @@ export const AddToCartModal = () => {
   };
 
   const hasValidQuantity = () => {
+    const portionsToUse =
+      menuDetails.portions?.length > 0
+        ? menuDetails.portions
+        : modalConfig.data?.portions || [];
+    const hasMultiple =
+      !modalConfig.data?.isCombo && (portionsToUse?.length || 0) > 1;
+
+    if (hasMultiple && (selectedPortion === null || selectedPortion === undefined)) {
+      return false;
+    }
+
     return Object.values(quantities).some((quantity) => quantity > 0);
   };
 
@@ -520,9 +564,11 @@ export const AddToCartModal = () => {
         });
 
         if (details?.portions) {
-          const newPortions = details.portions.map(portion => ({
+          const newPortions = details.portions.map((portion) => ({
             ...portion,
-            price: parseFloat(portion.price) || 0
+            // Keep raw `price/default_price` so UI can apply fallback priority.
+            price: portion.price,
+            default_price: portion.default_price,
           }));
 
           setMenuDetails(prev => ({
@@ -545,8 +591,27 @@ export const AddToCartModal = () => {
             return newQuantities;
           });
 
-          if (!selectedPortion && newPortions.length > 0) {
+          // UX requirement:
+          // - 1 portion: auto-select
+          // - 2+ portions: do NOT preselect (unless user already has exactly one portion in cart)
+          const cartPortionIdsForMenu = (cartItems || [])
+            .filter((i) => i.menuId == menuId)
+            .map((i) => Number(i.portionId))
+            .filter((v) => Number.isFinite(v));
+          const uniqueCartPortionIds = Array.from(new Set(cartPortionIdsForMenu));
+
+          if (newPortions.length === 1) {
             setSelectedPortion(newPortions[0].portion_id);
+          } else if (newPortions.length > 1) {
+            if (uniqueCartPortionIds.length === 1) {
+              const preferred = uniqueCartPortionIds[0];
+              const exists = newPortions.some(
+                (p) => Number(p.portion_id) === Number(preferred)
+              );
+              setSelectedPortion(exists ? preferred : null);
+            } else {
+              setSelectedPortion(null);
+            }
           }
         }
       } catch (err) {
@@ -578,32 +643,63 @@ export const AddToCartModal = () => {
   const renderPortionSelection = () => {
     const portions = menuDetails?.portions || [];
 
-    if (portions.length === 0) {
+    const isFallbackDefaultOnly =
+      portions.length === 1 &&
+      Number(portions?.[0]?.portion_id) === 0 &&
+      String(portions?.[0]?.portion_name || "").toLowerCase().trim() === "default";
+
+    // Edge case: portions_data empty -> hide portion section (we still keep internal default pricing).
+    if (portions.length === 0 || isFallbackDefaultOnly || modalConfig.data?.isCombo) {
+      return null;
+    }
+
+    const hasMultiple = portions.length > 1;
+
+    const menuDefault =
+      menuDetails?.default_price ??
+      modalConfig.data?.default_price ??
+      modalConfig.data?.price ??
+      null;
+
+    const formatOption = (portion) => {
+      const name = String(portion?.portion_name || "").trim() || "Portion";
+      const price = resolvePortionPrice(portion, menuDefault);
+      const priceText = price == null ? "N/A" : `₹${price}`;
+      // Requirement: show "name - ₹price"
+      return `${name} - ${priceText}`;
+    };
+
+    if (!hasMultiple) {
+      const only = portions[0];
       return (
-        <div className="w-full flex justify-between items-center border-2 border-gray-200 rounded-lg p-3 text-base text-gray-900 cursor-not-allowed opacity-60">
-          <span>No portion sizes available</span>
+        <div className="w-full flex justify-between items-center border-2 border-gray-200 rounded-lg p-3 text-base text-gray-900 bg-gray-50">
+          <span>{formatOption(only)}</span>
         </div>
       );
     }
 
-    const selectedPortionObj = portions.find(p => p.portion_id === selectedPortion);
+    const selectedPortionObj = portions.find(
+      (p) => Number(p?.portion_id) === Number(selectedPortion)
+    );
 
     return (
       <div className="relative">
         <div
-          className="w-full flex justify-between items-center rounded-lg p-3 text-base text-gray-900 select-none cursor-pointer border-[1.5px] border-gray-200"
+          className={`w-full flex justify-between items-center rounded-lg p-3 text-base select-none cursor-pointer border-[1.5px] ${
+            portionError ? "border-red-600" : "border-gray-200"
+          }`}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         >
           <span>
             {selectedPortionObj
-              ? `${selectedPortionObj.portion_name ? `${selectedPortionObj.portion_name} - ` : ''}₹${selectedPortionObj.price} (${selectedPortionObj.unit_value}${selectedPortionObj.unit_type ? ` ${selectedPortionObj.unit_type}` : ''})`
-              : "Select a portion size"}
+              ? formatOption(selectedPortionObj)
+              : "Select Portion"}
           </span>
           <i className={`fas fa-chevron-${isDropdownOpen ? "up" : "down"} text-gray-600`}></i>
         </div>
 
         {isDropdownOpen && portions.length > 0 && (
-          <div className="absolute w-full mt-1 shadow-sm bg-transparent rounded-lg border-[1.5px] border-gray-200 z-[1000] overflow-hidden">
+          <div className="absolute w-full mt-1 shadow-sm bg-white rounded-lg border-[1.5px] border-gray-200 z-[1000] overflow-hidden">
             {portions.map((portion) => (
               <div
                 key={portion.portion_id}
@@ -611,13 +707,12 @@ export const AddToCartModal = () => {
                   handlePortionChange(portion.portion_id);
                   setIsDropdownOpen(false);
                 }}
-                className="flex justify-between items-center p-3 border-b border-gray-200 bg-gray-100 cursor-pointer transition-all duration-200"
+                className="flex justify-between items-center p-3 border-b border-gray-200 bg-white hover:bg-gray-50 cursor-pointer transition-all duration-150"
               >
                 <div className="flex flex-col">
                   <span className={`text-base text-gray-900 ${selectedPortion === portion.portion_id ? "font-medium" : "font-normal"
                     }`}>
-                    {`${portion.portion_name ? `${portion.portion_name} - ` : ''}₹${portion.price} (${portion.unit_value
-                      }${portion.unit_type ? ` ${portion.unit_type}` : ''})`}
+                    {formatOption(portion)}
                   </span>
                 </div>
                 {selectedPortion === portion.portion_id && (
@@ -634,10 +729,19 @@ export const AddToCartModal = () => {
   return (
     <BaseModal isOpen={true} title={modalTitle} onClose={closeModal}>
       <div className="mb-4">
-        <label className="text-gray-600 mb-2 block text-sm">
-          Select Portion
-        </label>
-        <div className="w-full">{renderPortionSelection()}</div>
+        {renderPortionSelection() ? (
+          <>
+            <label className="text-gray-600 mb-2 block text-sm">
+              Select Portion
+            </label>
+            <div className="w-full">{renderPortionSelection()}</div>
+            {portionError ? (
+              <small className="text-red-600 text-xs mt-1.5 block">
+                {portionError}
+              </small>
+            ) : null}
+          </>
+        ) : null}
       </div>
 
       <div className="mb-4">

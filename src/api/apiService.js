@@ -62,9 +62,20 @@ export const apiService = {
       const details = response?.data?.details;
       const images = details?.menu_images?.map(img => img.image) || [];
 
-      // Some outlets don't return `portions` from get_menu_details.
-      // Provide a fallback "Default" portion so Add-to-Cart modal can work.
-      const rawPortions = Array.isArray(details?.portions) ? details.portions : [];
+      // `get_menu_details` returns portion options under `portions_data`.
+      // Normalize to the app's `portions` shape: { portion_id, portion_name, price, unit_value, unit_type }.
+      const rawPortionsData = Array.isArray(details?.portions_data)
+        ? details.portions_data
+        : [];
+      const rawPortions = rawPortionsData.map((p) => ({
+        portion_id: Number(p?.menu_portions_id ?? p?.portion_id ?? 0),
+        portion_name: String(p?.portions_name ?? p?.portion_name ?? "").trim() || "Default",
+        // Keep both fields so UI can apply fallback priority.
+        price: p?.price,
+        default_price: p?.default_price,
+        unit_value: p?.unit_value ?? "",
+        unit_type: p?.unit_type ?? "",
+      }));
       const fallbackPrice =
         details?.default_price ??
         details?.dine_in_price ??
@@ -81,6 +92,7 @@ export const apiService = {
                 portion_id: 0,
                 portion_name: "Default",
                 price: Number(fallbackPrice),
+                default_price: Number(fallbackPrice),
                 unit_value: 1,
                 unit_type: "",
               },
@@ -91,6 +103,83 @@ export const apiService = {
         ...details,
         images,
         portions
+      };
+    },
+    // POS: menu_view (Product Detail) endpoint
+    viewDetails: async ({ outletId, menuId, userId }) => {
+      const response = await axiosInstance.post(
+        `${ENV.V2_COMMON_BASE}/user/menu_view`,
+        {
+          outlet_id: String(outletId),
+          menu_id: Number(menuId),
+          user_id: userId ? String(userId) : null,
+          app_source: "pos_app",
+        }
+      );
+
+      const details = response?.data?.detail || response?.data?.details || null;
+      const images = Array.isArray(details?.images)
+        ? details.images.map((img) => img?.image || img).filter(Boolean)
+        : [];
+
+      const rawPortions = Array.isArray(details?.portions_data)
+        ? details.portions_data
+        : [];
+
+      // Map POS portions_data -> existing app "portions" shape
+      const portions = rawPortions.map((p) => {
+        const price =
+          p?.dine_in_price ??
+          p?.parcel_price ??
+          p?.delivery_price ??
+          p?.drive_through_price ??
+          p?.default_price ??
+          p?.price ??
+          0;
+        return {
+          portion_id: Number(p?.menu_portions_id ?? p?.portion_id ?? 0),
+          portion_name: String(p?.portions_name ?? p?.portion_name ?? "").trim() || "Default",
+          price: Number(price) || 0,
+          unit_value: p?.unit_value ?? "",
+          unit_type: p?.unit_type ?? "",
+          flag: p?.flag ?? null,
+        };
+      });
+
+      // If server sends no portions, provide fallback from default pricing fields
+      const fallbackPrice =
+        details?.default_price ??
+        details?.dine_in_price ??
+        details?.parcel_price ??
+        details?.delivery_price ??
+        details?.drive_through_price ??
+        null;
+
+      const normalizedPortions =
+        portions.length > 0
+          ? // Prefer "flag==1" (default portion) first when present
+            [...portions].sort((a, b) => Number(b?.flag === 1) - Number(a?.flag === 1))
+          : (fallbackPrice != null
+            ? [
+              {
+                portion_id: 0,
+                portion_name: "Default",
+                price: Number(fallbackPrice),
+                unit_value: 1,
+                unit_type: "",
+              },
+            ]
+            : []);
+
+      if (!details) return null;
+
+      // Normalize keys to match the rest of the app where possible
+      return {
+        ...details,
+        menu_name: details?.menu_name ?? details?.name,
+        menu_food_type: details?.menu_food_type ?? details?.food_type,
+        images,
+        portions: normalizedPortions,
       };
     },
     searchMenus: async ({ outletId, userId, keyword }) => {
@@ -112,7 +201,72 @@ export const apiService = {
       const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/search_menu`, payload, {
         headers: { "Content-Type": "application/json" },
       });
-      return response?.data;
+
+      const data = response?.data;
+      const list = data?.detail?.menu_list;
+
+      // Normalize portions from `portions_data` so UI can show price correctly in Search.
+      if (Array.isArray(list)) {
+        const normalized = list.map((menu) => {
+          const rawPortions = Array.isArray(menu?.portions_data)
+            ? menu.portions_data
+            : [];
+
+          const menuDefaultPrice =
+            menu?.default_price ??
+            menu?.price ??
+            null;
+
+          const portions =
+            rawPortions.length > 0
+              ? rawPortions.map((p) => {
+                  const v =
+                    p?.price ??
+                    p?.default_price ??
+                    menuDefaultPrice ??
+                    0;
+                  const n = Number(v);
+                  return {
+                    portion_id: Number(p?.menu_portions_id ?? p?.portion_id ?? 0),
+                    portion_name: String(p?.portions_name ?? p?.portion_name ?? "")
+                      .trim() || "Default",
+                    price: Number.isFinite(n) ? n : 0,
+                    default_price: p?.default_price ?? menuDefaultPrice ?? null,
+                    unit_value: p?.unit_value ?? "",
+                    unit_type: p?.unit_type ?? "",
+                    flag: p?.flag ?? null,
+                  };
+                })
+              : (menuDefaultPrice != null
+                  ? [
+                      {
+                        portion_id: 0,
+                        portion_name: "Default",
+                        price: Number(menuDefaultPrice) || 0,
+                        default_price: Number(menuDefaultPrice) || 0,
+                        unit_value: 1,
+                        unit_type: "",
+                        flag: 1,
+                      },
+                    ]
+                  : []);
+
+          return {
+            ...menu,
+            portions,
+          };
+        });
+
+        return {
+          ...data,
+          detail: {
+            ...(data?.detail || {}),
+            menu_list: normalized,
+          },
+        };
+      }
+
+      return data;
     },
   },
 
