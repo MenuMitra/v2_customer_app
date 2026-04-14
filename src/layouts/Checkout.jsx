@@ -155,23 +155,45 @@ function CheckoutContent() {
     }
   };
 
-  // Transform cart items for API
-  const getOrderItems = () => {
-    return cartItems.map((item) => {
+  // Transform cart items for checkout-detail API:
+  // - menus -> order_items (with portion_id + portion_name)
+  // - combos -> order_combo_items
+  const getCheckoutPayload = () => {
+    const orderItems = [];
+    const orderComboItems = [];
+
+    for (const item of cartItems) {
       if (item.isCombo && item.comboMasterId != null) {
-        return {
+        orderComboItems.push({
           combo_master_id: Number(item.comboMasterId),
           quantity: Number(item.quantity),
           comment: item.comment || "",
-        };
+        });
+        continue;
       }
 
-      return {
+      const menuPayload = {
         menu_id: Number(item.menuId),
         quantity: Number(item.quantity),
         comment: item.comment || "",
       };
-    });
+
+      // Include portion details when available so pricing resolves correctly.
+      if (
+        item.portionId != null &&
+        item.portionId !== "" &&
+        Number.isFinite(Number(item.portionId))
+      ) {
+        menuPayload.portion_id = Number(item.portionId);
+      }
+      if (item.portionName) {
+        menuPayload.portion_name = String(item.portionName).toLowerCase();
+      }
+
+      orderItems.push(menuPayload);
+    }
+
+    return { orderItems, orderComboItems };
   };
 
   // Checkout can be opened directly; OutletContext may not be ready yet.
@@ -189,7 +211,11 @@ function CheckoutContent() {
   const effectiveOutletId =
     outletId || cartItems?.[0]?.outlet_id || storedOutletId;
 
-  const orderItems = useMemo(() => getOrderItems(), [cartItems]);
+  const { orderItems, orderComboItems } = useMemo(
+    () => getCheckoutPayload(),
+    [cartItems]
+  );
+  const canFetchCheckoutDetails = orderItems.length > 0;
 
   // React Query for checkout details
   const {
@@ -197,13 +223,15 @@ function CheckoutContent() {
     isLoading: detailsLoading,
     error: checkoutError,
   } = useQuery({
-    queryKey: ["checkout", effectiveOutletId, orderItems],
+    queryKey: ["checkout", effectiveOutletId, orderItems, orderComboItems],
     queryFn: () =>
       apiService.checkout.getDetails({
         outletId: effectiveOutletId,
         orderItems,
+        orderComboItems,
       }),
-    enabled: !!effectiveOutletId && cartItems.length > 0,
+    // Backend requires non-empty `order_items` for this endpoint.
+    enabled: !!effectiveOutletId && cartItems.length > 0 && canFetchCheckoutDetails,
     initialData: location.state?.checkoutPreview,
     staleTime: 0,
     refetchOnMount: "always",
@@ -540,23 +568,9 @@ function CheckoutContent() {
         }
       }
 
-      const existingOrder = await apiService.checkout.checkExistingOrder({
-        userId,
-        outletId,
-        sectionId: effectiveSectionId,
-        tableId: effectiveTableId,
-      });
-
-      if (existingOrder) {
-        setExistingOrderModal({
-          isOpen: true,
-          orderDetails: {
-            ...existingOrder,
-            order_id: existingOrder.order_id,
-          },
-        });
-        return;
-      }
+      // Do not call `check_order_exist` on every checkout attempt.
+      // We only trust/validate a locally stored active order id above.
+      // If none is available for this table/session, create a new order directly.
 
       // Create order and only show success message if it succeeds
       const orderCreated = await createOrder();

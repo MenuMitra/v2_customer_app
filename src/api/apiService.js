@@ -302,12 +302,22 @@ export const apiService = {
 
   // Add a new section for checkout related APIs
   checkout: {
-    getDetails: async ({ outletId, orderItems }) => {
-      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_checkout_detail`, {
+    getDetails: async ({ outletId, orderItems, orderComboItems }) => {
+      const payload = {
         outlet_id: outletId,
-        order_items: orderItems,
-        app_source: "user_app"
-      });
+        order_items: orderItems || [],
+        app_source: "user_app",
+      };
+
+      // Some backends accept combos in a separate list for checkout preview.
+      if (Array.isArray(orderComboItems) && orderComboItems.length > 0) {
+        payload.order_combo_items = orderComboItems;
+      }
+
+      const response = await axiosInstance.post(
+        `${ENV.V2_COMMON_BASE}/user/get_checkout_detail`,
+        payload
+      );
       return response?.data?.detail || {};
     },
 

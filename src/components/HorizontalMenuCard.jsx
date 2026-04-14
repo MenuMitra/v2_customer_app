@@ -114,7 +114,8 @@ const HorizontalMenuCard = ({
   const handleCardClick = (e) => {
     if (
       e.target.closest(".like-button") ||
-      e.target.closest("button")
+      e.target.closest("button") ||
+      e.target.closest("a")
     ) {
       return;
     }
@@ -125,33 +126,41 @@ const HorizontalMenuCard = ({
     e.preventDefault();
     e.stopPropagation();
 
-    if (!user) {
+    const authData = localStorage.getItem("auth");
+    const auth = authData ? JSON.parse(authData) : null;
+    const resolvedUserId = userId ?? auth?.userId;
+    const resolvedMenuId = menuItem?.menuId ?? menuItem?.menu_id;
+
+    if (!user || !resolvedUserId) {
       setShowAuthOffcanvas(true);
       return;
     }
 
-    if (isLoading || !menuItem?.menuId) return;
+    if (isLoading || !resolvedMenuId) return;
 
     try {
       setIsLoading(true);
 
-      const targetOutletId = menuItem?.outletId ?? outletId;
+      const targetOutletId =
+        menuItem?.outletId ??
+        menuItem?.outlet_id ??
+        outletId;
 
       if (isFavoriteBoolean) {
         await apiService.favorites.remove({
           outletId: targetOutletId,
-          userId,
-          menuId: menuItem.menuId
+          userId: resolvedUserId,
+          menuId: resolvedMenuId
         });
       } else {
         await apiService.favorites.add({
           outletId: targetOutletId,
-          userId,
-          menuId: menuItem.menuId
+          userId: resolvedUserId,
+          menuId: resolvedMenuId
         });
       }
 
-      onFavoriteUpdate(menuItem.menuId, !isFavoriteBoolean, targetOutletId);
+      onFavoriteUpdate(resolvedMenuId, !isFavoriteBoolean, targetOutletId);
     } catch (error) {
       console.error("Error updating favorite status:", error);
       openModal("ERROR", {
