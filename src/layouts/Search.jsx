@@ -266,6 +266,8 @@ function Search() {
                           menuId: menu.menu_id,
                           menuCatId: menu.menu_cat_id,
                           menuName: menu.menu_name,
+                          outletId: menu.outlet_id,
+                          outlet_id: menu.outlet_id,
                           portions:
                             menu.portions?.map((portion) => ({
                               portion_id: portion.portion_id,

@@ -38,61 +38,6 @@ function Home() {
   const queryClient = useQueryClient();
   const userId = getUserId();
 
-  // Add favorite mutations with optimistic updates
-  const toggleFavorite = useMutation({
-    mutationFn: async ({ menuId, isFavorite }) => {
-      try {
-        // Add flag to prevent duplicate calls
-        if (toggleFavorite.mutationFn.isRunning) {
-          return null;
-        }
-        toggleFavorite.mutationFn.isRunning = true;
-
-        if (isFavorite) {
-          return apiService.favorites.add({ outletId, userId, menuId });
-        } else {
-          return apiService.favorites.remove({ outletId, userId, menuId });
-        }
-      } finally {
-        toggleFavorite.mutationFn.isRunning = false;
-      }
-    },
-    onMutate: async ({ menuId, isFavorite }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries(["specialMenus", outletId, userId]);
-
-      // Snapshot the previous value
-      const previousData = queryClient.getQueryData([
-        "specialMenus",
-        outletId,
-        userId,
-      ]);
-
-      // Optimistically update the UI
-      queryClient.setQueryData(["specialMenus", outletId, userId], (old) => {
-        if (!old) return old;
-        return old.map((menu) =>
-          menu.menu_id === menuId
-            ? { ...menu, is_favourite: isFavorite ? 1 : 0 }
-            : menu
-        );
-      });
-
-      return { previousData };
-    },
-    onError: (_err, _variables, context) => {
-      // Rollback on error
-      queryClient.setQueryData(
-        ["specialMenus", outletId, userId],
-        context.previousData
-      );
-    },
-    onSettled: () => {
-      // Refetch after error or success
-      queryClient.invalidateQueries(["specialMenus", outletId, userId]);
-    },
-  });
-
   // IMPROVEMENT: Use useMemo for categoriesData instead of useState + useEffect
   // This prevents unnecessary recalculations and removes a source of render loops
   const categoriesData = useMemo(() => {
@@ -201,18 +146,24 @@ function Home() {
     setSelectedCategoryId(category.menuCatId);
   };
 
-  // Update the handleFavoriteClick function
-  const handleFavoriteClick = async (menuId, isFavorite) => {
-    if (!userId) {
-      // Handle unauthenticated users - maybe show login modal
-      return;
-    }
-
-    try {
-      await toggleFavorite.mutateAsync({ menuId, isFavorite: !isFavorite });
-    } catch (error) {
-      console.error("Failed to update favorite status:", error);
-    }
+  // VerticalMenuCard already performs API toggle via useMenuItems.
+  // This callback should only sync local cache/UI to avoid double API calls.
+  const handleFavoriteClick = (menuId, nextIsFavorite) => {
+    queryClient.setQueryData(["menuItems", outletId], (old) => {
+      if (!old) return old;
+      return {
+        ...old,
+        menus: (old.menus || []).map((menu) =>
+          menu.menuId === menuId
+            ? {
+                ...menu,
+                is_favourite: nextIsFavorite ? 1 : 0,
+                isFavourite: !!nextIsFavorite,
+              }
+            : menu
+        ),
+      };
+    });
   };
 
   // Only show modal on outlet-only URL if no order type is set
