@@ -901,8 +901,12 @@ function CheckoutContent() {
                                 <div className="flex items-center">
                                   <span className="font-bold text-[#2196f3] text-lg">
                                     ₹
-                                    {parseFloat(item.price).toFixed(2) ||
-                                      "0.00"}
+                                    {(() => {
+                                      const value = Number(item.price);
+                                      return Number.isFinite(value)
+                                        ? value.toFixed(2)
+                                        : "0.00";
+                                    })()}
                                   </span>
                                   {item.offer > 0 && (
                                     <>
