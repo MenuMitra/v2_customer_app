@@ -91,7 +91,8 @@ export const CartProvider = ({ children }) => {
     portionId,
     quantity,
     comment,
-    forcedOutletId = null
+    forcedOutletId = null,
+    explicitUnitPrice = null
   ) => {
     console.log('=== CartContext addToCart called ===');
     console.log('menuItem:', menuItem);
@@ -130,17 +131,39 @@ export const CartProvider = ({ children }) => {
 
       console.log('Existing item index:', existingItemIndex);
 
-      // Get the selected portion details
+      // Get selected portion with type-safe numeric comparison.
       const selectedPortion = menuItem.portions?.find(
-        (p) => p.portion_id === portionId
+        (p) => Number(p?.portion_id) === Number(portionId)
       );
 
       console.log('Selected portion:', selectedPortion);
 
-      // Validate price - ensure it's a valid number
-      const validPrice = selectedPortion?.price
-        ? parseFloat(selectedPortion.price) || 0
-        : 0;
+      const resolveItemPrice = () => {
+        const explicitPrice = Number(explicitUnitPrice);
+        if (Number.isFinite(explicitPrice)) return explicitPrice;
+
+        const selectedPrice = Number(selectedPortion?.price);
+        if (Number.isFinite(selectedPrice)) return selectedPrice;
+
+        const selectedDefaultPrice = Number(selectedPortion?.default_price);
+        if (Number.isFinite(selectedDefaultPrice)) return selectedDefaultPrice;
+
+        const menuLevelPrice = Number(menuItem?.price);
+        if (Number.isFinite(menuLevelPrice)) return menuLevelPrice;
+
+        const firstPortionPrice = Number(menuItem?.portions?.[0]?.price);
+        if (Number.isFinite(firstPortionPrice)) return firstPortionPrice;
+
+        const firstPortionDefaultPrice = Number(
+          menuItem?.portions?.[0]?.default_price
+        );
+        if (Number.isFinite(firstPortionDefaultPrice)) {
+          return firstPortionDefaultPrice;
+        }
+
+        return 0;
+      };
+      const validPrice = resolveItemPrice();
 
       console.log('Valid price:', validPrice);
 
