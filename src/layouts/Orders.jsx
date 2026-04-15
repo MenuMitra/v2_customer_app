@@ -240,20 +240,25 @@ function OrdersContent() {
 
       if (!data) return null;
 
+      // Handle both shapes safely:
+      // 1) direct lists object (current apiService)
+      // 2) wrapped { lists: ... } (backend variations)
+      const lists = data?.lists || data || {};
+
       const complementaryOrders = {
-        ...(data.complementary_paid || {}),
-        ...(data.complimentary_paid || {})
+        ...(lists.complementary_paid || {}),
+        ...(lists.complimentary_paid || {})
       };
 
       const transformedData = {
-        paid: data.paid || {},
+        paid: lists.paid || {},
         complimentary_paid: complementaryOrders,
-        cancelled: data.cancelled || {},
-        udhari_paid: data.udhari_paid || {},
-        udhari_pending: data.udhari_pending || {},
+        cancelled: lists.cancelled || lists.canceled || {},
+        udhari_paid: lists.udhari_paid || {},
+        udhari_pending: lists.udhari_pending || {},
       };
 
-      const udhariPendingRaw = data.udhari_pending || {};
+      const udhariPendingRaw = transformedData.udhari_pending || {};
       const udhariPendingList = Object.values(udhariPendingRaw).flat();
       const mappedUdhariPending = udhariPendingList.map((order) => ({
         id: order.order_number,
@@ -546,6 +551,29 @@ function OrdersContent() {
     complimentary_paid: {},
     cancelled: {},
   });
+
+  // Auto-expand date groups when data arrives so paid/cancelled lists are immediately visible.
+  useEffect(() => {
+    const completedDates = Object.keys(transformedOrders.completedByDate || {});
+    if (completedDates.length > 0 && Object.keys(expandedCompletedDates).length === 0) {
+      const next = {};
+      completedDates.forEach((d) => {
+        next[d] = true;
+      });
+      setExpandedCompletedDates(next);
+    }
+  }, [transformedOrders.completedByDate]);
+
+  useEffect(() => {
+    const cancelledDates = Object.keys(transformedOrders.cancelledByDate || {});
+    if (cancelledDates.length > 0 && Object.keys(expandedCancelledDates).length === 0) {
+      const next = {};
+      cancelledDates.forEach((d) => {
+        next[d] = true;
+      });
+      setExpandedCancelledDates(next);
+    }
+  }, [transformedOrders.cancelledByDate]);
 
   // Update pendingOrdersByDate to use new data structure
   const pendingOrdersByDate = {};
@@ -949,10 +977,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                       {Object.entries(transformedOrders.completedByDate).map(
                         ([dateKey, dailyOrderData]) => (
                           <div className="accordion-item" key={dateKey}>
-                            <h2
-                              className="accordion-header"
-                              id={"heading" + dateKey.replace(/\s/g, "")}
-                            >
+                            <h2 className="accordion-header">
                               <button
                                 className={`w-full flex justify-between items-center p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors ${
                                   !expandedCompletedDates[dateKey]
@@ -960,16 +985,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                     : ""
                                 }`}
                                 type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target={
-                                  "#collapse" + dateKey.replace(/\s/g, "")
-                                }
-                                aria-expanded={
-                                  expandedCompletedDates[dateKey] || false
-                                }
-                                aria-controls={
-                                  "collapse" + dateKey.replace(/\s/g, "")
-                                }
+                                aria-expanded={expandedCompletedDates[dateKey] || false}
                                 onClick={() =>
                                   toggleCompletedDateExpansion(dateKey)
                                 }
@@ -989,17 +1005,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                 ></i>
                               </button>
                             </h2>
-                            <div
-                              id={"collapse" + dateKey.replace(/\s/g, "")}
-                              className={
-                                "accordion-collapse collapse " +
-                                (expandedCompletedDates[dateKey] ? "show" : "")
-                              }
-                              aria-labelledby={
-                                "heading" + dateKey.replace(/\s/g, "")
-                              }
-                              data-bs-parent="#accordionExample3"
-                            >
+                            {expandedCompletedDates[dateKey] && (
                               <div className="accordion-body">
                                 {dailyOrderData.orders.map((order) => (
                                   <OrderAccordionItem
@@ -1022,7 +1028,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                   />
                                 ))}
                               </div>
-                            </div>
+                            )}
                           </div>
                         )
                       )}
@@ -1081,12 +1087,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                       {Object.entries(transformedOrders.cancelledByDate).map(
                         ([dateKey, dailyOrderData]) => (
                           <div className="accordion-item" key={dateKey}>
-                            <h2
-                              className="accordion-header"
-                              id={
-                                "headingCancelled" + dateKey.replace(/\s/g, "")
-                              }
-                            >
+                            <h2 className="accordion-header">
                               <button
                                 className={`w-full flex justify-between items-center p-0 text-[var(--text-dark)] hover:text-[var(--primary)] transition-colors ${
                                   !expandedCancelledDates[dateKey]
@@ -1094,14 +1095,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                     : ""
                                 }`}
                                 type="button"
-                                data-bs-toggle="collapse"
-                                data-bs-target={
-                                  "#collapseCancelled" + dateKey.replace(/\s/g, "")
-                                }
                                 aria-expanded={expandedCancelledDates[dateKey] || false}
-                                aria-controls={
-                                  "collapseCancelled" + dateKey.replace(/\s/g, "")
-                                }
                                 onClick={() =>
                                   toggleCancelledDateExpansion(dateKey)
                                 }
@@ -1121,19 +1115,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                 ></i>
                               </button>
                             </h2>
-                            <div
-                              id={
-                                "collapseCancelled" + dateKey.replace(/\s/g, "")
-                              }
-                              className={
-                                "accordion-collapse collapse " +
-                                (expandedCancelledDates[dateKey] ? "show" : "")
-                              }
-                              aria-labelledby={
-                                "headingCancelled" + dateKey.replace(/\s/g, "")
-                              }
-                              data-bs-parent="#accordionExample2"
-                            >
+                            {expandedCancelledDates[dateKey] && (
                               <div className="accordion-body">
                                 {dailyOrderData.orders.map((order) => (
                                   <OrderAccordionItem
@@ -1156,7 +1138,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                                   />
                                 ))}
                               </div>
-                            </div>
+                            )}
                           </div>
                         )
                       )}

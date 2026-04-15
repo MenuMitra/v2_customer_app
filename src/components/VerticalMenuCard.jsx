@@ -78,6 +78,15 @@ const VerticalMenuCard = ({
 
   const handleFavoriteToggle = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    console.log("[favorite] vertical click", {
+      menuId: menuItem?.menuId ?? menuItem?.menu_id,
+      outletId: menuItem?.outletId ?? menuItem?.outlet_id ?? outletId,
+      hasUser: !!user,
+      isCombo: !!menuItem?.isCombo,
+      loading: !!isFavoriteLoading,
+    });
 
     if (menuItem?.isCombo) return;
 
@@ -228,17 +237,24 @@ const VerticalMenuCard = ({
               {menuItem?.categoryName || "Category"}
             </span>
           </div>
-          <a
-            href="javascript:void(0);"
+          <button
+            type="button"
             className={`${
               menuItem?.isCombo
                 ? "pointer-events-none opacity-40"
                 : isFavoriteLoading
-                  ? "disabled pointer-events-none"
+                  ? "disabled pointer-events-none opacity-60"
                   : "pointer-events-auto"
-            } cursor-pointer no-underline`}
+            } cursor-pointer no-underline bg-transparent border-0 p-0 z-20`}
             onClick={handleFavoriteToggle}
             aria-hidden={menuItem?.isCombo ? true : undefined}
+            title={
+              menuItem?.isCombo
+                ? undefined
+                : isFavoriteBoolean
+                  ? "Remove from favorites"
+                  : "Add to favorites"
+            }
           >
             <div className={`like-button ${isFavoriteBoolean ? "active" : ""}`}>
               <i
@@ -246,7 +262,7 @@ const VerticalMenuCard = ({
                   }`}
               />
             </div>
-          </a>
+          </button>
         </div>
 
         <h6 className="title mb-3 text-left">

@@ -456,26 +456,22 @@ export const apiService = {
     },
 
     addToExistingOrder: async ({ orderId, userId, outletId, orderItems }) => {
-      const sanitizedItems = (orderItems || []).map((item) => {
-        const comboId =
-          item?.combo_master_id ?? item?.comboMasterId ?? null;
-        if (
-          comboId !== null &&
-          comboId !== undefined &&
-          comboId !== ""
-        ) {
-          return {
+      const menuItems = [];
+      const comboItems = [];
+
+      for (const item of orderItems || []) {
+        const comboId = item?.combo_master_id ?? item?.comboMasterId ?? null;
+        if (comboId !== null && comboId !== undefined && comboId !== "") {
+          comboItems.push({
             combo_master_id: Number(comboId),
             quantity: Number(item?.quantity ?? 0),
             comment: item?.comment || "",
-            portion_name:
-              (item?.portion_name || item?.portionName || "default")
-                .toString()
-                .toLowerCase() || "default",
-          };
+          });
+          continue;
         }
 
         const portionId = item?.portion_id ?? item?.portionId ?? null;
+        const portionName = item?.portion_name ?? item?.portionName ?? "";
         const payload = {
           menu_id: Number(item?.menu_id ?? item?.menuId),
           quantity: Number(item?.quantity ?? 0),
@@ -491,9 +487,12 @@ export const apiService = {
         ) {
           payload.portion_id = Number(portionId);
         }
+        if (portionName) {
+          payload.portion_name = String(portionName).toLowerCase();
+        }
 
-        return payload;
-      });
+        menuItems.push(payload);
+      }
 
       const response = await axiosInstance.post(
         `${ENV.V2_COMMON_BASE}/user/add_to_existing_order`,
@@ -502,7 +501,8 @@ export const apiService = {
           user_id: userId.toString(),
           outlet_id: outletId.toString(),
           app_source: "user_app",
-          order_items: sanitizedItems,
+          order_items: menuItems,
+          ...(comboItems.length > 0 ? { order_combo_items: comboItems } : {}),
         }
       );
       return response.data?.detail || null;
