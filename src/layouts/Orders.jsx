@@ -12,6 +12,36 @@ import apiService from "../api/apiService";
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from "../components/Toast/ToastContext";
 
+const getOrderItemCount = (order = {}, details = {}) => {
+  const menuCount = Number(order?.menu_count ?? details?.menu_count ?? 0);
+
+  const comboQuantityFromOrder = Array.isArray(order?.combos)
+    ? order.combos.reduce(
+        (sum, combo) => sum + (Number(combo?.quantity) || 0),
+        0
+      )
+    : 0;
+
+  const comboQuantityFromDetails = Array.isArray(details?.combo_details)
+    ? details.combo_details.reduce(
+        (sum, combo) => sum + (Number(combo?.quantity) || 0),
+        0
+      )
+    : 0;
+
+  const comboCountField = Number(
+    order?.combo_count ?? details?.combo_count ?? 0
+  );
+
+  const comboCount = Math.max(
+    comboQuantityFromOrder,
+    comboQuantityFromDetails,
+    comboCountField
+  );
+
+  return menuCount + comboCount;
+};
+
 // Update the NoOrders component with new icon
 const NoOrders = ({ message }) => {
   const navigate = useNavigate();
@@ -89,7 +119,7 @@ function OrdersContent() {
         id: order.order_number,
         orderId: order.order_id,
         orderNumber: order.order_number,
-        itemCount: order.menu_count,
+        itemCount: getOrderItemCount(order),
         status: order.status,
         iconColor: "#FFA902",
         iconBgClass: "bg-warning",
@@ -150,7 +180,10 @@ function OrdersContent() {
       id: details.order_number || String(details.order_id),
       orderId: details.order_id,
       orderNumber: details.order_number || String(details.order_id),
-      itemCount: details.menu_count || activeOrderDetailsData?.menu_details?.length || 0,
+      itemCount:
+        getOrderItemCount(details, activeOrderDetailsData) ||
+        activeOrderDetailsData?.menu_details?.length ||
+        0,
       status: details.order_status || "placed",
       iconColor: "#FFA902",
       iconBgClass: "bg-warning",
@@ -264,7 +297,7 @@ function OrdersContent() {
         id: order.order_number,
         orderId: order.order_id,
         orderNumber: order.order_number,
-        itemCount: order.menu_count,
+        itemCount: getOrderItemCount(order),
         status: order.order_status,
         iconColor: "#FFA902",
         iconBgClass: "bg-warning",
@@ -471,7 +504,7 @@ function OrdersContent() {
           id: order.order_number,
           orderId: order.order_id,
           orderNumber: order.order_number,
-          itemCount: order.menu_count,
+          itemCount: getOrderItemCount(order),
           status,
           iconColor,
           iconBgClass,
