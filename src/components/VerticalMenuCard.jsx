@@ -5,7 +5,7 @@ import { useCart } from "../contexts/CartContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useOutlet } from "../contexts/OutletContext";
 import { useMenuItems } from '../hooks/useMenuItems';
-import apiService from "../api/apiService";
+import { toggleComboFavorite } from "../utils/comboFavorites";
 
 // FoodTypeIcon component
 const FoodTypeIcon = ({ foodType }) => {
@@ -88,7 +88,27 @@ const VerticalMenuCard = ({
       loading: !!isFavoriteLoading,
     });
 
-    if (menuItem?.isCombo) return;
+    if (menuItem?.isCombo) {
+      if (!user) {
+        setShowAuthOffcanvas(true);
+        return;
+      }
+      const targetOutletId =
+        menuItem?.outletId ?? menuItem?.outlet_id ?? outletId;
+      const comboMasterId = menuItem?.comboMasterId;
+      const { nextIsFavorite } = toggleComboFavorite({
+        userId,
+        outletId: targetOutletId,
+        comboMasterId,
+      });
+      onFavoriteUpdate(
+        comboMasterId,
+        nextIsFavorite,
+        targetOutletId,
+        true
+      );
+      return;
+    }
 
     if (!user) {
       setShowAuthOffcanvas(true);
@@ -240,20 +260,16 @@ const VerticalMenuCard = ({
           <button
             type="button"
             className={`${
-              menuItem?.isCombo
-                ? "pointer-events-none opacity-40"
-                : isFavoriteLoading
+              isFavoriteLoading
                   ? "disabled pointer-events-none opacity-60"
                   : "pointer-events-auto"
             } cursor-pointer no-underline bg-transparent border-0 p-0 z-20`}
             onClick={handleFavoriteToggle}
-            aria-hidden={menuItem?.isCombo ? true : undefined}
+            aria-hidden={undefined}
             title={
-              menuItem?.isCombo
-                ? undefined
-                : isFavoriteBoolean
-                  ? "Remove from favorites"
-                  : "Add to favorites"
+              isFavoriteBoolean
+                ? "Remove from favorites"
+                : "Add to favorites"
             }
           >
             <div className={`like-button ${isFavoriteBoolean ? "active" : ""}`}>
