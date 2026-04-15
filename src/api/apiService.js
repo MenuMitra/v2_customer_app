@@ -494,6 +494,19 @@ export const apiService = {
         menuItems.push(payload);
       }
 
+      // Some backend deployments enforce non-empty `order_items` even when
+      // combo payload is provided in `order_combo_items`.
+      // For combo-only carts, mirror combo objects in `order_items` to satisfy
+      // validation while preserving the explicit combo list.
+      const orderItemsPayload =
+        menuItems.length > 0
+          ? menuItems
+          : comboItems.map((combo) => ({
+              combo_master_id: Number(combo.combo_master_id),
+              quantity: Number(combo.quantity),
+              comment: combo.comment || "",
+            }));
+
       const response = await axiosInstance.post(
         `${ENV.V2_COMMON_BASE}/user/add_to_existing_order`,
         {
@@ -501,7 +514,7 @@ export const apiService = {
           user_id: userId.toString(),
           outlet_id: outletId.toString(),
           app_source: "user_app",
-          order_items: menuItems,
+          order_items: orderItemsPayload,
           ...(comboItems.length > 0 ? { order_combo_items: comboItems } : {}),
         }
       );

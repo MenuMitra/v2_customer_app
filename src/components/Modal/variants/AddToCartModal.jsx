@@ -75,6 +75,22 @@ export const AddToCartModal = () => {
 
   const [portionError, setPortionError] = useState("");
 
+  const getResolvedSelectedPortionPrice = (targetPortionId) => {
+    const portionsToUse =
+      menuDetails.portions?.length > 0
+        ? menuDetails.portions
+        : modalConfig.data?.portions || [];
+    const selected = portionsToUse.find(
+      (p) => Number(p?.portion_id) === Number(targetPortionId)
+    );
+    const menuDefault =
+      menuDetails?.default_price ??
+      modalConfig.data?.default_price ??
+      modalConfig.data?.price ??
+      null;
+    return resolvePortionPrice(selected, menuDefault);
+  };
+
   // Update quantity when portion changes
   const handlePortionChange = (portionId) => {
     setSelectedPortion(portionId);
@@ -108,6 +124,20 @@ export const AddToCartModal = () => {
       selectedPortion !== null &&
       selectedPortion !== undefined
     ) {
+      const portionsForAction =
+        menuDetails.portions?.length > 0
+          ? menuDetails.portions
+          : modalConfig.data?.portions || [];
+      const hasMultiplePortions =
+        !modalConfig.data?.isCombo && (portionsForAction?.length || 0) > 1;
+
+      // For multi-portion items, do not auto-mutate cart on modal open.
+      // User must explicitly pick portion and confirm via Add/Update button.
+      if (hasMultiplePortions) {
+        modalConfig.data.action = null;
+        return;
+      }
+
       const action = modalConfig.data.action;
       const currentQuantity = quantities[selectedPortion] || 0;
 
@@ -123,7 +153,9 @@ export const AddToCartModal = () => {
             modalConfig.data,
             selectedPortion,
             newQuantity,
-            comments[selectedPortion] || ""
+            comments[selectedPortion] || "",
+            null,
+            getResolvedSelectedPortionPrice(selectedPortion)
           );
         }
       } else if (action === 'decrement') {
@@ -138,7 +170,9 @@ export const AddToCartModal = () => {
             modalConfig.data,
             selectedPortion,
             newQuantity,
-            comments[selectedPortion] || ""
+            comments[selectedPortion] || "",
+            null,
+            getResolvedSelectedPortionPrice(selectedPortion)
           );
         }
       }
@@ -166,7 +200,9 @@ export const AddToCartModal = () => {
         modalConfig.data,
         selectedPortion,
         finalQuantity,
-        comments[selectedPortion] || ""
+        comments[selectedPortion] || "",
+        null,
+        getResolvedSelectedPortionPrice(selectedPortion)
       );
     }
   };
@@ -439,7 +475,8 @@ export const AddToCartModal = () => {
             Number(selectedPortion),
             currentQuantity,
             comments[selectedPortion] || "",
-            targetOutletId
+            targetOutletId,
+            getResolvedSelectedPortionPrice(selectedPortion)
           );
 
           closeModal("addToCart");
@@ -527,7 +564,8 @@ export const AddToCartModal = () => {
           Number(selectedPortion),
           currentQuantity,
           comments[selectedPortion] || "",
-          targetOutletId
+          targetOutletId,
+          getResolvedSelectedPortionPrice(selectedPortion)
         );
 
         closeModal("addToCart");

@@ -91,7 +91,8 @@ export const CartProvider = ({ children }) => {
     portionId,
     quantity,
     comment,
-    forcedOutletId = null
+    forcedOutletId = null,
+    explicitUnitPrice = null
   ) => {
     console.log('=== CartContext addToCart called ===');
     console.log('menuItem:', menuItem);
@@ -138,6 +139,9 @@ export const CartProvider = ({ children }) => {
       console.log('Selected portion:', selectedPortion);
 
       const resolveItemPrice = () => {
+        const explicitPrice = Number(explicitUnitPrice);
+        if (Number.isFinite(explicitPrice)) return explicitPrice;
+
         const selectedPrice = Number(selectedPortion?.price);
         if (Number.isFinite(selectedPrice)) return selectedPrice;
 
