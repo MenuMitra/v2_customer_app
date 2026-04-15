@@ -284,23 +284,46 @@ export const AddToCartModal = () => {
               const statusNorm = String(details?.order_status || "")
                 .toLowerCase()
                 .trim();
-              // If backend allows adding even after kitchen "completion",
-              // we should not treat `paid/completed` as terminal.
-              // Only truly closed/canceled orders should block reuse.
-              const isTerminal = ["cancelled", "rejected", "refunded"].includes(
+              // Block reuse for completed/cancelled/closed states.
+              const isTerminal = [
+                "completed",
+                "cancelled",
+                "rejected",
+                "refunded",
+                "paid",
+              ].includes(
                 statusNorm
               );
 
               const effectiveTableId =
                 tableId || localStorage.getItem("tableId") || "";
+              const effectiveTableNumber =
+                localStorage.getItem("tableNumber") || "";
               const backendTableId = details?.table_id?.toString?.() || "";
-
-              const tableMatches =
-                !effectiveTableId ||
-                !backendTableId ||
+              const backendTableNumbers = Array.isArray(details?.table_number)
+                ? details.table_number.map((t) => String(t))
+                : [];
+              const hasSessionTableContext =
+                !!effectiveTableId || !!effectiveTableNumber;
+              const tableIdMatches =
+                !!effectiveTableId &&
+                !!backendTableId &&
                 String(backendTableId) === String(effectiveTableId);
+              const tableNumberMatches =
+                !!effectiveTableNumber &&
+                backendTableNumbers.includes(String(effectiveTableNumber));
+              const hasOrderItems =
+                (Number(details?.menu_count || 0) > 0) ||
+                (Number(details?.combo_count || 0) > 0) ||
+                (Array.isArray(detailsRes?.menu_details) &&
+                  detailsRes.menu_details.length > 0) ||
+                (Array.isArray(detailsRes?.combo_details) &&
+                  detailsRes.combo_details.length > 0);
+              const tableMatches = hasSessionTableContext
+                ? tableIdMatches || tableNumberMatches
+                : false;
 
-              if (details && !isTerminal && tableMatches) {
+              if (details && !isTerminal && tableMatches && hasOrderItems) {
                 return { orderId: String(stored), createdNew: false };
               }
 

@@ -126,6 +126,14 @@ const HorizontalMenuCard = ({
     e.preventDefault();
     e.stopPropagation();
 
+    console.log("[favorite] horizontal click", {
+      menuId: menuItem?.menuId ?? menuItem?.menu_id,
+      outletIdFromItem: menuItem?.outletId ?? menuItem?.outlet_id,
+      outletIdFromCtx: outletId,
+      hasUser: !!user,
+      loading: !!isLoading,
+    });
+
     const authData = localStorage.getItem("auth");
     const auth = authData ? JSON.parse(authData) : null;
     const resolvedUserId = userId ?? auth?.userId;
@@ -297,10 +305,11 @@ const HorizontalMenuCard = ({
 
           {/* Favorite icon */}
           {isCurrentOutlet && (
-            <a
-              href="javascript:void(0);"
-              className={`absolute right-[2px] bottom-[2px] z-[3] no-underline ${isLoading ? "pointer-events-none opacity-50" : "cursor-pointer"}`}
+            <button
+              type="button"
+              className={`absolute right-[2px] bottom-[2px] z-[20] no-underline bg-transparent border-0 p-0 ${isLoading ? "pointer-events-none opacity-50" : "cursor-pointer pointer-events-auto"}`}
               onClick={handleFavoriteToggle}
+              title={isFavoriteBoolean ? "Remove from favorites" : "Add to favorites"}
             >
               <div className={`like-button ${isFavoriteBoolean ? "active" : ""}`}>
                 <i
@@ -308,7 +317,7 @@ const HorizontalMenuCard = ({
                     }`}
                 />
               </div>
-            </a>
+            </button>
           )}
         </div>
         {/* Right side - Content */}

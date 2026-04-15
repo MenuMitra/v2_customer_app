@@ -480,7 +480,7 @@ function OrderDetail() {
       <div className="page-content">
         <div className="max-w-[1200px] mx-auto px-4 h-[calc(100vh-140px)] overflow-y-auto overscroll-contain pb-[220px]">
           {/* Order Header Card */}
-          <div className="card mt-3">
+          <div className="card mt-3 h-auto mb-3">
             <div className="card-body">
               <div className="flex items-center justify-between mb-2">
                 <div>
@@ -512,7 +512,7 @@ function OrderDetail() {
           </div>
 
           {/* Order Items Card */}
-          <div className="card mt-3">
+          <div className="card mt-3 h-auto mb-3">
             <div className="card-header border-0 pb-0 border-b pb-3">
               <h5 className="card-title text-[var(--primary)]">
                 Order Items ({orderDetails.order_details.menu_count})
@@ -523,12 +523,12 @@ function OrderDetail() {
               {orderDetails.menu_details.map((menu, index) => (
                 <div
                   key={index}
-                  className={`flex items-center justify-between py-3 ${index !== orderDetails.menu_details.length - 1
+                  className={`flex items-center justify-between py-2 ${index !== orderDetails.menu_details.length - 1
                       ? "border-b border-[var(--border-color)]"
                       : ""
                     }`}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center flex-1 min-w-0">
                     <div className="food-type-icon mr-3">
                       {menu.menu_food_type.toLowerCase() === "veg" ? (
                         <VegIcon />
@@ -538,7 +538,7 @@ function OrderDetail() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h6 className="mb-1 text-[var(--primary)]">{menu.menu_name}</h6>
+                        <h6 className="mb-0 text-[var(--primary)]">{menu.menu_name}</h6>
                         {menu.is_favourite === 1 && (
                           <i className="fa-solid fa-heart text-[#dc3545]"></i>
                         )}
@@ -558,7 +558,7 @@ function OrderDetail() {
                       )}
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right ml-3 flex-shrink-0">
                     <h6 className="mb-0 text-[var(--primary)]">₹{menu.net_price}</h6>
                   </div>
                 </div>
@@ -567,7 +567,7 @@ function OrderDetail() {
           </div>
 
           {/* Bill Details Card */}
-          <div className="card mt-3">
+          <div className="card mt-3 h-auto mb-3">
             <div className="card-header border-0 flex justify-between items-center pb-0">
               <h5 className="card-title text-[var(--primary)] mb-0">Payment Details</h5>
               {orderDetails.order_details.payment_method && (

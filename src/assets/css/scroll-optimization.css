@@ -297,6 +297,11 @@ header.relative.block {
   padding-top: var(--test-env-banner-height);
 }
 
+/* When QR subtitle is shown inside header, reserve extra height to prevent overlap */
+header.relative.block.has-qr-subtitle {
+  min-height: calc(102px + var(--test-env-banner-height));
+}
+
 
 /* Profile Page Spacing Optimization */
 

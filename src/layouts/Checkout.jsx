@@ -182,12 +182,17 @@ function CheckoutContent() {
       if (
         item.portionId != null &&
         item.portionId !== "" &&
-        Number.isFinite(Number(item.portionId))
+        Number.isFinite(Number(item.portionId)) &&
+        Number(item.portionId) !== 0
       ) {
         menuPayload.portion_id = Number(item.portionId);
       }
       if (item.portionName) {
-        menuPayload.portion_name = String(item.portionName).toLowerCase();
+        const normalizedPortionName = String(item.portionName).trim().toLowerCase();
+        // Do not send fallback/default portion names to checkout-detail API.
+        if (normalizedPortionName && normalizedPortionName !== "default") {
+          menuPayload.portion_name = normalizedPortionName;
+        }
       }
 
       orderItems.push(menuPayload);
@@ -528,10 +533,14 @@ function CheckoutContent() {
             .toLowerCase()
             .trim();
 
-          // If backend allows adding even after kitchen "completion",
-          // we should not treat `paid/completed` as terminal.
-          // Only truly closed/canceled orders should block reuse.
-          const isTerminal = ["cancelled", "rejected", "refunded"].includes(
+          // Block reuse for completed/cancelled/closed states.
+          const isTerminal = [
+            "completed",
+            "cancelled",
+            "rejected",
+            "refunded",
+            "paid",
+          ].includes(
             statusNorm
           );
 
@@ -542,13 +551,35 @@ function CheckoutContent() {
             localStorage.removeItem("activeOrderId");
           } else {
             // If we have a table_id in this session, make sure it matches.
-            const backendTableId = details?.table_id?.toString?.();
-            const tableMatches =
-              !effectiveTableId ||
-              !backendTableId ||
+            const effectiveTableNumber =
+              outletDetails?.tableNumber ||
+              localStorage.getItem("tableNumber") ||
+              "";
+            const backendTableId = details?.table_id?.toString?.() || "";
+            const backendTableNumbers = Array.isArray(details?.table_number)
+              ? details.table_number.map((t) => String(t))
+              : [];
+            const hasSessionTableContext =
+              !!effectiveTableId || !!effectiveTableNumber;
+            const tableIdMatches =
+              !!effectiveTableId &&
+              !!backendTableId &&
               String(backendTableId) === String(effectiveTableId);
+            const tableNumberMatches =
+              !!effectiveTableNumber &&
+              backendTableNumbers.includes(String(effectiveTableNumber));
+            const hasOrderItems =
+              (Number(details?.menu_count || 0) > 0) ||
+              (Number(details?.combo_count || 0) > 0) ||
+              (Array.isArray(detailsRes?.menu_details) &&
+                detailsRes.menu_details.length > 0) ||
+              (Array.isArray(detailsRes?.combo_details) &&
+                detailsRes.combo_details.length > 0);
+            const tableMatches = hasSessionTableContext
+              ? tableIdMatches || tableNumberMatches
+              : false;
 
-            if (tableMatches) {
+            if (tableMatches && hasOrderItems) {
               setExistingOrderModal({
                 isOpen: true,
                 orderDetails: {

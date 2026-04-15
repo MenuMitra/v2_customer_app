@@ -71,7 +71,8 @@ function Header() {
   const shouldHideBanner = () => {
     return (
       location.pathname.includes("/outlet-details") ||
-      isProfileRoute()
+      isProfileRoute() ||
+      location.pathname.startsWith("/checkout")
     );
   };
 
@@ -156,7 +157,7 @@ function Header() {
       ></div>
       {/* <Sidebar /> */}
       {/* Sidebar always rendered, class toggled by isOpen for smooth animation */}
-      <header className="relative block">
+      <header className={`relative block ${qrLocationSubtitle ? "has-qr-subtitle" : ""}`}>
         <div className="bg-white w-full transition-all duration-300 header-bar" ref={mainBarRef}>
           <div className="container mx-auto px-4">
             <div className="relative flex items-center justify-between py-3 min-h-[60px]">
@@ -216,9 +217,9 @@ function Header() {
               </div>
             </div>
             {qrLocationSubtitle ? (
-              <div className="pb-2 pt-0 border-b border-gray-100">
+              <div className="pb-2 pt-0 border-b border-gray-100 bg-white">
                 <p
-                  className="m-0 text-[11px] sm:text-xs text-gray-600 leading-snug truncate"
+                  className="m-0 text-[11px] sm:text-xs text-gray-600 leading-snug truncate bg-white"
                   title={qrLocationSubtitle}
                 >
                   <i className="fa-solid fa-qrcode mr-1 text-gray-400" aria-hidden />
