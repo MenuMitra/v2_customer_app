@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useOutlet } from "../contexts/OutletContext";
 import { useCart } from "../contexts/CartContext";
 import apiService from "../api/apiService";
+import { toggleComboFavorite } from "../utils/comboFavorites";
 
 // FoodTypeIcon component
 const FoodTypeIcon = ({ foodType }) => {
@@ -138,6 +139,8 @@ const HorizontalMenuCard = ({
     const auth = authData ? JSON.parse(authData) : null;
     const resolvedUserId = userId ?? auth?.userId;
     const resolvedMenuId = menuItem?.menuId ?? menuItem?.menu_id;
+    const isCombo = !!menuItem?.isCombo;
+    const comboMasterId = menuItem?.comboMasterId;
 
     if (!user || !resolvedUserId) {
       setShowAuthOffcanvas(true);
@@ -154,21 +157,34 @@ const HorizontalMenuCard = ({
         menuItem?.outlet_id ??
         outletId;
 
-      if (isFavoriteBoolean) {
-        await apiService.favorites.remove({
-          outletId: targetOutletId,
+      if (isCombo) {
+        const { nextIsFavorite } = toggleComboFavorite({
           userId: resolvedUserId,
-          menuId: resolvedMenuId
+          outletId: targetOutletId,
+          comboMasterId,
         });
+        onFavoriteUpdate(
+          comboMasterId,
+          nextIsFavorite,
+          targetOutletId,
+          true
+        );
       } else {
-        await apiService.favorites.add({
-          outletId: targetOutletId,
-          userId: resolvedUserId,
-          menuId: resolvedMenuId
-        });
+        if (isFavoriteBoolean) {
+          await apiService.favorites.remove({
+            outletId: targetOutletId,
+            userId: resolvedUserId,
+            menuId: resolvedMenuId
+          });
+        } else {
+          await apiService.favorites.add({
+            outletId: targetOutletId,
+            userId: resolvedUserId,
+            menuId: resolvedMenuId
+          });
+        }
+        onFavoriteUpdate(resolvedMenuId, !isFavoriteBoolean, targetOutletId);
       }
-
-      onFavoriteUpdate(resolvedMenuId, !isFavoriteBoolean, targetOutletId);
     } catch (error) {
       console.error("Error updating favorite status:", error);
       openModal("ERROR", {

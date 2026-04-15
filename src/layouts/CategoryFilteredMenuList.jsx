@@ -8,6 +8,7 @@ import { useOutlet } from '../contexts/OutletContext';
 import { useAuth } from '../contexts/AuthContext';
 import apiService from '../api/apiService';
 import { comboToMenuItem, COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
+import { isComboFavorite } from "../utils/comboFavorites";
 
 const DEFAULT_IMAGE = '';
 
@@ -91,8 +92,14 @@ function CategoryFilteredMenuList() {
         }
     };
 
-    const handleFavoriteUpdate = (menuId, newIsFavorite) =>
+    const [, setComboFavoriteRefresh] = React.useState(0);
+    const handleFavoriteUpdate = (menuId, newIsFavorite, _targetOutletId, isCombo = false) => {
+        if (isCombo) {
+            setComboFavoriteRefresh((prev) => prev + 1);
+            return;
+        }
         handleFavoriteClick(newIsFavorite, menuId);
+    };
 
     const resolvedCategoryName =
         categoryName || data?.category?.category_name || "";
@@ -174,10 +181,14 @@ function CategoryFilteredMenuList() {
                                                                     ?.price ||
                                                                 0
                                                             }
-                                                            isFavorite={false}
+                                                            isFavorite={isComboFavorite({
+                                                                userId,
+                                                                outletId: shaped.outletId ?? shaped.outlet_id ?? outletId,
+                                                                comboMasterId: shaped.comboMasterId
+                                                            })}
                                                             discount={null}
                                                             menuItem={shaped}
-                                                            onFavoriteUpdate={() => {}}
+                                                            onFavoriteUpdate={handleFavoriteUpdate}
                                                         />
                                                     </div>
                                                 );

@@ -16,6 +16,7 @@ import apiService from "../api/apiService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ENV } from "../config";
 import { comboToMenuItem, COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
+import { isComboFavorite } from "../utils/comboFavorites";
 
 function Home() {
   // Keep core hooks and context values
@@ -33,6 +34,7 @@ function Home() {
   const [activeMenuFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState(""); // New: track search query
   const [isSearching, setIsSearching] = useState(false);
+  const [, setComboFavoriteRefresh] = useState(0);
 
   // Add QueryClient
   const queryClient = useQueryClient();
@@ -148,7 +150,16 @@ function Home() {
 
   // VerticalMenuCard already performs API toggle via useMenuItems.
   // This callback should only sync local cache/UI to avoid double API calls.
-  const handleFavoriteClick = (menuId, nextIsFavorite) => {
+  const handleFavoriteClick = (
+    menuId,
+    nextIsFavorite,
+    _targetOutletId,
+    isCombo = false
+  ) => {
+    if (isCombo) {
+      setComboFavoriteRefresh((prev) => prev + 1);
+      return;
+    }
     queryClient.setQueryData(["menuItems", outletId], (old) => {
       if (!old) return old;
       return {
@@ -292,10 +303,15 @@ function Home() {
                                     shaped.portions?.[0]?.price ||
                                     0
                                   }
-                                  isFavorite={false}
+                                  isFavorite={isComboFavorite({
+                                    userId,
+                                    outletId:
+                                      shaped.outletId ?? shaped.outlet_id ?? outletId,
+                                    comboMasterId: shaped.comboMasterId,
+                                  })}
                                   discount={null}
                                   menuItem={shaped}
-                                  onFavoriteUpdate={() => {}}
+                                  onFavoriteUpdate={handleFavoriteClick}
                                 />
                               </div>
                             );
@@ -396,10 +412,15 @@ function Home() {
                                   shaped.portions?.[0]?.price ||
                                   0
                                 }
-                                isFavorite={false}
+                                isFavorite={isComboFavorite({
+                                  userId,
+                                  outletId:
+                                    shaped.outletId ?? shaped.outlet_id ?? outletId,
+                                  comboMasterId: shaped.comboMasterId,
+                                })}
                                 discount={null}
                                 menuItem={shaped}
-                                onFavoriteUpdate={() => {}}
+                                onFavoriteUpdate={handleFavoriteClick}
                               />
                             </div>
                           );

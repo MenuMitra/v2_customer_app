@@ -8,6 +8,7 @@ import AuthPrompt from "../components/Auth/AuthPrompt";
 import { useAuth } from "../contexts/AuthContext";
 import { useOutlet } from "../contexts/OutletContext";
 import apiService from "../api/apiService";
+import { getComboFavoriteIds } from "../utils/comboFavorites";
 
 // Extracted authenticated content component
 function FavouriteContent() {
@@ -43,13 +44,53 @@ function FavouriteContent() {
           }
         });
       }
+
+      const comboIds = getComboFavoriteIds({ userId, outletId });
+      if (comboIds.length > 0) {
+        try {
+          const comboResponse = await apiService.common.getAllMenuListByCategory({
+            outletId,
+          });
+          const combos = comboResponse?.combos || [];
+          combos
+            .filter((combo) =>
+              comboIds.includes(Number(combo?.combo_master_id))
+            )
+            .forEach((combo) => {
+              allMenus.push({
+                menu_id: `combo_${combo.combo_master_id}`,
+                combo_master_id: combo.combo_master_id,
+                menu_name: combo.name,
+                menu_food_type: combo.combo_food_type,
+                category_name: "Combos",
+                outlet_id: combo.outlet_id ?? outletId,
+                outlet_name: "Combos",
+                price: Number(combo.price) || 0,
+                portions: [
+                  {
+                    portion_id: 0,
+                    portion_name: "Default",
+                    price: Number(combo.price) || 0,
+                    unit_value: 1,
+                    unit_type: "",
+                  },
+                ],
+                image: [],
+                is_combo: true,
+              });
+            });
+        } catch (error) {
+          console.error("Failed to load combo favorites:", error);
+        }
+      }
+
       return allMenus;
     },
     enabled: !!userId && !!outletId,
   });
 
   const removeFavorite = useMutation({
-    mutationFn: async ({ menuId, outletId: targetOutletId }) => {
+    mutationFn: async ({ menuId, outletId: targetOutletId, isCombo, comboMasterId }) => {
       try {
         // Simple flag in closure to prevent duplicate calls
         if (removeFavorite.mutationFn.isRunning) {
@@ -57,32 +98,62 @@ function FavouriteContent() {
         }
         removeFavorite.mutationFn.isRunning = true;
 
+        if (isCombo) {
+          const comboIds = getComboFavoriteIds({
+            userId,
+            outletId: targetOutletId ?? outletId,
+          });
+          const nextIds = comboIds.filter(
+            (id) => Number(id) !== Number(comboMasterId)
+          );
+          localStorage.setItem(
+            `combo_favorites:${String(userId)}:${String(targetOutletId ?? outletId)}`,
+            JSON.stringify(nextIds)
+          );
+          return true;
+        }
+
         const result = await apiService.favorites.remove({ outletId: targetOutletId ?? outletId, userId, menuId });
         return result;
       } finally {
         removeFavorite.mutationFn.isRunning = false;
       }
     },
-    onMutate: async ({ menuId }) => {
+    onMutate: async ({ menuId, isCombo, comboMasterId }) => {
       await queryClient.cancelQueries({ queryKey: ['favorites', outletId, userId] });
       const previousFavorites = queryClient.getQueryData(['favorites', outletId, userId]);
 
       // Optimistically update
       queryClient.setQueryData(['favorites', outletId, userId], old =>
-        old?.filter(menu => menu.menu_id !== menuId) || []
+        old?.filter((menu) => {
+          if (isCombo) {
+            return Number(menu.combo_master_id) !== Number(comboMasterId);
+          }
+          return menu.menu_id !== menuId;
+        }) || []
       );
 
       return { previousFavorites };
     }
   });
 
-  const handleFavoriteUpdate = async (menuId, isFavorite, menuOutletId) => {
+  const handleFavoriteUpdate = async (menuId, isFavorite, menuOutletId, isCombo = false) => {
     if (!isFavorite && !removeFavorite.isLoading) {
       const currentFavorites = queryClient.getQueryData(['favorites', outletId, userId]);
-      const menuExists = currentFavorites?.some(menu => menu.menu_id === menuId);
+      const menuExists = currentFavorites?.some((menu) => {
+        if (isCombo) {
+          return Number(menu.combo_master_id) === Number(menuId);
+        }
+        return menu.menu_id === menuId;
+      });
 
       if (menuExists) {
-        await removeFavorite.mutateAsync({ menuId, outletId: menuOutletId });
+        await removeFavorite.mutateAsync({
+          menuId,
+          outletId: menuOutletId,
+          isCombo,
+          comboMasterId: menuId,
+        });
       }
     }
   };
@@ -187,6 +258,8 @@ function FavouriteContent() {
                                 discount={menu.offer > 0 ? `${menu.offer}%` : null}
                                 menuItem={{
                                   menuId: menu.menu_id,
+                                  comboMasterId: menu.combo_master_id,
+                                  isCombo: !!menu.is_combo,
                                   menuCatId: menu.menu_cat_id,
                                   menuName: menu.menu_name,
                                   menuFoodType: menu.menu_food_type,
