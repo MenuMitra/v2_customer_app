@@ -16,6 +16,13 @@ function Profile() {
   const { outletCode, sectionId, tableNumber } = useOutlet();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
+  const isQrSession = useMemo(() => {
+    const code = outletCode || localStorage.getItem("outletCode");
+    const sec = sectionId || localStorage.getItem("sectionId");
+    const tbl = tableNumber || localStorage.getItem("tableNumber");
+    return !!(code && sec && tbl);
+  }, [outletCode, sectionId, tableNumber]);
+
   // Memoize navigation target to prevent recalculation on every render
   const navigationTarget = useMemo(() => {
     const code = outletCode || localStorage.getItem("outletCode");
@@ -91,15 +98,17 @@ function Profile() {
                   Savings
                 </Link>
               </div>
-              <div>
-                <Link
-                  to="/all-outlets"
-                  className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
-                >
-                  <i className="fa-solid fa-store mr-2 text-[#212529]" />
-                  All Outlets
-                </Link>
-              </div>
+              {!isQrSession && (
+                <div>
+                  <Link
+                    to="/all-outlets"
+                    className="w-full font-bold flex items-center justify-center py-3 bg-[#f8f9fa] hover:bg-[#e9ecef] transition-colors rounded-lg"
+                  >
+                    <i className="fa-solid fa-store mr-2 text-[#212529]" />
+                    All Outlets
+                  </Link>
+                </div>
+              )}
               <div>
                 <Link
                   to="/favourites"

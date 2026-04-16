@@ -70,6 +70,7 @@ function Header() {
   // Function to check if banner should be hidden
   const shouldHideBanner = () => {
     return (
+      isHomePath ||
       location.pathname.includes("/outlet-details") ||
       isProfileRoute() ||
       location.pathname.startsWith("/checkout")

@@ -210,7 +210,14 @@ function OrdersContent() {
     const exists = list.some(
       (o) => String(o.orderId) === String(activeFallbackOrder.orderId)
     );
-    return exists ? list : [activeFallbackOrder, ...list];
+    const merged = exists ? list : [activeFallbackOrder, ...list];
+    // Always show the newest order at the top.
+    return merged.sort((a, b) => {
+      // Prefer orderNumber numeric sort, fallback to orderId.
+      const aNum = Number(a?.orderNumber ?? a?.orderId ?? 0);
+      const bNum = Number(b?.orderNumber ?? b?.orderId ?? 0);
+      return Number.isFinite(bNum) && Number.isFinite(aNum) ? bNum - aNum : 0;
+    });
   })();
 
   const calcRemainingSeconds = (order) => {
@@ -644,6 +651,26 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
   dateGroup.orders.sort((a, b) => parseInt(b.orderNumber) - parseInt(a.orderNumber));
 });
 
+  const toTimestamp = (dateStr) => {
+    // dateStr examples: "Today" or "15 Apr 2026"
+    if (!dateStr) return 0;
+    if (String(dateStr).toLowerCase() === "today") return Number.POSITIVE_INFINITY;
+    const t = new Date(dateStr).getTime();
+    return Number.isFinite(t) ? t : 0;
+  };
+
+  const sortedPendingEntries = Object.entries(pendingOrdersByDate).sort(
+    ([dateA], [dateB]) => toTimestamp(dateB) - toTimestamp(dateA)
+  );
+
+  const sortedCompletedEntries = Object.entries(
+    transformedOrders.completedByDate || {}
+  ).sort(([dateA], [dateB]) => toTimestamp(dateB) - toTimestamp(dateA));
+
+  const sortedCancelledEntries = Object.entries(
+    transformedOrders.cancelledByDate || {}
+  ).sort(([dateA], [dateB]) => toTimestamp(dateB) - toTimestamp(dateA));
+
   // Handler for expanding all pending date accordions
   const handleExpandAllPending = () => {
     const newExpandedState = {};
@@ -909,7 +936,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                             ></i>
                           </button>
                         </div>
-                        {Object.entries(pendingOrdersByDate).map(([dateKey, dailyData]) => (
+                        {sortedPendingEntries.map(([dateKey, dailyData]) => (
                           <div className="accordion-item mb-3" key={dateKey}>
                             <div className="accordion-header">
                               <button
@@ -973,8 +1000,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                   <div className="accordion style-3" id="accordionExample3">
                   {orderHistoryError ? (
                     <NoOrders message="No completed orders" />
-                  ) : Object.keys(transformedOrders.completedByDate).length >
-                    0 ? (
+                  ) : sortedCompletedEntries.length > 0 ? (
                     <>
                       {/* Expand/Collapse All for Completed Orders */}
                       <div className="flex justify-end items-center mb-3">
@@ -1007,7 +1033,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                           ></i>
                         </button>
                       </div>
-                      {Object.entries(transformedOrders.completedByDate).map(
+                      {sortedCompletedEntries.map(
                         ([dateKey, dailyOrderData]) => (
                           <div className="accordion-item" key={dateKey}>
                             <h2 className="accordion-header">
@@ -1083,8 +1109,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                     </div>
                   ) : orderHistoryError ? (
                     <NoOrders message="No cancelled orders" />
-                  ) : Object.keys(transformedOrders.cancelledByDate).length >
-                    0 ? (
+                  ) : sortedCancelledEntries.length > 0 ? (
                     <>
                       {/* Expand/Collapse All for Cancelled Orders */}
                       <div className="flex justify-end items-center mb-3">
@@ -1117,7 +1142,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                           ></i>
                         </button>
                       </div>
-                      {Object.entries(transformedOrders.cancelledByDate).map(
+                      {sortedCancelledEntries.map(
                         ([dateKey, dailyOrderData]) => (
                           <div className="accordion-item" key={dateKey}>
                             <h2 className="accordion-header">

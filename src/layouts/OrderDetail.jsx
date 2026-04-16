@@ -101,7 +101,19 @@ function OrderDetail() {
       }
 
       // Destructure at the top level correctly
-      const { order_details, menu_details } = orderDetails;
+      const { order_details, menu_details = [], combo_details = [] } = orderDetails;
+      const allInvoiceItems = [
+        ...(menu_details || []).map((item) => ({
+          name: item?.menu_name ?? "",
+          qty: Number(item?.quantity ?? 0),
+          price: Number(item?.price ?? item?.net_price ?? 0),
+        })),
+        ...(combo_details || []).map((item) => ({
+          name: item?.combo_name ?? "",
+          qty: Number(item?.quantity ?? 0),
+          price: Number(item?.price ?? item?.menu_sub_total ?? 0),
+        })),
+      ].filter((it) => it.name && it.qty > 0);
       const outlet_name =
         localStorage.getItem("outlet_name") || order_details.outlet_name || "";
       const outlet_address = localStorage.getItem("outlet_address") || "-";
@@ -164,13 +176,13 @@ function OrderDetail() {
               <th style="text-align: center; padding: 8px 0; border-bottom: 1px solid #ddd; color: #333;">Quantity</th>
               <th style="text-align: right; padding: 8px 0; border-bottom: 1px solid #ddd; color: #333;">Price</th>
             </tr>
-            ${menu_details
+            ${allInvoiceItems
           .map(
             (item) => `
               <tr>
                 <td style="padding: 8px 0; color: #d9534f;">${item.menu_name
               }</td>
-                <td style="text-align: center; padding: 8px 0;">${item.quantity
+                <td style="text-align: center; padding: 8px 0;">${item.qty
               }</td>
                 <td style="text-align: right; padding: 8px 0;">₹ ${item.price.toFixed(
                 2
@@ -515,12 +527,15 @@ function OrderDetail() {
           <div className="card mt-3 h-auto mb-3">
             <div className="card-header border-0 pb-0 border-b pb-3">
               <h5 className="card-title text-[var(--primary)]">
-                Order Items ({orderDetails.order_details.menu_count})
+                Order Items ({
+                  Number(orderDetails?.order_details?.menu_count || 0) +
+                  Number(orderDetails?.order_details?.combo_count || 0)
+                })
               </h5>
             </div>
 
             <div className="card-body">
-              {orderDetails.menu_details.map((menu, index) => (
+              {(orderDetails?.menu_details || []).map((menu, index) => (
                 <div
                   key={index}
                   className={`flex items-center justify-between py-2 ${index !== orderDetails.menu_details.length - 1
@@ -563,6 +578,54 @@ function OrderDetail() {
                   </div>
                 </div>
               ))}
+
+              {(orderDetails?.combo_details || []).length > 0 && (
+                <>
+                  <div className="my-2 text-soft text-xs font-semibold uppercase">
+                    Combos
+                  </div>
+                  {(orderDetails?.combo_details || []).map((combo, index) => (
+                    <div
+                      key={combo?.combo_master_id ?? index}
+                      className={`flex items-center justify-between py-2 ${index !== orderDetails.combo_details.length - 1
+                        ? "border-b border-[var(--border-color)]"
+                        : ""
+                      }`}
+                    >
+                      <div className="flex items-center flex-1 min-w-0">
+                        <div className="food-type-icon mr-3">
+                          {String(combo?.combo_food_type || "")
+                            .toLowerCase() === "nonveg" ? (
+                            <NonVegIcon />
+                          ) : (
+                            <VegIcon />
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h6 className="mb-0 text-[var(--primary)]">
+                              {combo?.combo_name}
+                            </h6>
+                          </div>
+                          <p className="mb-0 text-soft">
+                            Qty: {combo?.quantity} × ₹{combo?.price}
+                            {combo?.comment && (
+                              <span className="ml-2 text-soft">
+                                • {combo.comment}
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right ml-3 flex-shrink-0">
+                        <h6 className="mb-0 text-[var(--primary)]">
+                          ₹{Number(combo?.menu_sub_total ?? combo?.price ?? 0).toFixed(2)}
+                        </h6>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
             </div>
           </div>
 
