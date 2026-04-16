@@ -14,6 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiService from "../api/apiService";
 import { useToastContext } from "../components/Toast/ToastContext";
 import { ENV } from "../config";
+import { getDisplayPortionLabel } from "../utils/portionLabel";
 
 const FooterSummary = function FooterSummary({ checkoutDetails }) {
   // Fallback to zeros if no data yet
@@ -869,7 +870,7 @@ function CheckoutContent() {
                             <div className="flex-grow">
                               <div className="flex items-center mb-1">
                                 <h5 className="mb-0 font-semibold">
-                                  {item.menuName}
+                                  {getDisplayPortionLabel(item.menuName)}
                                 </h5>
                                 {/* Add offer display */}
                                 {item.offer && (
@@ -881,7 +882,7 @@ function CheckoutContent() {
                               <div className="flex items-center mb-1">
                                 <span className="text-green-600 mr-2 text-[15px] flex items-center">
                                   <i className="fa-solid fa-utensils mr-1 text-[15px] text-[#19b955]"></i>
-                                  {item.portionName}
+                                  {getDisplayPortionLabel(item.portionName)}
                                 </span>
                               </div>
 

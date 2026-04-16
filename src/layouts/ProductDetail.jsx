@@ -9,6 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 import apiService from "../api/apiService";
 import { useMenuItems } from "../hooks/useMenuItems";
 import TripleSlider from "../components/TripleSlider/TripleSlider";
+import { getDisplayPortionLabel } from "../utils/portionLabel";
 
 // FoodTypeIcon component
 const FoodTypeIcon = ({ foodType }) => {
@@ -544,7 +545,7 @@ function ProductDetail() {
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {menuDetails.default_price != null && (
                       <div className="flex justify-between bg-[#f8f9fa] border border-[#dee2e6] rounded-lg px-3 py-2">
-                        <span>Default</span>
+                        <span>{getDisplayPortionLabel("default")}</span>
                         <span className="font-semibold">₹{Number(menuDetails.default_price)}</span>
                       </div>
                     )}

@@ -6,6 +6,7 @@ import { useModal } from "../../../contexts/ModalContext";
 import { useAuth } from "../../../contexts/AuthContext";
 import { useOutlet } from "../../../contexts/OutletContext";
 import apiService from "../../../api/apiService";
+import { getDisplayPortionLabel } from "../../../utils/portionLabel";
 
 export const AddToCartModal = () => {
   const { closeModal, modalConfig, openModal } = useModal();
@@ -723,7 +724,8 @@ export const AddToCartModal = () => {
       null;
 
     const formatOption = (portion) => {
-      const name = String(portion?.portion_name || "").trim() || "Portion";
+      const name =
+        getDisplayPortionLabel(portion?.portion_name) || "Portion";
       const price = resolvePortionPrice(portion, menuDefault);
       const priceText = price == null ? "N/A" : `₹${price}`;
       // Requirement: show "name - ₹price"
@@ -820,7 +822,8 @@ export const AddToCartModal = () => {
                 return "selected portion";
               }
 
-              const label = `${portion.portion_name ? `${portion.portion_name} ` : ''}(${portion.unit_value}${portion.unit_type ? ` ${portion.unit_type}` : ''})`;
+              const displayName = getDisplayPortionLabel(portion.portion_name);
+              const label = `${displayName ? `${displayName} ` : ''}(${portion.unit_value}${portion.unit_type ? ` ${portion.unit_type}` : ''})`;
               return label;
             })()}
           </span>
@@ -892,7 +895,13 @@ export const AddToCartModal = () => {
             onChange={(e) => handleCommentChange(e.target.value)}
             placeholder={`Add instructions for ${menuDetails?.portions?.find(
               (p) => p.portion_id === selectedPortion
-            )?.portion_name || 'selected'
+            )?.portion_name
+              ? getDisplayPortionLabel(
+                  menuDetails?.portions?.find(
+                    (p) => p.portion_id === selectedPortion
+                  )?.portion_name
+                )
+              : 'selected'
               } portion...`}
           />
         </div>
