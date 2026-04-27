@@ -9,11 +9,28 @@ export const apiService = {
       const authData = localStorage.getItem('auth');
       const auth = authData ? JSON.parse(authData) : null;
       const userId = auth?.userId;
+      const selectedOutletRaw = localStorage.getItem("selectedOutlet");
+      const selectedOutlet = selectedOutletRaw ? JSON.parse(selectedOutletRaw) : null;
+      const sectionId =
+        selectedOutlet?.sectionId ??
+        localStorage.getItem("sectionId") ??
+        null;
+      const orderSettingsRaw = localStorage.getItem("orderSettings");
+      const orderSettings = orderSettingsRaw ? JSON.parse(orderSettingsRaw) : null;
+      const orderType = orderSettings?.order_type || null;
+      const priceType =
+        orderType === "dine-in"
+          ? "dine_in"
+          : orderType === "takeaway"
+            ? "parcel"
+            : orderType || "dine_in";
 
       const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_all_menu_list_by_category`, {
         outlet_id: outletId,
-        app_source: "user_app",
-        user_id: userId || null
+        app_source: "customer_app",
+        user_id: userId || null,
+        section_id: sectionId ? Number(sectionId) : null,
+        price_type: priceType
       });
 
       return response?.data?.detail || {};
@@ -273,12 +290,23 @@ export const apiService = {
   // Favorites
   favorites: {
     getList: async ({ outletId, userId }) => {
-      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_favourite_list`, {
-        outlet_id: outletId,
-        user_id: userId,
-        app_source: "user_app"
-      });
-      return response?.data?.detail?.lists || {};
+      try {
+        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/get_favourite_list`, {
+          outlet_id: outletId,
+          user_id: userId,
+          app_source: "user_app"
+        });
+        return response?.data?.detail?.lists || {};
+      } catch (error) {
+        // Backend may return 404/"item not found" when no favourites exist.
+        // Treat this as an empty list so the page still renders.
+        const status = error?.response?.status;
+        const detail = String(error?.response?.data?.detail || "").toLowerCase();
+        if (status === 404 || detail.includes("item not found") || detail.includes("no favourite")) {
+          return {};
+        }
+        throw error;
+      }
     },
     add: async ({ outletId, userId, menuId }) => {
       const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/save_favourite_menu`, {
