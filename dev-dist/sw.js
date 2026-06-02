@@ -82,9 +82,9 @@ define(['./workbox-a959eb95'], (function (workbox) { 'use strict';
     "revision": "b078daa49e7326457d1803f1c16acef9"
   }, {
     "url": "index.html",
-    "revision": "0.bmt9h0jdpo8"
+    "revision": "0.citkqkhbom"
   }], {});
-  workbox.cleanupOutdatedCaches();
+  workbox.cleanupOutdatedCaches();  
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));

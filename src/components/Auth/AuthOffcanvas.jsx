@@ -2,65 +2,57 @@ import { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import BaseModal from "../Modal/BaseModal";
 import { useAuth } from "../../contexts/AuthContext";
-import axios from "axios";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useToast } from "../Toast/useToast";
 import {
-  browserName,
   browserVersion,
   deviceType,
-  getUA,
   mobileModel,
   mobileVendor,
   osName,
   osVersion,
 } from "react-device-detect";
-import { ENV } from '../../config';
-
-const STEPS = {
-  LOGIN: "login",
-  SIGNUP: "signup",
-  OTP: "otp",
-};
-const API_BASE_URL = ENV.V2_COMMON_BASE;
-
-// Create axios instance with common config
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-});
+import { AUTH_STEPS } from "../../constants/auth";
+import PinInput from "./PinInput";
+import {
+  accountSignup,
+  checkMobileRegistration,
+  getAuthErrorMessage,
+  verifyPinLogin,
+} from "../../services/authService";
+import {
+  sanitizePin,
+  validateMobile,
+  validatePin,
+  validateSignupName,
+} from "../../utils/authValidation";
 
 const AuthOffcanvas = () => {
   const { showAuthOffcanvas, setShowAuthOffcanvas, handleLoginSuccess } =
     useAuth();
-  const [currentStep, setCurrentStep] = useState(STEPS.LOGIN);
+  const [currentStep, setCurrentStep] = useState(AUTH_STEPS.LOGIN);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [otp, setOtp] = useState("");
-  const [userDetails, setUserDetails] = useState({
-    name: "",
-    email: "",
-  });
+  const [pin, setPin] = useState("");
+  const [userDetails, setUserDetails] = useState({ name: "" });
+  const [pinError, setPinError] = useState("");
+  const [signupPinError, setSignupPinError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { isDarkMode } = useTheme();
-  const [timer, setTimer] = useState(0);
-  const [isResendDisabled, setIsResendDisabled] = useState(false);
-  const [resetTimer, setResetTimer] = useState(0);
   const toast = useToast();
   const phoneInputRef = useRef(null);
   const nameInputRef = useRef(null);
-  const otpFormRef = useRef(null);
+  const pinFormRef = useRef(null);
   const didAutoSubmitRef = useRef(false);
   const [shouldHighlightPhone, setShouldHighlightPhone] = useState(false);
-  const [shouldHighlightOTPButton, setShouldHighlightOTPButton] = useState(false);
-  const [otpFieldsHighlight, setOtpFieldsHighlight] = useState([false, false, false, false]);
+  const [shouldHighlightPinButton, setShouldHighlightPinButton] = useState(false);
+  const [pinFieldsHighlight, setPinFieldsHighlight] = useState([
+    false,
+    false,
+    false,
+    false,
+  ]);
 
-
-  // inside AuthOffcanvas component, near other handlers
   const handleInputFocus = (e) => {
-    // optional UX: select all text on focus
     if (e?.target?.select) e.target.select();
   };
 
@@ -68,201 +60,139 @@ const AuthOffcanvas = () => {
     const cleanValue = value.replace(/\D/g, "");
     if (cleanValue === "" || (/^[6-9]/.test(cleanValue) && cleanValue.length <= 10)) {
       setPhoneNumber(cleanValue);
-
-      // Highlight phone input when user enters more than 1 digit
-      if (cleanValue.length > 1) {
-        console.log("Highlighting phone input, length:", cleanValue.length); // Debug log
-        setShouldHighlightPhone(true);
-      } else {
-        console.log("Removing phone highlight, length:", cleanValue.length); // Debug log
-        setShouldHighlightPhone(false);
-      }
+      setShouldHighlightPhone(cleanValue.length > 1);
     }
   };
+
+  const clearSensitiveAuthFields = () => {
+    setPin("");
+    setPinError("");
+    setSignupPinError("");
+  };
+
   useEffect(() => {
-    let interval;
-    if (currentStep === STEPS.OTP || resetTimer) {
-      setTimer(20);
-      setIsResendDisabled(true);
+    if (currentStep !== AUTH_STEPS.PIN) return undefined;
 
-      interval = setInterval(() => {
-        setTimer((prevTimer) => {
-          if (prevTimer <= 1) {
-            setIsResendDisabled(false);
-            clearInterval(interval);
-            return 0;
-          }
-          return prevTimer - 1;
-        });
-      }, 1000);
-    }
+    didAutoSubmitRef.current = false;
+    const pinInputs = document.querySelectorAll("#login-pin input");
 
-    return () => {
-      if (interval) {
-        clearInterval(interval);
+    const handlePinDigitInput = (e) => {
+      const input = e.target;
+      const value = input.value.replace(/\D/g, "");
+
+      if (value) {
+        input.value = value;
+        const next = input.getAttribute("data-next");
+        if (next && value.length === 1) {
+          document.getElementById(next)?.focus();
+        }
       }
     };
-  }, [currentStep, resetTimer]);
 
-  useEffect(() => {
-    if (currentStep === STEPS.OTP) {
-      didAutoSubmitRef.current = false;
-      const otpInputs = document.querySelectorAll("#otp input");
+    const handleKeyDown = (e) => {
+      const input = e.target;
+      if (e.key === "Backspace" && !input.value) {
+        const prev = input.getAttribute("data-previous");
+        if (prev) document.getElementById(prev)?.focus();
+      }
+    };
 
-      const handleOTPInput = (e) => {
-        const input = e.target;
-        const value = input.value.replace(/\D/g, "");
+    const updatePinState = () => {
+      const digits = [...pinInputs].map((input) => input.value).join("");
+      setPin(digits);
+      setPinError("");
 
-        if (value) {
-          input.value = value;
+      const fieldHighlights = [...pinInputs].map((input) => input.value.length > 0);
+      setPinFieldsHighlight(fieldHighlights);
+      setShouldHighlightPinButton(
+        digits.length === 4 &&
+          [...pinInputs].every((i) => i.value && i.value.length === 1)
+      );
 
-          const next = input.getAttribute("data-next");
-          if (next && value.length === 1) {
-            const nextInput = document.getElementById(next);
-            if (nextInput) {
-              nextInput.focus();
-            }
+      if (
+        digits.length === 4 &&
+        [...pinInputs].every((i) => i.value && i.value.length === 1) &&
+        !isLoading &&
+        !didAutoSubmitRef.current
+      ) {
+        didAutoSubmitRef.current = true;
+        setTimeout(() => {
+          if (pinFormRef.current?.requestSubmit) {
+            pinFormRef.current.requestSubmit();
+          } else {
+            pinFormRef.current?.querySelector('button[type="submit"]')?.click();
           }
-        }
-      };
+        }, 0);
+      }
+    };
 
-      const handleKeyDown = (e) => {
-        const input = e.target;
-
-        if (e.key === "Backspace" && !input.value) {
-          const prev = input.getAttribute("data-previous");
-          if (prev) {
-            const prevInput = document.getElementById(prev);
-            if (prevInput) {
-              prevInput.focus();
-            }
-          }
-        }
-      };
-
-      const updateOTPState = () => {
-        const digits = [...otpInputs].map((input) => input.value).join("");
-        setOtp(digits);
-
-        // Update field highlighting based on filled inputs
-        const fieldHighlights = [...otpInputs].map((input) => input.value.length > 0);
-        setOtpFieldsHighlight(fieldHighlights);
-        console.log("OTP fields highlight:", fieldHighlights);
-
-        // Highlight OTP button when all 4 digits are entered
-        if (digits.length === 4 && [...otpInputs].every((i) => i.value && i.value.length === 1)) {
-          console.log("Highlighting OTP button - 4 digits entered");
-          setShouldHighlightOTPButton(true);
-        } else {
-          console.log("Removing OTP button highlight - digits:", digits.length);
-          setShouldHighlightOTPButton(false);
-        }
-
-        if (
-          digits.length === 4 &&
-          [...otpInputs].every((i) => i.value && i.value.length === 1) &&
-          !isLoading &&
-          !didAutoSubmitRef.current
-        ) {
-          didAutoSubmitRef.current = true;
-          setTimeout(() => {
-            if (otpFormRef.current?.requestSubmit) {
-              otpFormRef.current.requestSubmit();
-            } else {
-              otpFormRef.current
-                ?.querySelector('button[type="submit"]')
-                ?.click();
-            }
-          }, 0);
-        }
-      };
-
-      otpInputs.forEach((input) => {
-        input.addEventListener("input", (e) => {
-          handleOTPInput(e);
-          updateOTPState();
-        });
-        input.addEventListener("keydown", handleKeyDown);
+    pinInputs.forEach((input) => {
+      input.addEventListener("input", (e) => {
+        handlePinDigitInput(e);
+        updatePinState();
       });
+      input.addEventListener("keydown", handleKeyDown);
+    });
 
-      otpInputs[0]?.focus();
+    pinInputs[0]?.focus();
 
-      return () => {
-        otpInputs.forEach((input) => {
-          input.removeEventListener("input", handleOTPInput);
-          input.removeEventListener("keydown", handleKeyDown);
-        });
-      };
-    }
+    return () => {
+      pinInputs.forEach((input) => {
+        input.removeEventListener("input", handlePinDigitInput);
+        input.removeEventListener("keydown", handleKeyDown);
+      });
+    };
   }, [currentStep, isLoading]);
 
-  // Autofocus phone input when login step is active
   useEffect(() => {
-    if (currentStep === STEPS.LOGIN && showAuthOffcanvas) {
-      const t = setTimeout(() => {
-        phoneInputRef.current?.focus();
-      }, 0);
+    if (currentStep === AUTH_STEPS.LOGIN && showAuthOffcanvas) {
+      const t = setTimeout(() => phoneInputRef.current?.focus(), 0);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [currentStep, showAuthOffcanvas]);
 
-  // Autofocus name input when signup step is active
   useEffect(() => {
-    if (currentStep === STEPS.SIGNUP && showAuthOffcanvas) {
-      const t = setTimeout(() => {
-        nameInputRef.current?.focus();
-      }, 0);
+    if (currentStep === AUTH_STEPS.SIGNUP && showAuthOffcanvas) {
+      const t = setTimeout(() => nameInputRef.current?.focus(), 0);
       return () => clearTimeout(t);
     }
+    return undefined;
   }, [currentStep, showAuthOffcanvas]);
-
-  // Debug effect to monitor highlight state
-  useEffect(() => {
-    console.log("shouldHighlightPhone changed:", shouldHighlightPhone);
-  }, [shouldHighlightPhone]);
-
-  // Debug effect to monitor OTP button highlight state
-  useEffect(() => {
-    console.log("shouldHighlightOTPButton changed:", shouldHighlightOTPButton);
-  }, [shouldHighlightOTPButton]);
-
-  // Debug effect to monitor OTP fields highlight state
-  useEffect(() => {
-    console.log("otpFieldsHighlight changed:", otpFieldsHighlight);
-  }, [otpFieldsHighlight]);
-
-
 
   const handleClose = () => {
-    setCurrentStep(STEPS.LOGIN);
+    setCurrentStep(AUTH_STEPS.LOGIN);
     setPhoneNumber("");
-    setOtp("");
-    setUserDetails({ name: "", email: "" });
+    clearSensitiveAuthFields();
+    setUserDetails({ name: "" });
     setIsLoading(false);
     setShowAuthOffcanvas(false);
-    setTimer(0);
-    setIsResendDisabled(false);
-    setResetTimer(0); // Reset the resetTimer state
     setShouldHighlightPhone(false);
-    setShouldHighlightOTPButton(false);
-    setOtpFieldsHighlight([false, false, false, false]);
+    setShouldHighlightPinButton(false);
+    setPinFieldsHighlight([false, false, false, false]);
   };
 
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
+    const mobileError = validateMobile(phoneNumber);
+    if (mobileError) {
+      toast.error(mobileError, "Error");
+      return;
+    }
+
     setIsLoading(true);
-    let Version = localStorage.getItem("version")
+    const version = localStorage.getItem("version");
 
     try {
-      const { data } = await api.post("/common/login", {
+      const { data } = await checkMobileRegistration({
         mobile: phoneNumber,
-        version: Version,
-        app_type: "customer",
+        version,
       });
 
       if (data.role === "customer" || data.role === "admin") {
-        setCurrentStep(STEPS.OTP);
-        toast.success("OTP sent successfully", "Verification");
+        clearSensitiveAuthFields();
+        setCurrentStep(AUTH_STEPS.PIN);
+        toast.info("Enter your PIN to continue", "Login");
       } else {
         toast.error(
           "This mobile number is not registered as a customer or admin",
@@ -270,20 +200,18 @@ const AuthOffcanvas = () => {
         );
       }
     } catch (err) {
-      console.error("Login error:", err);
-
       if (
         err.response?.status === 400 &&
         err.response?.data?.detail === "This mobile number is not registered."
       ) {
-        setCurrentStep(STEPS.SIGNUP);
+        clearSensitiveAuthFields();
+        setCurrentStep(AUTH_STEPS.SIGNUP);
         toast.info("Number not registered. Please sign up.", "New User");
         return;
       }
 
       toast.error(
-        err.response?.data?.detail ||
-        "Unable to process request. Please try again.",
+        getAuthErrorMessage(err, "Unable to process request. Please try again."),
         "Error"
       );
     } finally {
@@ -293,32 +221,53 @@ const AuthOffcanvas = () => {
 
   const handleSignupSubmit = async (e) => {
     e.preventDefault();
+
+    const nameError = validateSignupName(userDetails.name);
+    const mobileError = validateMobile(phoneNumber);
+    const pinValidationError = validatePin(pin);
+
+    setSignupPinError(pinValidationError || "");
+    if (nameError || mobileError || pinValidationError) {
+      if (nameError) toast.error(nameError, "Error");
+      else if (mobileError) toast.error(mobileError, "Error");
+      return;
+    }
+
     setIsLoading(true);
+    setSignupPinError("");
+
     try {
-      await api.post("/user/account_signup", {
+      const { data } = await accountSignup({
         mobile: phoneNumber,
         name: userDetails.name,
+        pin,
       });
 
-      setCurrentStep(STEPS.OTP);
+      clearSensitiveAuthFields();
+      setUserDetails({ name: "" });
+      setCurrentStep(AUTH_STEPS.LOGIN);
       toast.success(
-        "Account created successfully. Please verify OTP.",
+        data?.detail || "Account created successfully",
         "Success"
       );
     } catch (err) {
-      console.error("Signup error:", err);
-      toast.error(
-        err.response?.data?.detail ||
-        "Failed to create account. Please try again.",
-        "Error"
+      clearSensitiveAuthFields();
+      const message = getAuthErrorMessage(
+        err,
+        "Failed to create account. Please try again."
       );
+      setSignupPinError(
+        err.response?.status === 400 && message.toLowerCase().includes("pin")
+          ? message
+          : ""
+      );
+      toast.error(message, "Error");
     } finally {
       setIsLoading(false);
     }
   };
 
   const getDeviceInfo = () => {
-    // Generate a semi-permanent device ID using available device characteristics
     const generateDeviceId = () => {
       const characteristics = [
         navigator.userAgent,
@@ -328,90 +277,70 @@ const AuthOffcanvas = () => {
         new Date().getTimezoneOffset(),
       ].join("|");
 
-      // Create a hash of the characteristics
       let hash = 0;
       for (let i = 0; i < characteristics.length; i++) {
         const char = characteristics.charCodeAt(i);
         hash = (hash << 5) - hash + char;
-        hash = hash & hash; // Convert to 32-bit integer
+        hash &= hash;
       }
       return Math.abs(hash).toString(16);
     };
 
-    // Get or create device ID
-    let setVersion = localStorage.setItem("version", "2.2.0")
+    localStorage.setItem("version", "2.3.0");
     let deviceId = localStorage.getItem("mm_device_id");
     if (!deviceId) {
       deviceId = generateDeviceId();
       localStorage.setItem("mm_device_id", deviceId);
     }
 
-    // Enhanced browser detection
     const getBrowserInfo = () => {
       const ua = navigator.userAgent;
-
-      // Check for common browsers using both user agent and specific browser properties
-      if (navigator.brave?.isBrave || ua.includes("Brave")) {
-        return "Brave";
-      } else if (
-        ua.includes("Chrome") &&
-        !ua.includes("Edg") &&
-        !ua.includes("OPR")
-      ) {
+      if (navigator.brave?.isBrave || ua.includes("Brave")) return "Brave";
+      if (ua.includes("Chrome") && !ua.includes("Edg") && !ua.includes("OPR")) {
         return "Chrome";
-      } else if (ua.includes("Firefox")) {
-        return "Firefox";
-      } else if (ua.includes("Safari") && !ua.includes("Chrome")) {
-        return "Safari";
-      } else if (ua.includes("Edg")) {
-        return "Edge";
-      } else if (ua.includes("OPR") || ua.includes("Opera")) {
-        return "Opera";
-      } else if (ua.includes("MSIE") || ua.includes("Trident/")) {
-        return "Internet Explorer";
-      } else {
-        return "Browser"; // Generic fallback
       }
+      if (ua.includes("Firefox")) return "Firefox";
+      if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
+      if (ua.includes("Edg")) return "Edge";
+      if (ua.includes("OPR") || ua.includes("Opera")) return "Opera";
+      if (ua.includes("MSIE") || ua.includes("Trident/")) {
+        return "Internet Explorer";
+      }
+      return "Browser";
     };
 
-    // Get OS info with better formatting
     const getOSInfo = () => {
       if (osName === "none" || !osName) {
-        // Fallback OS detection from user agent
         const ua = navigator.userAgent;
         if (ua.includes("Windows")) return "Windows";
         if (ua.includes("Mac")) return "MacOS";
         if (ua.includes("Linux")) return "Linux";
         if (ua.includes("Android")) return "Android";
-        if (ua.includes("iOS") || ua.includes("iPhone") || ua.includes("iPad"))
+        if (ua.includes("iOS") || ua.includes("iPhone") || ua.includes("iPad")) {
           return "iOS";
+        }
         return "Unknown OS";
       }
       return osName === "Mac OS" ? "MacOS" : osName;
     };
 
-    // Format device model
-    let deviceModel = "";
     const detectedBrowser = getBrowserInfo();
     const detectedOS = getOSInfo();
 
+    let deviceModel = "";
     if (
       mobileModel &&
       mobileVendor &&
       mobileModel !== "none" &&
       mobileVendor !== "none"
     ) {
-      // Mobile device format
       deviceModel = `${mobileVendor} ${mobileModel}`;
     } else {
-      // Desktop/laptop format
       deviceModel = `${detectedOS} - ${detectedBrowser}`;
     }
 
-    // Enhanced device type detection
     let readableDeviceType = "Desktop";
     const ua = navigator.userAgent;
-
     if (
       deviceType === "mobile" ||
       /Mobile|Android|iPhone|iPod/i.test(ua) ||
@@ -431,49 +360,38 @@ const AuthOffcanvas = () => {
       device_model: deviceModel.trim() || `${detectedOS} Device`,
       device_type: readableDeviceType,
       full_details: {
-        browser: `${detectedBrowser} ${browserVersion !== "none" ? browserVersion : ""
-          }`.trim(),
-        operating_system: `${detectedOS} ${osVersion !== "none" ? osVersion : ""
-          }`.trim(),
+        browser: `${detectedBrowser} ${browserVersion !== "none" ? browserVersion : ""}`.trim(),
+        operating_system: `${detectedOS} ${osVersion !== "none" ? osVersion : ""}`.trim(),
         device_type: readableDeviceType,
       },
     };
   };
 
-  useEffect(() => {
-    const info = getDeviceInfo();
-    console.log("Browser Detection:", {
-      userAgent: navigator.userAgent,
-      deviceInfo: info,
-      platform: navigator.platform,
-      vendor: navigator.vendor,
-    });
-  }, []);
-
-  const handleOTPSubmit = async (e) => {
+  const handlePinSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    const pinValidationError = validatePin(pin);
+    if (pinValidationError) {
+      setPinError(pinValidationError);
+      return;
+    }
 
+    setIsLoading(true);
+    setPinError("");
     const deviceInfo = getDeviceInfo();
 
     try {
-      const response = await api.post("/common/verify_otp", {
+      const { data } = await verifyPinLogin({
         mobile: phoneNumber,
-        otp: otp,
-        app_type: "customer",
+        pin,
         device_id: deviceInfo.device_id,
         device_model: deviceInfo.device_model,
         device_type: deviceInfo.device_type,
       });
 
-      const { data } = response;
-
-      // Check if we have all required data
       if (!data.user_id || !data.access_token) {
         throw new Error("Invalid response from server");
       }
 
-      // Store user data in localStorage and update context
       handleLoginSuccess({
         user_id: data.user_id,
         name: data.name,
@@ -486,48 +404,22 @@ const AuthOffcanvas = () => {
       toast.success("Login successful!", "Welcome");
       handleClose();
     } catch (err) {
-      console.error("OTP verification error:", err);
-
-      // Handle different types of errors
-      if (err.response?.status === 400) {
-        toast.error("Invalid OTP. Please try again.", "Error");
-      } else if (err.response?.data?.detail) {
-        toast.error(err.response.data.detail, "Error");
-      } else if (err.message) {
-        toast.error(err.message, "Error");
-      } else {
-        toast.error("Failed to verify OTP. Please try again.", "Error");
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResendOTP = async () => {
-    setIsLoading(true);
-    setResetTimer((prev) => prev + 1); // Trigger timer reset
-    let Version = localStorage.getItem("version")
-    try {
-      const { data } = await api.post("/common/resend_otp", {
-        mobile: phoneNumber,
-        version: Version,
-        app_type: "customer",
+      clearSensitiveAuthFields();
+      const pinInputs = document.querySelectorAll("#login-pin input");
+      pinInputs.forEach((input) => {
+        input.value = "";
       });
+      setPinFieldsHighlight([false, false, false, false]);
+      didAutoSubmitRef.current = false;
 
-      if (data.role === "customer") {
-        toast.success(data.detail || "OTP resent successfully!", "OTP Sent");
-      } else {
-        throw new Error("Invalid response from server");
-      }
-    } catch (err) {
-      console.error("Resend OTP error:", err);
-      toast.error(
-        err.response?.data?.detail || "Failed to resend OTP. Please try again.",
-        "Error"
+      const message = getAuthErrorMessage(
+        err,
+        err.response?.status === 400
+          ? "Invalid PIN. Please try again."
+          : "Failed to sign in. Please try again."
       );
-      // Reset timer state if API call fails
-      setTimer(0);
-      setIsResendDisabled(false);
+      setPinError(message);
+      toast.error(message, "Error");
     } finally {
       setIsLoading(false);
     }
@@ -554,21 +446,27 @@ const AuthOffcanvas = () => {
     <div className="px-1">
       <form onSubmit={handlePhoneSubmit}>
         <div className="mb-3">
-          <label className="block mb-2 text-sm font-medium text-[var(--title)]">Phone Number</label>
+          <label className="block mb-2 text-sm font-medium text-[var(--title)]">
+            Phone Number
+          </label>
           <div className="flex">
-            <span className="inline-flex items-center px-3 text-sm text-[#222121ff] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">+91</span>
+            <span className="inline-flex items-center px-3 text-sm text-[#222121ff] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">
+              +91
+            </span>
             <input
               type="tel"
               className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
               style={{
-                fontSize: '14px',
-                color: '#222121ff',
-                ...(shouldHighlightPhone ? {
-                  borderColor: '#66ccd4',
-                  backgroundColor: 'rgba(102, 204, 212, 0.05)',
-                  boxShadow: '0 0 0 2px rgba(102, 204, 212, 0.3)',
-                  transition: 'all 0.3s ease'
-                } : {})
+                fontSize: "14px",
+                color: "#222121ff",
+                ...(shouldHighlightPhone
+                  ? {
+                      borderColor: "#66ccd4",
+                      backgroundColor: "rgba(102, 204, 212, 0.05)",
+                      boxShadow: "0 0 0 2px rgba(102, 204, 212, 0.3)",
+                      transition: "all 0.3s ease",
+                    }
+                  : {}),
               }}
               ref={phoneInputRef}
               value={phoneNumber}
@@ -597,22 +495,25 @@ const AuthOffcanvas = () => {
                 className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin"
                 role="status"
                 aria-hidden="true"
-              ></span>
+              />
               Please wait...
             </span>
           ) : (
-            "Get OTP"
+            "Continue"
           )}
         </button>
       </form>
 
       <div className="text-center mt-4">
         <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="border-b flex-grow"></div>
+          <div className="border-b flex-grow" />
           <button
             type="button"
             className="p-0 bg-transparent border-0 text-sm font-medium transition-opacity duration-200 text-[#6c757d] hover:opacity-80 cursor-pointer"
-            onClick={() => setCurrentStep(STEPS.SIGNUP)}
+            onClick={() => {
+              clearSensitiveAuthFields();
+              setCurrentStep(AUTH_STEPS.SIGNUP);
+            }}
             disabled={isLoading}
           >
             New to MenuMitra?{" "}
@@ -634,7 +535,7 @@ const AuthOffcanvas = () => {
               </svg>
             </span>
           </button>
-          <div className="border-b flex-grow"></div>
+          <div className="border-b flex-grow" />
         </div>
       </div>
     </div>
@@ -644,7 +545,9 @@ const AuthOffcanvas = () => {
     <div className="px-1">
       <form onSubmit={handleSignupSubmit}>
         <div className="mb-3">
-          <label className="block mb-2 text-sm font-medium text-[var(--title)]">Full Name</label>
+          <label className="block mb-2 text-sm font-medium text-[var(--title)]">
+            Full Name
+          </label>
           <input
             type="text"
             className="w-full px-3 py-2 border border-[var(--border-color)] rounded-lg outline-none focus:border-[var(--primary)] transition-colors"
@@ -652,7 +555,6 @@ const AuthOffcanvas = () => {
             value={userDetails.name}
             onChange={(e) => {
               const value = e.target.value;
-              // Only allow alphabets and spaces
               if (/^[a-zA-Z ]*$/.test(value)) {
                 setUserDetails((prev) => ({ ...prev, name: value }));
               }
@@ -664,22 +566,28 @@ const AuthOffcanvas = () => {
           />
         </div>
         <div className="mb-3">
-          <label className="block mb-2 text-sm font-medium text-[var(--title)]">Phone Number</label>
+          <label className="block mb-2 text-sm font-medium text-[var(--title)]">
+            Phone Number
+          </label>
           <div className="flex">
-            <span className="inline-flex items-center px-3 text-sm text-[#495057] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">+91</span>
+            <span className="inline-flex items-center px-3 text-sm text-[#495057] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">
+              +91
+            </span>
             <input
               type="tel"
               className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
               style={{
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#000000',
-                ...(shouldHighlightPhone ? {
-                  borderColor: '#66ccd4',
-                  backgroundColor: 'rgba(102, 204, 212, 0.05)',
-                  boxShadow: '0 0 0 2px rgba(102, 204, 212, 0.3)',
-                  transition: 'all 0.3s ease'
-                } : {})
+                fontSize: "16px",
+                fontWeight: "bold",
+                color: "#000000",
+                ...(shouldHighlightPhone
+                  ? {
+                      borderColor: "#66ccd4",
+                      backgroundColor: "rgba(102, 204, 212, 0.05)",
+                      boxShadow: "0 0 0 2px rgba(102, 204, 212, 0.3)",
+                      transition: "all 0.3s ease",
+                    }
+                  : {}),
               }}
               value={phoneNumber}
               onChange={(e) => handlePhoneNumberChange(e.target.value)}
@@ -692,11 +600,26 @@ const AuthOffcanvas = () => {
           </div>
           <small className="text-[#6c757d] text-xs">Enter 10 digit mobile number</small>
         </div>
+        <PinInput
+          id="signup-pin"
+          label="Create PIN"
+          value={pin}
+          onChange={(value) => {
+            setPin(value);
+            if (signupPinError) setSignupPinError("");
+          }}
+          disabled={isLoading}
+          error={signupPinError}
+          autoComplete="new-password"
+        />
         <div className="flex items-center gap-3 mt-4">
           <button
             type="button"
-            className={`w-10 h-10 flex items-center justify-center ${isDarkMode ? 'bg-[#027335]' : 'bg-[#e8f5eb]'} border-0 rounded-lg cursor-pointer transition-colors hover:opacity-80`}
-            onClick={() => setCurrentStep(STEPS.LOGIN)}
+            className={`w-10 h-10 flex items-center justify-center ${isDarkMode ? "bg-[#027335]" : "bg-[#e8f5eb]"} border-0 rounded-lg cursor-pointer transition-colors hover:opacity-80`}
+            onClick={() => {
+              clearSensitiveAuthFields();
+              setCurrentStep(AUTH_STEPS.LOGIN);
+            }}
             disabled={isLoading}
           >
             {backButtonIcon}
@@ -705,7 +628,10 @@ const AuthOffcanvas = () => {
             type="submit"
             className="flex-1 py-2.5 px-4 bg-[var(--primary)] text-white rounded-lg font-medium hover:bg-[#32a852] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={
-              isLoading || !userDetails.name.trim() || phoneNumber.length !== 10
+              isLoading ||
+              !userDetails.name.trim() ||
+              phoneNumber.length !== 10 ||
+              sanitizePin(pin).length !== 4
             }
           >
             {isLoading ? (
@@ -714,11 +640,11 @@ const AuthOffcanvas = () => {
                   className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin"
                   role="status"
                   aria-hidden="true"
-                ></span>
+                />
                 Creating Account...
               </span>
             ) : (
-              "Send OTP"
+              "Create Account"
             )}
           </button>
         </div>
@@ -726,68 +652,63 @@ const AuthOffcanvas = () => {
     </div>
   );
 
-  const renderResendOTP = () => {
-    if (currentStep !== STEPS.OTP) return null;
-
-    return (
-      <div className="text-center mt-3">
-        <button
-          type="button"
-          className="p-0 bg-transparent border-0 text-[var(--primary)] hover:opacity-80 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          onClick={handleResendOTP}
-          disabled={isLoading || isResendDisabled}
-        >
-          {isResendDisabled ? `Resend OTP in ${timer}s` : "Resend OTP"}
-        </button>
-      </div>
-    );
-  };
-
-  const renderOTPStep = () => (
+  const renderPinStep = () => (
     <div className="px-1">
       <p className="text-[var(--title)] mb-4">
-        Enter the verification code sent to <br />
+        Enter your 4 digit PIN for <br />
         <span className="font-bold text-base">+91 {phoneNumber}</span>
       </p>
-      <form ref={otpFormRef} onSubmit={handleOTPSubmit}>
+      <form ref={pinFormRef} onSubmit={handlePinSubmit}>
         <div className="mb-4">
-          <div
-            id="otp"
-            className="digit-group flex gap-2 justify-center"
-          >
+          <div id="login-pin" className="digit-group flex gap-2 justify-center">
             {[1, 2, 3, 4].map((digit) => (
               <input
                 key={digit}
                 className="w-12 h-12 px-3 py-2 border border-2 rounded-lg text-center outline-none transition-colors"
                 style={{
-                  borderColor: otpFieldsHighlight[digit - 1] ? '#66ccd4' : 'var(--border-color)',
-                  backgroundColor: otpFieldsHighlight[digit - 1] ? 'rgba(102, 204, 212, 0.1)' : 'transparent',
-                  boxShadow: otpFieldsHighlight[digit - 1] ? '0 0 0 2px rgba(102, 204, 212, 0.2)' : 'none',
-                  fontSize: '18px',
-                  fontWeight: 'bold',
-                  color: '#000000',
-                  transition: 'all 0.3s ease'
+                  borderColor: pinFieldsHighlight[digit - 1]
+                    ? "#66ccd4"
+                    : "var(--border-color)",
+                  backgroundColor: pinFieldsHighlight[digit - 1]
+                    ? "rgba(102, 204, 212, 0.1)"
+                    : "transparent",
+                  boxShadow: pinFieldsHighlight[digit - 1]
+                    ? "0 0 0 2px rgba(102, 204, 212, 0.2)"
+                    : "none",
+                  fontSize: "18px",
+                  fontWeight: "bold",
+                  color: "#000000",
+                  transition: "all 0.3s ease",
+                  WebkitTextSecurity: "disc",
                 }}
-                type="text"
-                id={`digit-${digit}`}
-                name={`digit-${digit}`}
-                data-next={digit < 4 ? `digit-${digit + 1}` : null}
-                data-previous={digit > 1 ? `digit-${digit - 1}` : null}
+                type="password"
+                id={`pin-digit-${digit}`}
+                name={`pin-digit-${digit}`}
+                data-next={digit < 4 ? `pin-digit-${digit + 1}` : null}
+                data-previous={digit > 1 ? `pin-digit-${digit - 1}` : null}
                 maxLength="1"
                 pattern="[0-9]"
                 inputMode="numeric"
-                autoComplete="one-time-code"
+                autoComplete="off"
                 required
                 disabled={isLoading}
               />
             ))}
           </div>
+          {pinError ? (
+            <small className="text-red-600 text-xs mt-2 block text-center">
+              {pinError}
+            </small>
+          ) : null}
         </div>
         <div className="flex items-center gap-3 mt-4">
           <button
             type="button"
-            className={`w-10 h-10 flex items-center justify-center ${isDarkMode ? 'bg-[#027335]' : 'bg-[#e8f5eb]'} border-0 rounded-lg cursor-pointer transition-colors hover:opacity-80`}
-            onClick={() => setCurrentStep(STEPS.LOGIN)}
+            className={`w-10 h-10 flex items-center justify-center ${isDarkMode ? "bg-[#027335]" : "bg-[#e8f5eb]"} border-0 rounded-lg cursor-pointer transition-colors hover:opacity-80`}
+            onClick={() => {
+              clearSensitiveAuthFields();
+              setCurrentStep(AUTH_STEPS.LOGIN);
+            }}
             disabled={isLoading}
           >
             {backButtonIcon}
@@ -796,11 +717,13 @@ const AuthOffcanvas = () => {
             type="submit"
             className="flex-1 py-2.5 px-4 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
-              backgroundColor: shouldHighlightOTPButton ? '#66ccd4' : 'var(--primary)',
-              boxShadow: shouldHighlightOTPButton ? '0 0 0 3px rgba(102, 204, 212, 0.4)' : 'none',
-              transition: 'all 0.3s ease'
+              backgroundColor: shouldHighlightPinButton ? "#66ccd4" : "var(--primary)",
+              boxShadow: shouldHighlightPinButton
+                ? "0 0 0 3px rgba(102, 204, 212, 0.4)"
+                : "none",
+              transition: "all 0.3s ease",
             }}
-            disabled={isLoading || otp.length !== 4}
+            disabled={isLoading || sanitizePin(pin).length !== 4}
           >
             {isLoading ? (
               <span className="flex items-center justify-center">
@@ -808,18 +731,23 @@ const AuthOffcanvas = () => {
                   className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2 animate-spin"
                   role="status"
                   aria-hidden="true"
-                ></span>
-                Verifying...
+                />
+                Signing in...
               </span>
             ) : (
-              "SUBMIT"
+              "Login"
             )}
           </button>
         </div>
       </form>
-      {renderResendOTP()}
     </div>
   );
+
+  const stepTitle = {
+    [AUTH_STEPS.LOGIN]: "Login to MenuMitra",
+    [AUTH_STEPS.SIGNUP]: "Create Account",
+    [AUTH_STEPS.PIN]: "Enter PIN",
+  };
 
   return (
     <BaseModal
@@ -828,33 +756,26 @@ const AuthOffcanvas = () => {
       size="modal-dialog-centered"
     >
       <div className="auth-modal-content">
-        {/* Custom title with close button */}
         <div className="flex justify-between items-center mb-3">
-          <h6 className="title font-semibold mb-0 text-base">
-            {currentStep === STEPS.LOGIN && "Login to MenuMitra"}
-            {currentStep === STEPS.SIGNUP && "Create Account"}
-            {currentStep === STEPS.OTP && "Verify OTP"}
-          </h6>
+          <h6 className="title font-semibold mb-0 text-base">{stepTitle[currentStep]}</h6>
           <button
-            className={`bg-transparent border-0 text-xl p-1 cursor-pointer hover:opacity-80 transition-opacity ${isDarkMode ? 'text-white' : 'text-[#6c757d]'}`}
+            className={`bg-transparent border-0 text-xl p-1 cursor-pointer hover:opacity-80 transition-opacity ${isDarkMode ? "text-white" : "text-[#6c757d]"}`}
             onClick={handleClose}
             type="button"
             aria-label="Close"
           >
-            <i className="fa-solid fa-xmark"></i>
+            <i className="fa-solid fa-xmark" />
           </button>
         </div>
 
-        {currentStep === STEPS.LOGIN && renderLoginStep()}
-        {currentStep === STEPS.SIGNUP && renderSignupStep()}
-        {currentStep === STEPS.OTP && renderOTPStep()}
+        {currentStep === AUTH_STEPS.LOGIN && renderLoginStep()}
+        {currentStep === AUTH_STEPS.SIGNUP && renderSignupStep()}
+        {currentStep === AUTH_STEPS.PIN && renderPinStep()}
       </div>
     </BaseModal>
   );
 };
 
-AuthOffcanvas.propTypes = {
-  // PropTypes are handled by the AuthContext, no direct props needed
-};
+AuthOffcanvas.propTypes = {};
 
 export default AuthOffcanvas;
