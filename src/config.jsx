@@ -6,11 +6,11 @@ const CURRENT_ENV = 'production';
 // Host configuration per environment
 const CONFIG = {
   production: {
-    API_HOST: 'https://menu4.xyz/v2.2',
+    API_HOST: 'https://menu4.xyz/v2.3',
     WS_URL: 'wss://menu4.xyz/ws/database-updates',
   },
   testing: {
-    API_HOST: "https://menusmitra.xyz/v2.2",
+    API_HOST: "https://menusmitra.xyz/v2.3",
     WS_URL: 'wss://menusmitra.xyz/ws/database-updates',
   },
   development: {

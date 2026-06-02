@@ -67,10 +67,25 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/menu4\.xyz\/v2\.2\/user\/.*/i,
+            urlPattern: /^https:\/\/menu4\.xyz\/v2\.3\/user\/.*/i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
+              networkTimeoutSeconds: 5,
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 // 1 hour
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/menusmitra\.xyz\/v2\.3\/user\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache-menusmitra',
               networkTimeoutSeconds: 5,
               expiration: {
                 maxEntries: 50,
