@@ -181,7 +181,7 @@ const AuthOffcanvas = () => {
     }
 
     setIsLoading(true);
-    const version = localStorage.getItem("version");
+    const version = "2.3.0";
 
     try {
       const { data } = await checkMobileRegistration({

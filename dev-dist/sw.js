@@ -82,14 +82,24 @@ define(['./workbox-a959eb95'], (function (workbox) { 'use strict';
     "revision": "b078daa49e7326457d1803f1c16acef9"
   }, {
     "url": "index.html",
-    "revision": "0.citkqkhbom"
+    "revision": "0.kndfrgfj3f"
   }], {});
-  workbox.cleanupOutdatedCaches();  
+  workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
     allowlist: [/^\/$/]
   }));
-  workbox.registerRoute(/^https:\/\/menusmitra\.xyz\/v2\.3\/user\/.*/i, new workbox.NetworkFirst({
+  workbox.registerRoute(/^https:\/\/menu4\.xyz\/v2\.3\/user\/.*/i, new workbox.NetworkFirst({
     "cacheName": "api-cache",
+    "networkTimeoutSeconds": 5,
+    plugins: [new workbox.ExpirationPlugin({
+      maxEntries: 50,
+      maxAgeSeconds: 3600
+    }), new workbox.CacheableResponsePlugin({
+      statuses: [0, 200]
+    })]
+  }), 'GET');
+  workbox.registerRoute(/^https:\/\/menusmitra\.xyz\/v2\.3\/user\/.*/i, new workbox.NetworkFirst({
+    "cacheName": "api-cache-menusmitra",
     "networkTimeoutSeconds": 5,
     plugins: [new workbox.ExpirationPlugin({
       maxEntries: 50,
