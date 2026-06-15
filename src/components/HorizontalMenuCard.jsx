@@ -74,7 +74,8 @@ const HorizontalMenuCard = ({
   icons = {
     category: "fa fa-cutlery",
     placeholder: "fa-solid fa-utensils"
-  }
+  },
+  layout = "carousel",
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const { openModal } = useModal();
@@ -219,9 +220,15 @@ const HorizontalMenuCard = ({
 
   // Removed unused detailPageUrl
 
+  const isStackLayout = layout === "stack";
+
   return (
     <div
-      className="horizontal-menu-card bg-white rounded-lg relative shadow border border-gray-200 pb-0 my-3 pt-0 min-h-[50px] w-full overflow-x-auto whitespace-nowrap cursor-pointer"
+      className={`horizontal-menu-card bg-white rounded-lg relative shadow border border-gray-200 pb-0 my-3 pt-0 min-h-[50px] w-full cursor-pointer ${
+        isStackLayout
+          ? "horizontal-menu-card--stack overflow-hidden"
+          : "overflow-x-auto whitespace-nowrap"
+      }`}
       onClick={handleCardClick}
       style={{
         '--image-width': imageSize.width,
@@ -281,13 +288,21 @@ const HorizontalMenuCard = ({
           color: var(--price-color);
           font-size: var(--price-font-size);
         }
+        .horizontal-menu-card.horizontal-menu-card--stack {
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          margin-right: 0;
+          flex: 1 1 auto;
+          white-space: normal;
+        }
         @media screen and (min-width: 768px) {
-          .horizontal-menu-card {
+          .horizontal-menu-card:not(.horizontal-menu-card--stack) {
             width: calc(50vw - 1rem);
           }
         }
         @media screen and (min-width: 1024px) {
-          .horizontal-menu-card {
+          .horizontal-menu-card:not(.horizontal-menu-card--stack) {
             width: calc(33.333vw - 1rem);
           }
         }
@@ -464,6 +479,7 @@ HorizontalMenuCard.propTypes = {
     placeholder: PropTypes.string
   }),
   originalPrice: PropTypes.number,
+  layout: PropTypes.oneOf(["carousel", "stack"]),
 };
 
 export default HorizontalMenuCard;

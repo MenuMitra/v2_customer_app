@@ -204,8 +204,8 @@ function FavouriteContent() {
   return (
     <div className="page-content">
       <div className="content-inner pt-0">
-        <div className="container mx-auto px-4 pb-5">
-          <div className="dashboard-area max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
+        <div className="max-w-[1200px] mx-auto px-4 pb-5">
+          <div className="max-w-3xl mx-auto w-full dashboard-area max-h-[calc(100vh-200px)] overflow-y-auto pr-1 custom-scrollbar">
             {isLoading ? (
               <div className="text-center p-5">Loading...</div>
             ) : (
@@ -250,6 +250,7 @@ function FavouriteContent() {
                           {menus.map((menu) => (
                             <div className="mb-2" key={menu.menu_id}>
                               <HorizontalMenuCard
+                                layout="stack"
                                 image={menu.image && Array.isArray(menu.image) && menu.image.length > 0 ? menu.image[0].image : null}
                                 title={menu.menu_name}
                                 currentPrice={menu.price || menu.portions?.[0]?.price || 0}
