@@ -6,6 +6,9 @@ import {
   VERIFY_PIN_ENDPOINT,
 } from "../constants/auth";
 import { sanitizePin } from "../utils/authValidation";
+import { getAppVersion, getDeviceInfo } from "../utils/deviceInfo";
+
+const SESSION_ERROR_PATTERN = /no active login session/i;
 
 const authApi = axios.create({
   baseURL: ENV.V2_COMMON_BASE,
@@ -28,27 +31,60 @@ export const accountSignup = (payload) =>
     pin: sanitizePin(payload.pin),
   });
 
-/** @param {{ mobile: string, version?: string }} payload */
+const buildLoginCheckPayload = ({ mobile, version, device = getDeviceInfo() }) => ({
+  mobile,
+  version: version || getAppVersion(),
+  app_type: "customer",
+  device_id: device.device_id,
+  device_model: device.device_model,
+  device_type: device.device_type,
+});
+
+const buildVerifyPinPayload = (payload) => ({
+  mobile: payload.mobile,
+  pin: sanitizePin(payload.pin),
+  app_type: "customer",
+  device_id: payload.device_id,
+  device_model: payload.device_model,
+  device_type: payload.device_type,
+});
+
+/** Creates a device-bound login session required before verify_pin. */
 export const checkMobileRegistration = (payload) =>
-  authApi.post(LOGIN_CHECK_ENDPOINT, {
-    mobile: payload.mobile,
-    version: payload.version,
-    app_type: "customer",
-  });
+  authApi.post(
+    LOGIN_CHECK_ENDPOINT,
+    buildLoginCheckPayload({
+      mobile: payload.mobile,
+      version: payload.version,
+      device: payload.device,
+    })
+  );
 
 /**
- * PIN login — same device fields as legacy OTP verify.
+ * PIN login — device fields must match the prior /common/login call.
  * @param {{ mobile: string, pin: string, device_id: string, device_model: string, device_type: string }} payload
  */
-export const verifyPinLogin = (payload) =>
-  authApi.post(VERIFY_PIN_ENDPOINT, {
-    mobile: payload.mobile,
-    pin: sanitizePin(payload.pin),
-    app_type: "customer",
-    device_id: payload.device_id,
-    device_model: payload.device_model,
-    device_type: payload.device_type,
-  });
+export const verifyPinLogin = async (payload) => {
+  const body = buildVerifyPinPayload(payload);
+
+  try {
+    return await authApi.post(VERIFY_PIN_ENDPOINT, body);
+  } catch (err) {
+    const message = err.response?.data?.message || "";
+    if (!SESSION_ERROR_PATTERN.test(message)) throw err;
+
+    await checkMobileRegistration({
+      mobile: payload.mobile,
+      device: {
+        device_id: payload.device_id,
+        device_model: payload.device_model,
+        device_type: payload.device_type,
+      },
+    });
+
+    return authApi.post(VERIFY_PIN_ENDPOINT, body);
+  }
+};
 
 const isNetworkError = (err) =>
   !err.response &&
@@ -67,7 +103,11 @@ export const getAuthErrorMessage = (err, fallback = "Something went wrong. Pleas
   const status = err.response?.status;
   const detail = err.response?.data?.detail;
   const message = err.response?.data?.message;
+  const combined = [message, detail].filter((v) => typeof v === "string").join(" ");
 
+  if (SESSION_ERROR_PATTERN.test(combined)) {
+    return "Login session expired. Please enter your mobile number again.";
+  }
   if (typeof detail === "string" && detail.trim()) return detail;
   if (typeof message === "string" && message.trim()) return message;
 

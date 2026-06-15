@@ -1,14 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { getDeviceInfo } from '../utils/deviceInfo';
 
 const AuthContext = createContext(null);
-
-// Device info constant
-const DEVICE_INFO = {
-  fcm_token: "457896354789",
-  device_id: "8974561234",
-  device_model: "Laptop 122"
-};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -111,7 +105,7 @@ export const AuthProvider = ({ children }) => {
   const getUserId = useCallback(() => user?.id, [user]);
   const getUserMobile = useCallback(() => user?.mobile, [user]);
   const getUserName = useCallback(() => user?.name, [user]);
-  const getDeviceInfo = useCallback(() => DEVICE_INFO, []);
+  const getDeviceInfoMemo = useCallback(() => getDeviceInfo(), []);
 
   return (
     <AuthContext.Provider
@@ -128,7 +122,7 @@ export const AuthProvider = ({ children }) => {
         getUserId,
         getUserMobile,
         getUserName,
-        getDeviceInfo
+        getDeviceInfo: getDeviceInfoMemo
       }}
     >
       {children}

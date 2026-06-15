@@ -4,16 +4,9 @@ import BaseModal from "../Modal/BaseModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { useTheme } from "../../contexts/ThemeContext";
 import { useToast } from "../Toast/useToast";
-import {
-  browserVersion,
-  deviceType,
-  mobileModel,
-  mobileVendor,
-  osName,
-  osVersion,
-} from "react-device-detect";
 import { AUTH_STEPS } from "../../constants/auth";
 import PinInput from "./PinInput";
+import { getDeviceInfo } from "../../utils/deviceInfo";
 import {
   accountSignup,
   checkMobileRegistration,
@@ -182,11 +175,13 @@ const AuthOffcanvas = () => {
 
     setIsLoading(true);
     const version = "2.3.0";
+    const device = getDeviceInfo();
 
     try {
       const { data } = await checkMobileRegistration({
         mobile: phoneNumber,
         version,
+        device,
       });
 
       if (data.role === "customer" || data.role === "admin") {
@@ -266,106 +261,6 @@ const AuthOffcanvas = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getDeviceInfo = () => {
-    const generateDeviceId = () => {
-      const characteristics = [
-        navigator.userAgent,
-        screen.height,
-        screen.width,
-        navigator.language,
-        new Date().getTimezoneOffset(),
-      ].join("|");
-
-      let hash = 0;
-      for (let i = 0; i < characteristics.length; i++) {
-        const char = characteristics.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash &= hash;
-      }
-      return Math.abs(hash).toString(16);
-    };
-
-    localStorage.setItem("version", "2.3.0");
-    let deviceId = localStorage.getItem("mm_device_id");
-    if (!deviceId) {
-      deviceId = generateDeviceId();
-      localStorage.setItem("mm_device_id", deviceId);
-    }
-
-    const getBrowserInfo = () => {
-      const ua = navigator.userAgent;
-      if (navigator.brave?.isBrave || ua.includes("Brave")) return "Brave";
-      if (ua.includes("Chrome") && !ua.includes("Edg") && !ua.includes("OPR")) {
-        return "Chrome";
-      }
-      if (ua.includes("Firefox")) return "Firefox";
-      if (ua.includes("Safari") && !ua.includes("Chrome")) return "Safari";
-      if (ua.includes("Edg")) return "Edge";
-      if (ua.includes("OPR") || ua.includes("Opera")) return "Opera";
-      if (ua.includes("MSIE") || ua.includes("Trident/")) {
-        return "Internet Explorer";
-      }
-      return "Browser";
-    };
-
-    const getOSInfo = () => {
-      if (osName === "none" || !osName) {
-        const ua = navigator.userAgent;
-        if (ua.includes("Windows")) return "Windows";
-        if (ua.includes("Mac")) return "MacOS";
-        if (ua.includes("Linux")) return "Linux";
-        if (ua.includes("Android")) return "Android";
-        if (ua.includes("iOS") || ua.includes("iPhone") || ua.includes("iPad")) {
-          return "iOS";
-        }
-        return "Unknown OS";
-      }
-      return osName === "Mac OS" ? "MacOS" : osName;
-    };
-
-    const detectedBrowser = getBrowserInfo();
-    const detectedOS = getOSInfo();
-
-    let deviceModel = "";
-    if (
-      mobileModel &&
-      mobileVendor &&
-      mobileModel !== "none" &&
-      mobileVendor !== "none"
-    ) {
-      deviceModel = `${mobileVendor} ${mobileModel}`;
-    } else {
-      deviceModel = `${detectedOS} - ${detectedBrowser}`;
-    }
-
-    let readableDeviceType = "Desktop";
-    const ua = navigator.userAgent;
-    if (
-      deviceType === "mobile" ||
-      /Mobile|Android|iPhone|iPod/i.test(ua) ||
-      (mobileModel !== "none" && !ua.includes("iPad"))
-    ) {
-      readableDeviceType = "Mobile Phone";
-    } else if (
-      deviceType === "tablet" ||
-      /iPad|Tablet|PlayBook/i.test(ua) ||
-      (ua.includes("Android") && !ua.includes("Mobile"))
-    ) {
-      readableDeviceType = "Tablet";
-    }
-
-    return {
-      device_id: deviceId,
-      device_model: deviceModel.trim() || `${detectedOS} Device`,
-      device_type: readableDeviceType,
-      full_details: {
-        browser: `${detectedBrowser} ${browserVersion !== "none" ? browserVersion : ""}`.trim(),
-        operating_system: `${detectedOS} ${osVersion !== "none" ? osVersion : ""}`.trim(),
-        device_type: readableDeviceType,
-      },
-    };
   };
 
   const handlePinSubmit = async (e) => {

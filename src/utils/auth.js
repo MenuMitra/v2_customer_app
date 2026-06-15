@@ -1,3 +1,7 @@
+import { getDeviceInfo } from './deviceInfo';
+
+export { getDeviceInfo };
+
 export const clearAuthData = () => {
   // Clear all auth-related data
   localStorage.removeItem('auth');
@@ -53,12 +57,4 @@ export const getUserMobile = () => {
 export const getUserName = () => {
   const authData = getAuthData();
   return authData?.name;
-};
-
-export const getDeviceInfo = () => {
-  return {
-    fcm_token: "457896354789",
-    device_id: "8974561234",
-    device_model: "Laptop 122"
-  };
 };
