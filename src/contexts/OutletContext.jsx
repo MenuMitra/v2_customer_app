@@ -99,6 +99,37 @@ export const OutletProvider = ({ children }) => {
     localStorage.setItem("orderSettings", JSON.stringify(newSettings));
   };
 
+  const isOnOutletUrlPath = (pathname = location.pathname) =>
+    FULL_OUTLET_PATTERN.test(pathname) || OUTLET_ONLY_PATTERN.test(pathname);
+
+  const clearOutletInfo = () => {
+    localStorage.removeItem("selectedOutlet");
+    localStorage.removeItem("outletCode");
+    localStorage.removeItem("sectionId");
+    localStorage.removeItem("tableId");
+    localStorage.removeItem("tableNumber");
+    localStorage.removeItem("orderSettings");
+    setOutletInfo(null);
+    setOutletId(null);
+    setOutletDetails(null);
+    setOrderSettings({ order_type: null });
+  };
+
+  const handleOutletFetchFailure = (status) => {
+    if (status !== 404) return;
+
+    clearOutletInfo();
+
+    if (isOnOutletUrlPath()) {
+      navigate("/notfound");
+      return;
+    }
+
+    if (location.pathname !== "/all-outlets") {
+      navigate("/all-outlets", { replace: true });
+    }
+  };
+
   useEffect(() => {
     const fullPath = window.location.pathname;
     const params = extractOutletParamsFromPath(fullPath);
@@ -292,9 +323,7 @@ export const OutletProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Error fetching outlet details:", error);
-      if (error.response?.status === 404) {
-        navigate("/notfound");
-      }
+      handleOutletFetchFailure(error.response?.status);
       throw error;
     }
   };
@@ -313,11 +342,13 @@ export const OutletProvider = ({ children }) => {
             setOutletDetails(details);
           }
         })
-        .catch(() => {});
+        .catch(() => {
+          // handleOutletFetchFailure already clears stale outlet / redirects.
+        });
     };
     window.addEventListener("outlet:refresh", onRefresh);
     return () => window.removeEventListener("outlet:refresh", onRefresh);
-  }, []);
+  }, [location.pathname]);
 
   const updateOutletInfo = (newInfo) => {
     // Ensure we preserve section and table IDs when updating
@@ -331,20 +362,6 @@ export const OutletProvider = ({ children }) => {
     setOutletInfo(updatedInfo);
     setOutletId(updatedInfo.outletId);
     setOutletDetails(updatedInfo);
-  };
-
-  // Modify clearOutletInfo to also clear orderSettings
-  const clearOutletInfo = () => {
-    localStorage.removeItem("selectedOutlet");
-    localStorage.removeItem("outletCode");
-    localStorage.removeItem("sectionId");
-    localStorage.removeItem("tableId");
-    localStorage.removeItem("tableNumber");
-    localStorage.removeItem("orderSettings");
-    setOutletInfo(null);
-    setOutletId(null);
-    setOutletDetails(null);
-    setOrderSettings({ order_type: null });
   };
 
   // Memoize the context value to prevent unnecessary re-renders

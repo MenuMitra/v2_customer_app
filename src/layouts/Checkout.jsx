@@ -16,6 +16,71 @@ import { useToastContext } from "../components/Toast/ToastContext";
 import { ENV } from "../config";
 import { getDisplayPortionLabel } from "../utils/portionLabel";
 
+const parseMoney = (value) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+};
+
+const formatMoney = (value) => parseMoney(value).toFixed(2);
+
+const computeCouponDiscountAmount = (baseAmount, couponDetails) => {
+  if (!couponDetails) return 0;
+
+  const discountValue = parseMoney(couponDetails.value);
+  const discountType = String(couponDetails.type || "amount").toLowerCase();
+
+  if (discountType === "percentage" || discountType === "percent") {
+    return Math.min(baseAmount, (baseAmount * discountValue) / 100);
+  }
+
+  return Math.min(baseAmount, discountValue);
+};
+
+/** Single source of truth for checkout bill summary (includes coupon when applied). */
+const computeBillSummary = ({ checkoutDetails, cartTotal, couponStatus }) => {
+  const totalBill = checkoutDetails
+    ? parseMoney(checkoutDetails.total_bill_amount)
+    : parseMoney(cartTotal);
+  const discountAmount = checkoutDetails
+    ? parseMoney(checkoutDetails.discount_amount)
+    : 0;
+  const baseAfterOfferDiscount =
+    checkoutDetails?.total_bill_with_discount != null
+      ? parseMoney(checkoutDetails.total_bill_with_discount)
+      : Math.max(0, totalBill - discountAmount);
+  const serviceCharge = checkoutDetails
+    ? parseMoney(checkoutDetails.service_charges_amount)
+    : 0;
+  const gstAmount = checkoutDetails
+    ? parseMoney(checkoutDetails.gst_amount)
+    : 0;
+
+  const couponDiscountAmount = couponStatus?.success
+    ? computeCouponDiscountAmount(
+        baseAfterOfferDiscount,
+        couponStatus.couponDetails
+      )
+    : 0;
+
+  const totalAfterDiscount = Math.max(
+    0,
+    baseAfterOfferDiscount - couponDiscountAmount
+  );
+  const grandTotal = totalAfterDiscount + serviceCharge;
+  const payableAmount = grandTotal + gstAmount;
+
+  return {
+    totalBill,
+    discountAmount,
+    couponDiscountAmount,
+    totalAfterDiscount,
+    serviceCharge,
+    grandTotal,
+    gstAmount,
+    payableAmount,
+  };
+};
+
 const FooterSummary = function FooterSummary({ checkoutDetails }) {
   // Fallback to zeros if no data yet
   const details = checkoutDetails || {
@@ -980,53 +1045,18 @@ function CheckoutContent() {
                   ) : (
                     <>
                       {(() => {
-                        const parseMoney = (v) => {
-                          const n = Number(v);
-                          return Number.isFinite(n) ? n : 0;
-                        };
-                        const fmt = (n) => parseMoney(n).toFixed(2);
-
-                        const totalBill = effectiveCheckoutDetails
-                          ? parseMoney(effectiveCheckoutDetails.total_bill_amount)
-                          : parseMoney(getCartTotal());
-                        const discountAmount = effectiveCheckoutDetails
-                          ? parseMoney(effectiveCheckoutDetails.discount_amount)
-                          : 0;
-                        const totalAfterDiscount = effectiveCheckoutDetails
-                          ? (effectiveCheckoutDetails.total_bill_with_discount != null
-                            ? parseMoney(effectiveCheckoutDetails.total_bill_with_discount)
-                            : Math.max(0, totalBill - discountAmount))
-                          : Math.max(0, totalBill - discountAmount);
-                        const serviceCharge = effectiveCheckoutDetails
-                          ? parseMoney(effectiveCheckoutDetails.service_charges_amount)
-                          : 0;
-                        const gstAmount = effectiveCheckoutDetails
-                          ? parseMoney(effectiveCheckoutDetails.gst_amount)
-                          : 0;
-
-                        // Prefer API grand_total/final_grand_total if present, otherwise derive.
-                        const apiGrandTotal = effectiveCheckoutDetails?.grand_total;
-                        const grandTotal = apiGrandTotal != null
-                          ? parseMoney(apiGrandTotal)
-                          : totalAfterDiscount + serviceCharge;
-
-                        const apiFinal = effectiveCheckoutDetails?.final_grand_total;
-                        const finalPayable = apiFinal != null
-                          ? parseMoney(apiFinal)
-                          : grandTotal + gstAmount;
-
-                        const couponDiscount = couponStatus?.success
-                          ? parseMoney(couponStatus.couponDetails.value)
-                          : 0;
-
-                        const payableAfterCoupon = Math.max(0, finalPayable - couponDiscount);
+                        const bill = computeBillSummary({
+                          checkoutDetails: effectiveCheckoutDetails,
+                          cartTotal: getCartTotal(),
+                          couponStatus,
+                        });
 
                         return (
                           <>
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-bold text-lg">Total Bill Amount</span>
                         <span className="font-bold text-lg">
-                          ₹{fmt(totalBill)}
+                          ₹{formatMoney(bill.totalBill)}
                         </span>
                       </div>
                       <hr className="my-2 border-gray-300" />
@@ -1036,7 +1066,7 @@ function CheckoutContent() {
                         <span>
                           Discount ({effectiveCheckoutDetails?.discount_percent ?? effectiveCheckoutDetails?.offer ?? 0}%)
                         </span>
-                        <span>-₹{fmt(discountAmount)}</span>
+                        <span>-₹{formatMoney(bill.discountAmount)}</span>
                       </div>
 
                       {/* Add Coupon Discount Line - Only show when coupon is successfully applied */}
@@ -1046,7 +1076,7 @@ function CheckoutContent() {
                             Coupon Discount ({couponStatus.couponDetails.code})
                           </span>
                           <span>
-                            -₹{couponStatus.couponDetails.value.toFixed(2)}
+                            -₹{formatMoney(bill.couponDiscountAmount)}
                           </span>
                         </div>
                       )}
@@ -1054,7 +1084,7 @@ function CheckoutContent() {
                       {/* Total after discount */}
                       <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>Total after discount</span>
-                        <span>₹{fmt(totalAfterDiscount)}</span>
+                        <span>₹{formatMoney(bill.totalAfterDiscount)}</span>
                       </div>
 
                       {/* Service Charges */}
@@ -1063,20 +1093,20 @@ function CheckoutContent() {
                           Service Charges ({effectiveCheckoutDetails?.service_charges_percent || 0}%)
                         </span>
                         <span>
-                          +₹{fmt(serviceCharge)}
+                          +₹{formatMoney(bill.serviceCharge)}
                         </span>
                       </div>
 
                       {/* Grand Total (before GST) */}
                       <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>Grand Total</span>
-                        <span>₹{fmt(grandTotal)}</span>
+                        <span>₹{formatMoney(bill.grandTotal)}</span>
                       </div>
 
                       {/* GST */}
                       <div className="flex justify-between items-center mb-1 text-[#b0b3b8]">
                         <span>GST ({effectiveCheckoutDetails?.gst_percent || 0}%)</span>
-                        <span>+₹{fmt(gstAmount)}</span>
+                        <span>+₹{formatMoney(bill.gstAmount)}</span>
                       </div>
                       <hr className="my-2 border-gray-300" />
 
@@ -1086,7 +1116,7 @@ function CheckoutContent() {
                           Payable Amount
                         </span>
                         <span className="font-bold text-lg">
-                          ₹{fmt(payableAfterCoupon)}
+                          ₹{formatMoney(bill.payableAmount)}
                         </span>
                       </div>
                           </>

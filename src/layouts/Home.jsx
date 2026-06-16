@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import CategorySwiper from "../components/CategorySwiper/CategorySwiper";
@@ -26,6 +26,7 @@ function Home() {
   const { getUserId } = useAuth();
   const { openModal } = useModal();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Essential state that can't be derived
   const [favoriteMenuIds] = useState(new Set());
@@ -134,6 +135,14 @@ function Home() {
       setSelectedCategoryId("all");
     }
   }, [categoriesData.categories.length]);
+
+  // Laptop / direct visits: pick an outlet before showing the menu home.
+  useEffect(() => {
+    const isOutletRoute = /^\/o\d+/.test(location.pathname);
+    if (!outletId && location.pathname === "/" && !isOutletRoute) {
+      navigate("/all-outlets", { replace: true });
+    }
+  }, [outletId, location.pathname, navigate]);
 
   // Reset visible count when filters change
   useEffect(() => {
