@@ -105,8 +105,9 @@ const OrderAccordionItem = ({
           .map(
             (item) => `
               <tr>
-                <td style="padding: 8px 0; color: #d9534f;">${item.menu_name
-              }</td>
+                <td style="padding: 8px 0; color: #d9534f;">
+                  ${item.menu_name}${item.portion_name ? ` (${item.portion_name})` : ""}
+                </td>
                 <td style="text-align: center; padding: 8px 0;">${item.quantity
               }</td>
                 <td style="text-align: right; padding: 8px 0;">₹ ${item.price.toFixed(

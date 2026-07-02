@@ -192,7 +192,15 @@ export const CartProvider = ({ children }) => {
           menuId: menuItem.menuId,
           menuName: menuItem.menuName,
           portionId: portionId,
-          portionName: selectedPortion?.portion_name,
+          // Ensure portionName is always populated when possible so Checkout and Order views
+          // can show the correct label (e.g., Half, Full, Regular).
+          portionName:
+            selectedPortion?.portion_name ??
+            menuItem?.portions?.find(
+              (p) => Number(p?.portion_id) === Number(portionId)
+            )?.portion_name ??
+            menuItem?.portions?.[0]?.portion_name ??
+            "",
           price: validPrice,
           quantity: quantity,
           comment: comment,

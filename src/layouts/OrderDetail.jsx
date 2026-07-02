@@ -8,6 +8,7 @@ import { jsPDF } from "jspdf";
 import toast from "react-hot-toast";
 import MenuMitra from "../assets/logo.png";
 import { ENV } from '../config';
+import { getDisplayPortionLabel } from "../utils/portionLabel";
 
 function OrderDetail() {
   const { orderId } = useParams();
@@ -497,7 +498,7 @@ function OrderDetail() {
               <div className="flex items-center justify-between mb-2">
                 <div>
                   <h5 className="mb-0 text-[var(--primary)]">
-                    Order  #{orderDetails.order_details.order_number}
+                    Order {orderDetails.order_details.order_number}
                   </h5>
                 </div>
                 <span
@@ -553,7 +554,14 @@ function OrderDetail() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h6 className="mb-0 text-[var(--primary)]">{menu.menu_name}</h6>
+                        <h6 className="mb-0 text-[var(--primary)]">
+                          {menu.menu_name}
+                          {menu.portion_name && (
+                            <span className="ml-1 text-xs text-soft">
+                              ({getDisplayPortionLabel(menu.portion_name)})
+                            </span>
+                          )}
+                        </h6>
                         {menu.is_favourite === 1 && (
                           <i className="fa-solid fa-heart text-[#dc3545]"></i>
                         )}
