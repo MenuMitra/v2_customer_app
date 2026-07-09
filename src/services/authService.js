@@ -10,6 +10,70 @@ import { getAppVersion, getDeviceInfo } from "../utils/deviceInfo";
 
 const SESSION_ERROR_PATTERN = /no active login session/i;
 
+export const UNREGISTERED_MOBILE_MESSAGE =
+  "This mobile number is not registered. Please register to continue.";
+
+const UNREGISTERED_MOBILE_PATTERNS = [
+  /not registered/i,
+  /number not register/i,
+  /mobile.*not found/i,
+  /user.*not found/i,
+  /does not exist/i,
+  /no account/i,
+  /sign up first/i,
+  /signup first/i,
+  /create an account/i,
+];
+
+const normalizeAuthResponseText = (value) => {
+  if (value == null) return "";
+  if (typeof value === "string") return value.toLowerCase();
+  if (Array.isArray(value)) {
+    return value
+      .map((item) =>
+        typeof item === "string"
+          ? item
+          : item?.msg || item?.message || item?.detail || ""
+      )
+      .join(" ")
+      .toLowerCase();
+  }
+  if (typeof value === "object") {
+    return [value.detail, value.message, value.msg, value.error]
+      .filter((part) => typeof part === "string")
+      .join(" ")
+      .toLowerCase();
+  }
+  return String(value).toLowerCase();
+};
+
+export const isRegisteredForLogin = (data) => {
+  const role = String(data?.role ?? "").toLowerCase().trim();
+  return role === "customer" || role === "admin";
+};
+
+export const isUnregisteredMobileError = (err) => {
+  if (!err?.response) return false;
+
+  const status = err.response.status;
+  const data = err.response.data ?? {};
+  const combined = [
+    normalizeAuthResponseText(data.detail),
+    normalizeAuthResponseText(data.message),
+    normalizeAuthResponseText(data.error),
+  ].join(" ");
+
+  if (UNREGISTERED_MOBILE_PATTERNS.some((pattern) => pattern.test(combined))) {
+    return true;
+  }
+
+  if (status === 404 && /mobile|user|number|account/i.test(combined)) {
+    return true;
+  }
+
+  return false;
+};
+
 const authApi = axios.create({
   baseURL: ENV.V2_COMMON_BASE,
   headers: {

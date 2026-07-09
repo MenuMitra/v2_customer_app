@@ -11,6 +11,9 @@ import {
   accountSignup,
   checkMobileRegistration,
   getAuthErrorMessage,
+  isRegisteredForLogin,
+  isUnregisteredMobileError,
+  UNREGISTERED_MOBILE_MESSAGE,
   verifyPinLogin,
 } from "../../services/authService";
 import {
@@ -165,11 +168,17 @@ const AuthOffcanvas = () => {
     setPinFieldsHighlight([false, false, false, false]);
   };
 
+  const redirectToRegister = () => {
+    clearSensitiveAuthFields();
+    setCurrentStep(AUTH_STEPS.SIGNUP);
+    toast.error(UNREGISTERED_MOBILE_MESSAGE, { title: "Not Registered" });
+  };
+
   const handlePhoneSubmit = async (e) => {
     e.preventDefault();
     const mobileError = validateMobile(phoneNumber);
     if (mobileError) {
-      toast.error(mobileError, "Error");
+      toast.error(mobileError, { title: "Error" });
       return;
     }
 
@@ -184,31 +193,23 @@ const AuthOffcanvas = () => {
         device,
       });
 
-      if (data.role === "customer" || data.role === "admin") {
+      if (isRegisteredForLogin(data)) {
         clearSensitiveAuthFields();
         setCurrentStep(AUTH_STEPS.PIN);
-        toast.info("Enter your PIN to continue", "Login");
-      } else {
-        toast.error(
-          "This mobile number is not registered as a customer or admin",
-          "Error"
-        );
+        toast.info("Enter your PIN to continue", { title: "Login" });
+        return;
       }
+
+      redirectToRegister();
     } catch (err) {
-      if (
-        err.response?.status === 400 &&
-        (err.response?.data?.detail === "This mobile number is not registered." ||
-          err.response?.data?.detail?.toLowerCase().includes("not registered"))
-      ) {
-        clearSensitiveAuthFields();
-        setCurrentStep(AUTH_STEPS.SIGNUP);
-        toast.info("Number not registered. Please sign up.", "New User");
+      if (isUnregisteredMobileError(err)) {
+        redirectToRegister();
         return;
       }
 
       toast.error(
         getAuthErrorMessage(err, "Unable to process request. Please try again."),
-        "Error"
+        { title: "Error" }
       );
     } finally {
       setIsLoading(false);

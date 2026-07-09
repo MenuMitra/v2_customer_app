@@ -15,6 +15,10 @@ import apiService from "../api/apiService";
 import { useToastContext } from "../components/Toast/ToastContext";
 import { ENV } from "../config";
 import { getDisplayPortionLabel } from "../utils/portionLabel";
+import {
+  buildCreateOrderMenuPayload,
+  buildOrderMenuPayload,
+} from "../utils/orderMenuItem";
 
 const parseMoney = (value) => {
   const amount = Number(value);
@@ -238,28 +242,7 @@ function CheckoutContent() {
         continue;
       }
 
-      const menuPayload = {
-        menu_id: Number(item.menuId),
-        quantity: Number(item.quantity),
-        comment: item.comment || "",
-      };
-
-      // Include portion details when available so pricing resolves correctly.
-      if (
-        item.portionId != null &&
-        item.portionId !== "" &&
-        Number.isFinite(Number(item.portionId)) &&
-        Number(item.portionId) !== 0
-      ) {
-        menuPayload.portion_id = Number(item.portionId);
-      }
-      if (item.portionName) {
-        const normalizedPortionName = String(item.portionName).trim().toLowerCase();
-        // Do not send fallback/default portion names to checkout-detail API.
-        if (normalizedPortionName && normalizedPortionName !== "default") {
-          menuPayload.portion_name = normalizedPortionName;
-        }
-      }
+      const menuPayload = buildOrderMenuPayload(item, { forCheckout: true });
 
       orderItems.push(menuPayload);
     }
@@ -459,11 +442,7 @@ function CheckoutContent() {
 
       const order_items = cartItems
         .filter((item) => !item.isCombo)
-        .map((item) => ({
-          menu_id: String(item.menuId),
-          quantity: item.quantity,
-          comment: item.comment || "",
-        }));
+        .map((item) => buildCreateOrderMenuPayload(item));
 
       const order_combo_items = cartItems
         .filter((item) => item.isCombo && item.comboMasterId != null)
@@ -472,6 +451,15 @@ function CheckoutContent() {
           quantity: item.quantity,
           comment: item.comment || "",
         }));
+
+      const finalOrderItems =
+        order_items.length > 0
+          ? order_items
+          : order_combo_items.map((combo) => ({
+              combo_master_id: combo.combo_master_id,
+              quantity: combo.quantity,
+              comment: combo.comment || "",
+            }));
 
       // Get order settings from localStorage
       const orderSettings = localStorage.getItem("orderSettings");
@@ -485,7 +473,7 @@ function CheckoutContent() {
         user_id: String(userId),
         section_id: String(sectionId),
         order_type: orderType || "dine-in", // Fallback to takeaway if no order type
-        order_items,
+        order_items: finalOrderItems,
         order_combo_items,
         action: "create_order",
         app_source: "user_app",
@@ -536,10 +524,13 @@ function CheckoutContent() {
     } catch (error) {
       // Handle error here and show toast
       if (error.response?.status === 400) {
-        const errorMessage =
+        const rawMessage =
           error.response.data?.detail ||
           error.response.data?.message ||
           "Failed to create order";
+        const errorMessage = String(rawMessage).includes(" - ")
+          ? String(rawMessage).split(" - ").pop().trim()
+          : rawMessage;
         addToast({ message: errorMessage, type: "error" });
       } else {
         addToast({
@@ -763,12 +754,7 @@ function CheckoutContent() {
             portionName: item.portionName,
           };
         }
-        return {
-          menu_id: item.menuId,
-          portion_id: item.portionId,
-          quantity: item.quantity,
-          comment: item.comment || "",
-        };
+        return buildCreateOrderMenuPayload(item);
       });
 
       await addToExistingMutation.mutateAsync({

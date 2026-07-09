@@ -7,6 +7,7 @@ import { useAuth } from "../../../contexts/AuthContext";
 import { useOutlet } from "../../../contexts/OutletContext";
 import apiService from "../../../api/apiService";
 import { getDisplayPortionLabel } from "../../../utils/portionLabel";
+import { isTerminalOrderStatus } from "../../../utils/orderStatus";
 
 export const AddToCartModal = () => {
   const { closeModal, modalConfig, openModal } = useModal();
@@ -321,16 +322,7 @@ export const AddToCartModal = () => {
               const statusNorm = String(details?.order_status || "")
                 .toLowerCase()
                 .trim();
-              // Block reuse for completed/cancelled/closed states.
-              const isTerminal = [
-                "completed",
-                "cancelled",
-                "rejected",
-                "refunded",
-                "paid",
-              ].includes(
-                statusNorm
-              );
+              const isTerminal = isTerminalOrderStatus(statusNorm);
 
               const effectiveTableId =
                 tableId || localStorage.getItem("tableId") || "";

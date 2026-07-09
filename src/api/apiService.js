@@ -1,4 +1,8 @@
 import axiosInstance from './axios';
+import {
+  buildCreateOrderMenuPayload,
+  normalizeOrderDetails,
+} from '../utils/orderMenuItem';
 import { ENV } from '../config';
 // API version constant
 export const apiService = {
@@ -377,11 +381,7 @@ export const apiService = {
             comment: item.comment || "",
           });
         } else {
-          order_items.push({
-            menu_id: String(item.menu_id ?? item.menuId),
-            quantity: Number(item.quantity),
-            comment: item.comment || "",
-          });
+          order_items.push(buildCreateOrderMenuPayload(item));
         }
       }
 
@@ -390,7 +390,14 @@ export const apiService = {
         user_id: String(userId),
         section_id: String(sectionId),
         order_type: orderType || "dine-in",
-        order_items,
+        order_items:
+          order_items.length > 0
+            ? order_items
+            : order_combo_items.map((combo) => ({
+                combo_master_id: Number(combo.combo_master_id),
+                quantity: Number(combo.quantity),
+                comment: combo.comment || "",
+              })),
         order_combo_items,
         action,
         app_source: appSource,
@@ -449,7 +456,7 @@ export const apiService = {
           app_source: "user_app",
         }
       );
-      return response?.data?.detail || null;
+      return normalizeOrderDetails(response?.data?.detail || null);
     },
 
     checkExistingOrder: async ({ userId, outletId, tableId, sectionId }) => {
@@ -498,26 +505,13 @@ export const apiService = {
           continue;
         }
 
-        const portionId = item?.portion_id ?? item?.portionId ?? null;
         const portionName = item?.portion_name ?? item?.portionName ?? "";
         const payload = {
           menu_id: Number(item?.menu_id ?? item?.menuId),
           quantity: Number(item?.quantity ?? 0),
           comment: item?.comment || "",
+          portion_name: String(portionName).toLowerCase(),
         };
-
-        // Backend may fail when portion_id is 0/invalid; omit it to allow default pricing.
-        if (
-          portionId !== null &&
-          portionId !== undefined &&
-          Number.isFinite(Number(portionId)) &&
-          Number(portionId) !== 0
-        ) {
-          payload.portion_id = Number(portionId);
-        }
-        if (portionName) {
-          payload.portion_name = String(portionName).toLowerCase();
-        }
 
         menuItems.push(payload);
       }

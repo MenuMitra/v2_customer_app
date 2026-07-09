@@ -8,7 +8,11 @@ import { jsPDF } from "jspdf";
 import toast from "react-hot-toast";
 import MenuMitra from "../assets/logo.png";
 import { ENV } from '../config';
-import { getDisplayPortionLabel } from "../utils/portionLabel";
+import {
+  getOrderMenuLineKey,
+  getOrderMenuPortionLabel,
+  normalizeOrderDetails,
+} from "../utils/orderMenuItem";
 
 function OrderDetail() {
   const { orderId } = useParams();
@@ -105,7 +109,12 @@ function OrderDetail() {
       const { order_details, menu_details = [], combo_details = [] } = orderDetails;
       const allInvoiceItems = [
         ...(menu_details || []).map((item) => ({
-          name: item?.menu_name ?? "",
+          name: `${item?.menu_name ?? ""}${
+            getOrderMenuPortionLabel(item) &&
+            getOrderMenuPortionLabel(item) !== "Regular"
+              ? ` (${getOrderMenuPortionLabel(item)})`
+              : ""
+          }`,
           qty: Number(item?.quantity ?? 0),
           price: Number(item?.price ?? item?.net_price ?? 0),
         })),
@@ -181,8 +190,7 @@ function OrderDetail() {
           .map(
             (item) => `
               <tr>
-                <td style="padding: 8px 0; color: #d9534f;">${item.menu_name
-              }</td>
+                <td style="padding: 8px 0; color: #d9534f;">${item.name}</td>
                 <td style="text-align: center; padding: 8px 0;">${item.qty
               }</td>
                 <td style="text-align: right; padding: 8px 0;">₹ ${item.price.toFixed(
@@ -396,7 +404,7 @@ function OrderDetail() {
         }
       );
 
-      const orderDetails = response.data.detail;
+      const orderDetails = normalizeOrderDetails(response.data.detail);
 
       if (!orderDetails) {
         console.error("Order details not found");
@@ -444,7 +452,7 @@ function OrderDetail() {
         const data = await response.json();
 
         if (data.detail) {
-          setOrderDetails(data.detail);
+          setOrderDetails(normalizeOrderDetails(data.detail));
         } else {
           throw new Error("Invalid response format");
         }
@@ -538,7 +546,7 @@ function OrderDetail() {
             <div className="card-body">
               {(orderDetails?.menu_details || []).map((menu, index) => (
                 <div
-                  key={index}
+                  key={getOrderMenuLineKey(menu, index)}
                   className={`flex items-center justify-between py-2 ${index !== orderDetails.menu_details.length - 1
                       ? "border-b border-[var(--border-color)]"
                       : ""
@@ -556,15 +564,16 @@ function OrderDetail() {
                       <div className="flex items-center gap-2">
                         <h6 className="mb-0 text-[var(--primary)]">
                           {menu.menu_name}
-                          {menu.portion_name && (
-                            <span className="ml-1 text-xs text-soft">
-                              ({getDisplayPortionLabel(menu.portion_name)})
-                            </span>
-                          )}
                         </h6>
                         {menu.is_favourite === 1 && (
                           <i className="fa-solid fa-heart text-[#dc3545]"></i>
                         )}
+                      </div>
+                      <div className="flex items-center mb-1">
+                        <span className="text-green-600 text-[13px] flex items-center">
+                          <i className="fa-solid fa-utensils mr-1 text-[13px] text-[#19b955]"></i>
+                          {getOrderMenuPortionLabel(menu)}
+                        </span>
                       </div>
                       <p className="mb-0 text-soft">
                         Qty: {menu.quantity} × ₹{menu.price}

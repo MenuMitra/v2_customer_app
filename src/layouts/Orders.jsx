@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import AuthPrompt from "../components/Auth/AuthPrompt";
@@ -11,6 +11,12 @@ import { useNavigate } from "react-router-dom";
 import apiService from "../api/apiService";
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from "../components/Toast/ToastContext";
+import {
+  clearActiveOrderSession,
+  collectCompletedOrderIds,
+  isTerminalOrderStatus,
+  shouldHideFromOngoingOrders,
+} from "../utils/orderStatus";
 
 const getOrderItemCount = (order = {}, details = {}) => {
   const menuCount = Number(order?.menu_count ?? details?.menu_count ?? 0);
@@ -115,33 +121,35 @@ function OrdersContent() {
         outletId
       });
 
-      return response.map((order) => ({
-        id: order.order_number,
-        orderId: order.order_id,
-        orderNumber: order.order_number,
-        itemCount: getOrderItemCount(order),
-        status: order.status,
-        iconColor: "#FFA902",
-        iconBgClass: "bg-warning",
-        isExpanded: false,
-        parentId: "accordionExample1",
-        orderType: order.order_type,
-        outletName: order.outlet_name,
-        totalAmount: order.final_grand_total,
-        paymentMethod: order.payment_method || "Not selected",
-        time: order.time,
-        // Backend may provide server-side creation time in different fields.
-        // Keep these for countdown/cancel window calculation.
-        createdAt:
-          order.order_created_time ||
-          order.order_created_at ||
-          order.created_time ||
-          order.created_at ||
-          order.timestamp ||
-          null,
-        tableNumber: order.table_number,
-        sectionName: order.section_name
-      }));
+      return response
+        .map((order) => ({
+          id: order.order_number,
+          orderId: order.order_id,
+          orderNumber: order.order_number,
+          itemCount: getOrderItemCount(order),
+          status: order.status,
+          iconColor: "#FFA902",
+          iconBgClass: "bg-warning",
+          isExpanded: false,
+          parentId: "accordionExample1",
+          orderType: order.order_type,
+          outletName: order.outlet_name,
+          totalAmount: order.final_grand_total,
+          paymentMethod: order.payment_method || "Not selected",
+          time: order.time,
+          // Backend may provide server-side creation time in different fields.
+          // Keep these for countdown/cancel window calculation.
+          createdAt:
+            order.order_created_time ||
+            order.order_created_at ||
+            order.created_time ||
+            order.created_at ||
+            order.timestamp ||
+            null,
+          tableNumber: order.table_number,
+          sectionName: order.section_name,
+        }))
+        .filter((order) => !shouldHideFromOngoingOrders(order));
     },
     enabled: !!userId && !!outletId,
     refetchInterval: 10000,
@@ -160,65 +168,6 @@ function OrdersContent() {
     enabled: !!activeOrderId && !!userId,
     refetchInterval: 10000,
   });
-
-  const statusIsTerminal = (status) => {
-    const s = String(status || "").toLowerCase();
-    return (
-      s === "paid" ||
-      s === "cancelled" ||
-      s === "rejected" ||
-      s === "refunded" ||
-      s === "completed"
-    );
-  };
-
-  const activeFallbackOrder = (() => {
-    const details = activeOrderDetailsData?.order_details;
-    if (!details) return null;
-    if (statusIsTerminal(details.order_status)) return null;
-    return {
-      id: details.order_number || String(details.order_id),
-      orderId: details.order_id,
-      orderNumber: details.order_number || String(details.order_id),
-      itemCount:
-        getOrderItemCount(details, activeOrderDetailsData) ||
-        activeOrderDetailsData?.menu_details?.length ||
-        0,
-      status: details.order_status || "placed",
-      iconColor: "#FFA902",
-      iconBgClass: "bg-warning",
-      isExpanded: false,
-      parentId: "accordionExample1",
-      orderType: details.order_type,
-      outletName: details.outlet_name,
-      totalAmount: details.final_grand_total,
-      paymentMethod: details.payment_method || "Not selected",
-      time: details.time,
-      createdAt:
-        details.order_created_time ||
-        details.order_created_at ||
-        activeOrderCreatedAt ||
-        null,
-      tableNumber: details.table_number,
-      sectionName: details.section_name,
-    };
-  })();
-
-  const combinedOngoingOrders = (() => {
-    const list = ongoingOrdersData || [];
-    if (!activeFallbackOrder) return list;
-    const exists = list.some(
-      (o) => String(o.orderId) === String(activeFallbackOrder.orderId)
-    );
-    const merged = exists ? list : [activeFallbackOrder, ...list];
-    // Always show the newest order at the top.
-    return merged.sort((a, b) => {
-      // Prefer orderNumber numeric sort, fallback to orderId.
-      const aNum = Number(a?.orderNumber ?? a?.orderId ?? 0);
-      const bNum = Number(b?.orderNumber ?? b?.orderId ?? 0);
-      return Number.isFinite(bNum) && Number.isFinite(aNum) ? bNum - aNum : 0;
-    });
-  })();
 
   const calcRemainingSeconds = (order) => {
     const createdAtRaw = order?.createdAt;
@@ -291,7 +240,10 @@ function OrdersContent() {
       };
 
       const transformedData = {
-        paid: lists.paid || {},
+        paid: {
+          ...(lists.paid || {}),
+          ...(lists.settled || {}),
+        },
         complimentary_paid: complementaryOrders,
         cancelled: lists.cancelled || lists.canceled || {},
         udhari_paid: lists.udhari_paid || {},
@@ -326,7 +278,83 @@ function OrdersContent() {
       };
     },
     enabled: !!userId && !!outletId,
+    refetchInterval: 10000,
   });
+
+  const completedOrderIds = useMemo(
+    () => collectCompletedOrderIds(orderHistoryData),
+    [orderHistoryData]
+  );
+
+  useEffect(() => {
+    const details = activeOrderDetailsData?.order_details;
+    if (!details || !activeOrderId) return;
+
+    if (
+      shouldHideFromOngoingOrders(details, completedOrderIds) &&
+      String(details.order_id) === String(activeOrderId)
+    ) {
+      clearActiveOrderSession();
+      refetchOngoingOrders();
+      refetchOrderHistory();
+    }
+  }, [
+    activeOrderDetailsData,
+    activeOrderId,
+    completedOrderIds,
+    refetchOngoingOrders,
+    refetchOrderHistory,
+  ]);
+
+  const activeFallbackOrder = (() => {
+    const details = activeOrderDetailsData?.order_details;
+    if (!details) return null;
+    if (shouldHideFromOngoingOrders(details, completedOrderIds)) return null;
+    return {
+      id: details.order_number || String(details.order_id),
+      orderId: details.order_id,
+      orderNumber: details.order_number || String(details.order_id),
+      itemCount:
+        getOrderItemCount(details, activeOrderDetailsData) ||
+        activeOrderDetailsData?.menu_details?.length ||
+        0,
+      status: details.order_status || "placed",
+      iconColor: "#FFA902",
+      iconBgClass: "bg-warning",
+      isExpanded: false,
+      parentId: "accordionExample1",
+      orderType: details.order_type,
+      outletName: details.outlet_name,
+      totalAmount: details.final_grand_total,
+      paymentMethod: details.payment_method || "Not selected",
+      time: details.time,
+      createdAt:
+        details.order_created_time ||
+        details.order_created_at ||
+        activeOrderCreatedAt ||
+        null,
+      tableNumber: details.table_number,
+      sectionName: details.section_name,
+    };
+  })();
+
+  const combinedOngoingOrders = (() => {
+    const list = (ongoingOrdersData || []).filter(
+      (order) => !shouldHideFromOngoingOrders(order, completedOrderIds)
+    );
+    if (!activeFallbackOrder) return list;
+    const exists = list.some(
+      (o) => String(o.orderId) === String(activeFallbackOrder.orderId)
+    );
+    const merged = exists ? list : [activeFallbackOrder, ...list];
+    return merged
+      .filter((order) => !shouldHideFromOngoingOrders(order, completedOrderIds))
+      .sort((a, b) => {
+        const aNum = Number(a?.orderNumber ?? a?.orderId ?? 0);
+        const bNum = Number(b?.orderNumber ?? b?.orderId ?? 0);
+        return Number.isFinite(bNum) && Number.isFinite(aNum) ? bNum - aNum : 0;
+      });
+  })();
 
   // Handler for expanding/collapsing individual date accordions for completed orders
   const toggleCompletedDateExpansion = (date) => {
@@ -456,6 +484,7 @@ function OrdersContent() {
           iconBgClass: "bg-info",
         };
       case "paid":
+      case "settled":
         return {
           status: "Completed",
           iconColor: "#00B67A",
