@@ -88,7 +88,7 @@ function Search() {
     setSearchResults((prev) =>
       Array.isArray(prev)
         ? prev.map((item) =>
-          item?.menu_id === menuId
+          String(item?.menu_id ?? item?.menuId) === String(menuId)
             ? { ...item, is_favourite: nextIsFavorite ? 1 : 0 }
             : item
         )

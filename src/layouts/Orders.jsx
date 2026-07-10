@@ -14,6 +14,7 @@ import { useToast } from "../components/Toast/ToastContext";
 import {
   clearActiveOrderSession,
   collectCompletedOrderIds,
+  isPaidOrSettledOrder,
   isTerminalOrderStatus,
   shouldHideFromOngoingOrders,
 } from "../utils/orderStatus";
@@ -115,19 +116,41 @@ function OrdersContent() {
     queryKey: ['ongoingOrders', outletId, userId],
     queryFn: async () => {
       if (!userId || !outletId) return [];
-      
-      const response = await apiService.customer.getOngoingOrders({
-        userId: parseInt(userId),
-        outletId
+
+      const [response, historyLists] = await Promise.all([
+        apiService.customer.getOngoingOrders({
+          userId: parseInt(userId),
+          outletId,
+        }),
+        apiService.customer.getOrderHistory({
+          userId: parseInt(userId),
+          outletId,
+        }).catch(() => ({})),
+      ]);
+
+      const completedIds = collectCompletedOrderIds({
+        orders: {
+          paid: {
+            ...(historyLists?.paid || {}),
+            ...(historyLists?.settled || {}),
+          },
+          settled: historyLists?.settled || {},
+          complimentary_paid: historyLists?.complimentary_paid || {},
+          complementary_paid: historyLists?.complementary_paid || {},
+          udhari_paid: historyLists?.udhari_paid || {},
+          cancelled: historyLists?.cancelled || historyLists?.canceled || {},
+          canceled: historyLists?.canceled || {},
+        },
       });
 
-      return response
-        .map((order) => ({
+      const allMapped = response.map((order) => ({
+          ...order,
           id: order.order_number,
           orderId: order.order_id,
           orderNumber: order.order_number,
           itemCount: getOrderItemCount(order),
-          status: order.status,
+          status: order.status || order.order_status,
+          order_status: order.order_status || order.status,
           iconColor: "#FFA902",
           iconBgClass: "bg-warning",
           isExpanded: false,
@@ -136,9 +159,10 @@ function OrdersContent() {
           outletName: order.outlet_name,
           totalAmount: order.final_grand_total,
           paymentMethod: order.payment_method || "Not selected",
+          payment_status: order.payment_status,
           time: order.time,
-          // Backend may provide server-side creation time in different fields.
-          // Keep these for countdown/cancel window calculation.
+          date: order.date,
+          datetime: order.datetime,
           createdAt:
             order.order_created_time ||
             order.order_created_at ||
@@ -148,8 +172,18 @@ function OrdersContent() {
             null,
           tableNumber: order.table_number,
           sectionName: order.section_name,
-        }))
-        .filter((order) => !shouldHideFromOngoingOrders(order));
+        }));
+
+      const recentlySettled = allMapped.filter((order) => {
+        if (!isPaidOrSettledOrder(order)) return false;
+        return !completedIds.has(String(order.orderId));
+      });
+
+      const ongoing = allMapped.filter(
+        (order) => !shouldHideFromOngoingOrders(order, completedIds)
+      );
+
+      return { ongoing, recentlySettled };
     },
     enabled: !!userId && !!outletId,
     refetchInterval: 10000,
@@ -244,6 +278,7 @@ function OrdersContent() {
           ...(lists.paid || {}),
           ...(lists.settled || {}),
         },
+        settled: lists.settled || {},
         complimentary_paid: complementaryOrders,
         cancelled: lists.cancelled || lists.canceled || {},
         udhari_paid: lists.udhari_paid || {},
@@ -286,13 +321,63 @@ function OrdersContent() {
     [orderHistoryData]
   );
 
-  useEffect(() => {
+  const recentlySettledOrders = useMemo(() => {
+    const fromOngoing = ongoingOrdersData?.recentlySettled || [];
     const details = activeOrderDetailsData?.order_details;
-    if (!details || !activeOrderId) return;
 
+    if (!details || !isPaidOrSettledOrder(details)) {
+      return fromOngoing;
+    }
+
+    if (completedOrderIds.has(String(details.order_id))) {
+      return fromOngoing;
+    }
+
+    const fromDetails = {
+      order_id: details.order_id,
+      order_number: details.order_number,
+      order_status: details.order_status,
+      status: details.order_status,
+      payment_status: details.payment_status,
+      outlet_name: details.outlet_name,
+      order_type: details.order_type,
+      final_grand_total: details.final_grand_total,
+      time: details.time,
+      date: details.date,
+      datetime: details.datetime,
+      table_number: details.table_number,
+      section_name: details.section_name,
+      menu_count: details.menu_count,
+      combo_count: details.combo_count,
+    };
+
+    const exists = fromOngoing.some(
+      (order) => String(order.orderId) === String(details.order_id)
+    );
+
+    return exists ? fromOngoing : [fromDetails, ...fromOngoing];
+  }, [ongoingOrdersData, activeOrderDetailsData, completedOrderIds]);
+
+  useEffect(() => {
+    if (!activeOrderId) return;
+
+    const normalizedActiveId = String(activeOrderId);
+
+    if (completedOrderIds.has(normalizedActiveId)) {
+      clearActiveOrderSession();
+      refetchOngoingOrders();
+      refetchOrderHistory();
+      return;
+    }
+
+    const details = activeOrderDetailsData?.order_details;
     if (
-      shouldHideFromOngoingOrders(details, completedOrderIds) &&
-      String(details.order_id) === String(activeOrderId)
+      details &&
+      String(details.order_id) === normalizedActiveId &&
+      shouldHideFromOngoingOrders(
+        { ...details, order_status: details.order_status, payment_status: details.payment_status },
+        completedOrderIds
+      )
     ) {
       clearActiveOrderSession();
       refetchOngoingOrders();
@@ -309,8 +394,16 @@ function OrdersContent() {
   const activeFallbackOrder = (() => {
     const details = activeOrderDetailsData?.order_details;
     if (!details) return null;
-    if (shouldHideFromOngoingOrders(details, completedOrderIds)) return null;
+    if (
+      shouldHideFromOngoingOrders(
+        { ...details, order_details: details },
+        completedOrderIds
+      )
+    ) {
+      return null;
+    }
     return {
+      ...details,
       id: details.order_number || String(details.order_id),
       orderId: details.order_id,
       orderNumber: details.order_number || String(details.order_id),
@@ -319,6 +412,7 @@ function OrdersContent() {
         activeOrderDetailsData?.menu_details?.length ||
         0,
       status: details.order_status || "placed",
+      order_status: details.order_status || "placed",
       iconColor: "#FFA902",
       iconBgClass: "bg-warning",
       isExpanded: false,
@@ -327,6 +421,7 @@ function OrdersContent() {
       outletName: details.outlet_name,
       totalAmount: details.final_grand_total,
       paymentMethod: details.payment_method || "Not selected",
+      payment_status: details.payment_status,
       time: details.time,
       createdAt:
         details.order_created_time ||
@@ -339,8 +434,16 @@ function OrdersContent() {
   })();
 
   const combinedOngoingOrders = (() => {
-    const list = (ongoingOrdersData || []).filter(
-      (order) => !shouldHideFromOngoingOrders(order, completedOrderIds)
+    const settledIds = new Set(
+      recentlySettledOrders.map((order) =>
+        String(order.order_id || order.orderId)
+      )
+    );
+
+    const list = (ongoingOrdersData?.ongoing || []).filter(
+      (order) =>
+        !shouldHideFromOngoingOrders(order, completedOrderIds) &&
+        !settledIds.has(String(order.orderId))
     );
     if (!activeFallbackOrder) return list;
     const exists = list.some(
@@ -348,7 +451,11 @@ function OrdersContent() {
     );
     const merged = exists ? list : [activeFallbackOrder, ...list];
     return merged
-      .filter((order) => !shouldHideFromOngoingOrders(order, completedOrderIds))
+      .filter(
+        (order) =>
+          !shouldHideFromOngoingOrders(order, completedOrderIds) &&
+          !settledIds.has(String(order.orderId))
+      )
       .sort((a, b) => {
         const aNum = Number(a?.orderNumber ?? a?.orderId ?? 0);
         const bNum = Number(b?.orderNumber ?? b?.orderId ?? 0);
@@ -475,7 +582,8 @@ function OrdersContent() {
 
   // Update the getOrderStatus function to handle both spellings
   const getOrderStatus = (order) => {
-    switch (order.order_status) {
+    const normalizedStatus = order.order_status || order.status;
+    switch (normalizedStatus) {
       case "complimentary_paid":
       case "complementary_paid":
         return {
@@ -504,7 +612,7 @@ function OrdersContent() {
         };
       default:
         return {
-          status: order.order_status || "Completed",
+          status: normalizedStatus || "Completed",
           iconColor: "#00B67A",
           iconBgClass: "bg-success",
         };
@@ -512,6 +620,83 @@ function OrdersContent() {
   };
 
   // Update the transformOrderData function to handle complementary orders
+  const formatOrderDateLabel = (order) => {
+    const raw = order?.datetime || order?.date || order?.order_date || "";
+    if (!raw) return "Today";
+
+    const datePart = String(raw).split(" ").slice(0, 3).join(" ");
+    if (!datePart) return "Today";
+
+    try {
+      const parsed = new Date(datePart);
+      if (Number.isNaN(parsed.getTime())) return datePart;
+      return parsed.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return datePart;
+    }
+  };
+
+  const mapToCompletedAccordionOrder = (order) => {
+    const { status, iconColor, iconBgClass } = getOrderStatus({
+      ...order,
+      order_status: order.order_status || order.status || "paid",
+    });
+
+    return {
+      id: order.order_number || order.orderNumber,
+      orderId: order.order_id || order.orderId,
+      orderNumber: order.order_number || order.orderNumber,
+      itemCount: order.itemCount || getOrderItemCount(order),
+      status,
+      iconColor,
+      iconBgClass,
+      isExpanded: true,
+      parentId: "accordionExample3",
+      outletName: order.outlet_name || order.outletName,
+      orderType: order.order_type || order.orderType,
+      totalAmount: order.final_grand_total || order.totalAmount,
+      paymentStatus: status,
+      orderTime: order.time,
+      tableNumber: order.table_number || order.tableNumber,
+      sectionName: order.section_name || order.sectionName,
+      datetime: order.datetime,
+      date: order.date,
+      order_date: order.order_date,
+    };
+  };
+
+  const mergeCompletedOrder = (target, completedOrder) => {
+    const dateKey = formatOrderDateLabel(completedOrder);
+    if (target.completedByDate[dateKey]) {
+      const exists = target.completedByDate[dateKey].orders.some(
+        (existing) =>
+          String(existing.orderId) === String(completedOrder.orderId)
+      );
+      if (exists) return target;
+
+      const orders = [...target.completedByDate[dateKey].orders, completedOrder].sort(
+        (a, b) => parseInt(b.orderNumber) - parseInt(a.orderNumber)
+      );
+      target.completedByDate[dateKey] = {
+        ...target.completedByDate[dateKey],
+        orders,
+        orderCount: orders.length,
+      };
+      return target;
+    }
+
+    target.completedByDate[dateKey] = {
+      date: dateKey,
+      orderCount: 1,
+      orders: [completedOrder],
+    };
+    return target;
+  };
+
   const transformOrderData = (orders) => {
     const transformedOrders = {
       completedByDate: {},
@@ -583,9 +768,16 @@ function OrdersContent() {
       }
     };
 
-    // Process paid orders
+    // Process paid orders (includes settled entries merged above)
     if (orders.paid) {
       Object.entries(orders.paid).forEach(([dateKey, orderList]) => {
+        processOrders(orderList, dateKey);
+      });
+    }
+
+    // Process settled orders when API keeps them in a separate bucket.
+    if (orders.settled) {
+      Object.entries(orders.settled).forEach(([dateKey, orderList]) => {
         processOrders(orderList, dateKey);
       });
     }
@@ -615,11 +807,28 @@ function OrdersContent() {
   };
 
   // Update transformedOrders to use new data structure
-  const transformedOrders = transformOrderData(orderHistoryData?.orders || {
-    paid: {},
-    complimentary_paid: {},
-    cancelled: {},
-  });
+  const transformedOrders = useMemo(() => {
+    const base = transformOrderData(orderHistoryData?.orders || {
+      paid: {},
+      complimentary_paid: {},
+      cancelled: {},
+    });
+
+    if (!recentlySettledOrders.length) {
+      return base;
+    }
+
+    const merged = {
+      ...base,
+      completedByDate: { ...base.completedByDate },
+    };
+
+    recentlySettledOrders.forEach((order) => {
+      mergeCompletedOrder(merged, mapToCompletedAccordionOrder(order));
+    });
+
+    return merged;
+  }, [orderHistoryData, recentlySettledOrders]);
 
   // Auto-expand date groups when data arrives so paid/cancelled lists are immediately visible.
   useEffect(() => {

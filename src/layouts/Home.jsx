@@ -13,7 +13,7 @@ import "react-loading-skeleton/dist/skeleton.css";
 import { OrderTypeModal } from "../components/Modal/variants/OrderTypeModal";
 import { useModal } from "../contexts/ModalContext";
 import apiService from "../api/apiService";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ENV } from "../config";
 import { comboToMenuItem, COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
 import { isComboFavorite } from "../utils/comboFavorites";
@@ -29,7 +29,7 @@ function Home() {
   const location = useLocation();
 
   // Essential state that can't be derived
-  const [favoriteMenuIds] = useState(new Set());
+  const [favoriteMenuIds, setFavoriteMenuIds] = useState(() => new Set());
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [visibleMenuCount, setVisibleMenuCount] = useState(10);
   const [activeMenuFilter] = useState("all");
@@ -40,6 +40,12 @@ function Home() {
   // Add QueryClient
   const queryClient = useQueryClient();
   const userId = getUserId();
+
+  const { data: favoritesListData } = useQuery({
+    queryKey: ["favorites", outletId, userId],
+    queryFn: () => apiService.favorites.getList({ outletId, userId }),
+    enabled: !!userId && !!outletId,
+  });
 
   // IMPROVEMENT: Use useMemo for categoriesData instead of useState + useEffect
   // This prevents unnecessary recalculations and removes a source of render loops
@@ -159,6 +165,33 @@ function Home() {
 
   // VerticalMenuCard already performs API toggle via useMenuItems.
   // This callback should only sync local cache/UI to avoid double API calls.
+  // Keep local favourite ids in sync with server list and menu flags.
+  useEffect(() => {
+    setFavoriteMenuIds((prev) => {
+      const next = new Set(prev);
+
+      if (favoritesListData && typeof favoritesListData === "object") {
+        Object.values(favoritesListData).forEach((menus) => {
+          if (!Array.isArray(menus)) return;
+          menus.forEach((menu) => {
+            const id = menu?.menu_id ?? menu?.menuId;
+            if (id != null && id !== "") {
+              next.add(String(id));
+            }
+          });
+        });
+      }
+
+      (menuItems || []).forEach((menu) => {
+        if (menu.is_favourite === 1) {
+          next.add(String(menu.menuId));
+        }
+      });
+
+      return next;
+    });
+  }, [favoritesListData, menuItems]);
+
   const handleFavoriteClick = (
     menuId,
     nextIsFavorite,
@@ -169,12 +202,24 @@ function Home() {
       setComboFavoriteRefresh((prev) => prev + 1);
       return;
     }
+
+    const normalizedMenuId = String(menuId);
+    setFavoriteMenuIds((prev) => {
+      const next = new Set(prev);
+      if (nextIsFavorite) {
+        next.add(normalizedMenuId);
+      } else {
+        next.delete(normalizedMenuId);
+      }
+      return next;
+    });
+
     queryClient.setQueryData(["menuItems", outletId], (old) => {
       if (!old) return old;
       return {
         ...old,
         menus: (old.menus || []).map((menu) =>
-          menu.menuId === menuId
+          String(menu.menuId) === normalizedMenuId
             ? {
                 ...menu,
                 is_favourite: nextIsFavorite ? 1 : 0,
@@ -196,11 +241,10 @@ function Home() {
 
   return (
     <>
-      <div className="page-wraper">
+      <div className="home-page">
         <Header />
-        <div className="page-content">
-          <div className="pt-0">
-            <div className="max-w-[1200px] mx-auto px-4 pb-24 pt-0">
+        <div className="home-content">
+          <div className="home-inner max-w-[1200px] mx-auto px-4 pt-0 w-full">
 
               <div
                 className="title-bar flex justify-between items-center cursor-pointer"
@@ -225,8 +269,8 @@ function Home() {
               <div className="title-bar mt-0">
                 <span className="title mb-0 text-lg font-semibold">Menus</span>
               </div>
-              <div className="max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar pb-[220px] overscroll-contain">
-                <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="home-menu-scroll custom-scrollbar pr-1">
+                <div className="grid grid-cols-2 gap-3">
                   {isLoading ? (
                     // Skeleton for VerticalMenuCards
                     [...Array(6)].map((_, index) => (
@@ -351,7 +395,7 @@ function Home() {
                                     : null
                                 }
                                 isFavorite={
-                                  favoriteMenuIds.has(menuItem.menuId) ||
+                                  favoriteMenuIds.has(String(menuItem.menuId)) ||
                                   menuItem.is_favourite === 1
                                 }
                                 discount={
@@ -389,7 +433,10 @@ function Home() {
                             reviewCount={
                               menuItem.rating ? parseInt(menuItem.rating) : null
                             }
-                            isFavorite={menuItem.is_favourite === 1}
+                            isFavorite={
+                              favoriteMenuIds.has(String(menuItem.menuId)) ||
+                              menuItem.is_favourite === 1
+                            }
                             discount={
                               menuItem.offer > 0 ? `${menuItem.offer}%` : null
                             }
@@ -466,7 +513,7 @@ function Home() {
                 </div>
                 {/* Lazy Load Button */}
                 {filteredMenus.length > visibleMenuCount && (
-                  <div className="text-center mb-10">
+                  <div className="text-center py-4">
                     <button
                       className="px-6 py-2.5 bg-[#177a26] border-[#007bff] text-[#ffffff] rounded-3xl hover:bg-[#159428] hover:text-white transition-all duration-300 font-medium"
                       onClick={handleLoadMoreMenus}
@@ -476,11 +523,8 @@ function Home() {
                   </div>
                 )}
               </div>
-            </div>
           </div>
         </div>
-        {/* Page Content End*/}
-        {/* Menubar */}
         <Footer />
 
         <div

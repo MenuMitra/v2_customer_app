@@ -537,8 +537,8 @@ function OrderDetail() {
             <div className="card-header border-0 pb-0 border-b pb-3">
               <h5 className="card-title text-[var(--primary)]">
                 Order Items ({
-                  Number(orderDetails?.order_details?.menu_count || 0) +
-                  Number(orderDetails?.order_details?.combo_count || 0)
+                  Number(orderDetails?.menu_details?.length || 0) +
+                  Number(orderDetails?.combo_details?.length || 0)
                 })
               </h5>
             </div>
@@ -554,7 +554,7 @@ function OrderDetail() {
                 >
                   <div className="flex items-center flex-1 min-w-0">
                     <div className="food-type-icon mr-3">
-                      {menu.menu_food_type.toLowerCase() === "veg" ? (
+                      {String(menu?.menu_food_type || "").toLowerCase() === "veg" ? (
                         <VegIcon />
                       ) : (
                         <NonVegIcon />
@@ -569,12 +569,14 @@ function OrderDetail() {
                           <i className="fa-solid fa-heart text-[#dc3545]"></i>
                         )}
                       </div>
-                      <div className="flex items-center mb-1">
-                        <span className="text-green-600 text-[13px] flex items-center">
-                          <i className="fa-solid fa-utensils mr-1 text-[13px] text-[#19b955]"></i>
-                          {getOrderMenuPortionLabel(menu)}
-                        </span>
-                      </div>
+                      {getOrderMenuPortionLabel(menu) ? (
+                        <div className="flex items-center mb-1">
+                          <span className="text-green-600 text-[13px] flex items-center">
+                            <i className="fa-solid fa-utensils mr-1 text-[13px] text-[#19b955]"></i>
+                            {getOrderMenuPortionLabel(menu)}
+                          </span>
+                        </div>
+                      ) : null}
                       <p className="mb-0 text-soft">
                         Qty: {menu.quantity} × ₹{menu.price}
                         {menu.comment && (

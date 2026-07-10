@@ -302,6 +302,8 @@ export const AddToCartModal = () => {
         menu_id: Number(menuItemData.menuId),
         quantity: Number(currentQuantity),
         portion_name: portionName,
+        portion_id: Number(selectedPortion),
+        menu_portions_id: Number(selectedPortion),
         comment: comments[selectedPortion] || "",
       };
 

@@ -1,5 +1,6 @@
 const TERMINAL_ORDER_STATUSES = new Set([
   "completed",
+  "complete",
   "cancelled",
   "canceled",
   "rejected",
@@ -9,6 +10,17 @@ const TERMINAL_ORDER_STATUSES = new Set([
   "complementary_paid",
   "udhari_paid",
   "settled",
+  "served",
+  "closed",
+  "delivered",
+]);
+
+const PAID_PAYMENT_STATUSES = new Set([
+  "paid",
+  "settled",
+  "completed",
+  "success",
+  "successful",
 ]);
 
 const readOrderId = (order) =>
@@ -19,11 +31,43 @@ const readOrderStatus = (order) =>
     .toLowerCase()
     .trim();
 
+const readPaymentStatus = (order) =>
+  String(order?.payment_status ?? order?.paymentStatus ?? "")
+    .toLowerCase()
+    .trim();
+
 export const isTerminalOrderStatus = (status) => {
   const normalized = String(status ?? "")
     .toLowerCase()
     .trim();
   return TERMINAL_ORDER_STATUSES.has(normalized);
+};
+
+export const isPaidOrSettledOrder = (order) => {
+  if (!order) return false;
+
+  const orderStatus = readOrderStatus(order);
+  if (isTerminalOrderStatus(orderStatus)) {
+    return true;
+  }
+
+  const paymentStatus = readPaymentStatus(order);
+  if (PAID_PAYMENT_STATUSES.has(paymentStatus)) {
+    return true;
+  }
+
+  if (
+    order?.is_settled === 1 ||
+    order?.is_settled === true ||
+    order?.order_settled === 1 ||
+    order?.order_settled === true ||
+    order?.is_paid === 1 ||
+    order?.is_paid === true
+  ) {
+    return true;
+  }
+
+  return false;
 };
 
 export const clearActiveOrderSession = () => {
@@ -57,6 +101,7 @@ export const collectCompletedOrderIds = (orderHistoryData) => {
   const orders = orderHistoryData.orders || orderHistoryData;
 
   collectIdsFromGroupedOrders(orders.paid, ids);
+  collectIdsFromGroupedOrders(orders.settled, ids);
   collectIdsFromGroupedOrders(orders.complimentary_paid, ids);
   collectIdsFromGroupedOrders(orders.complementary_paid, ids);
   collectIdsFromGroupedOrders(orders.udhari_paid, ids);
@@ -76,8 +121,7 @@ export const shouldHideFromOngoingOrders = (
 ) => {
   if (!order) return true;
 
-  const status = readOrderStatus(order);
-  if (isTerminalOrderStatus(status)) {
+  if (isPaidOrSettledOrder(order)) {
     return true;
   }
 

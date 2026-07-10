@@ -1,9 +1,41 @@
 import axiosInstance from './axios';
 import {
+  buildCreateOrderPayloadFromCart,
+  formatComboOrderItem,
+  isComboCartItem,
+} from '../utils/comboMenuItem';
+import {
   buildCreateOrderMenuPayload,
   normalizeOrderDetails,
 } from '../utils/orderMenuItem';
 import { ENV } from '../config';
+
+const getFavoriteApiErrorMessage = (error) =>
+  String(
+    error?.response?.data?.message ??
+      error?.response?.data?.detail ??
+      ""
+  ).toLowerCase();
+
+const isAlreadyFavoriteError = (error) => {
+  const message = getFavoriteApiErrorMessage(error);
+  return (
+    error?.response?.status === 400 &&
+    message.includes("already") &&
+    message.includes("favor")
+  );
+};
+
+const isNotInFavoritesError = (error) => {
+  const message = getFavoriteApiErrorMessage(error);
+  return (
+    error?.response?.status === 400 &&
+    (message.includes("not in favor") ||
+      message.includes("not in favour") ||
+      (message.includes("not found") && message.includes("favor")))
+  );
+};
+
 // API version constant
 export const apiService = {
   // Common API calls that return different data shapes
@@ -313,22 +345,36 @@ export const apiService = {
       }
     },
     add: async ({ outletId, userId, menuId }) => {
-      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/save_favourite_menu`, {
-        outlet_id: outletId,
-        user_id: userId,
-        menu_id: menuId,
-        app_source: "user_app"
-      });
-      return response.data;
+      try {
+        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/save_favourite_menu`, {
+          outlet_id: outletId,
+          user_id: userId,
+          menu_id: menuId,
+          app_source: "user_app"
+        });
+        return response.data;
+      } catch (error) {
+        if (isAlreadyFavoriteError(error)) {
+          return { success: true, alreadyFavorite: true };
+        }
+        throw error;
+      }
     },
     remove: async ({ outletId, userId, menuId }) => {
-      const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/remove_favourite_menu`, {
-        outlet_id: outletId,
-        user_id: userId,
-        menu_id: menuId,
-        app_source: "user_app"
-      });
-      return response.data;
+      try {
+        const response = await axiosInstance.post(`${ENV.V2_COMMON_BASE}/user/remove_favourite_menu`, {
+          outlet_id: outletId,
+          user_id: userId,
+          menu_id: menuId,
+          app_source: "user_app"
+        });
+        return response.data;
+      } catch (error) {
+        if (isNotInFavoritesError(error)) {
+          return { success: true, alreadyRemoved: true };
+        }
+        throw error;
+      }
     },
   },
 
@@ -364,40 +410,15 @@ export const apiService = {
       action = "create_order",
       appSource = "user_app",
     }) => {
-      const items = orderItems || [];
-      const order_items = [];
-      const order_combo_items = [];
-
-      for (const item of items) {
-        const hasCombo =
-          item.combo_master_id != null &&
-          item.combo_master_id !== undefined &&
-          item.combo_master_id !== "";
-
-        if (hasCombo) {
-          order_combo_items.push({
-            combo_master_id: Number(item.combo_master_id),
-            quantity: Number(item.quantity),
-            comment: item.comment || "",
-          });
-        } else {
-          order_items.push(buildCreateOrderMenuPayload(item));
-        }
-      }
+      const { order_items, order_combo_items } =
+        buildCreateOrderPayloadFromCart(orderItems || []);
 
       const payload = {
         outlet_id: String(outletId),
         user_id: String(userId),
         section_id: String(sectionId),
         order_type: orderType || "dine-in",
-        order_items:
-          order_items.length > 0
-            ? order_items
-            : order_combo_items.map((combo) => ({
-                combo_master_id: Number(combo.combo_master_id),
-                quantity: Number(combo.quantity),
-                comment: combo.comment || "",
-              })),
+        order_items,
         order_combo_items,
         action,
         app_source: appSource,
@@ -422,23 +443,29 @@ export const apiService = {
           order_id: String(orderId),
           outlet_id: String(outletId),
           order_items: (orderItems || []).map((item) => {
-            if (
-              item.combo_master_id != null &&
-              item.combo_master_id !== undefined &&
-              item.combo_master_id !== ""
-            ) {
+            if (isComboCartItem(item)) {
+              const built = formatComboOrderItem(item, { includeComboId: true });
               return {
-                combo_master_id: String(item.combo_master_id),
-                quantity: String(item.quantity),
-                portion_name: item.portion_name || "",
-                comment: item.comment || "",
+                combo_master_id: String(built.combo_master_id),
+                combo_id: String(built.combo_id),
+                quantity: String(built.quantity),
+                portion_name: built.portion_name || "",
+                comment: built.comment || "",
               };
             }
+
+            const built = buildCreateOrderMenuPayload(item);
             return {
-              menu_id: String(item.menu_id),
-              quantity: String(item.quantity),
-              portion_name: item.portion_name || "",
-              comment: item.comment || "",
+              menu_id: String(built.menu_id),
+              quantity: String(built.quantity),
+              portion_name: built.portion_name || "",
+              comment: built.comment || "",
+              ...(built.portion_id != null
+                ? {
+                    portion_id: String(built.portion_id),
+                    menu_portions_id: String(built.portion_id),
+                  }
+                : {}),
             };
           }),
           app_source: "user_app",
@@ -491,43 +518,8 @@ export const apiService = {
     },
 
     addToExistingOrder: async ({ orderId, userId, outletId, orderItems }) => {
-      const menuItems = [];
-      const comboItems = [];
-
-      for (const item of orderItems || []) {
-        const comboId = item?.combo_master_id ?? item?.comboMasterId ?? null;
-        if (comboId !== null && comboId !== undefined && comboId !== "") {
-          comboItems.push({
-            combo_master_id: Number(comboId),
-            quantity: Number(item?.quantity ?? 0),
-            comment: item?.comment || "",
-          });
-          continue;
-        }
-
-        const portionName = item?.portion_name ?? item?.portionName ?? "";
-        const payload = {
-          menu_id: Number(item?.menu_id ?? item?.menuId),
-          quantity: Number(item?.quantity ?? 0),
-          comment: item?.comment || "",
-          portion_name: String(portionName).toLowerCase(),
-        };
-
-        menuItems.push(payload);
-      }
-
-      // Some backend deployments enforce non-empty `order_items` even when
-      // combo payload is provided in `order_combo_items`.
-      // For combo-only carts, mirror combo objects in `order_items` to satisfy
-      // validation while preserving the explicit combo list.
-      const orderItemsPayload =
-        menuItems.length > 0
-          ? menuItems
-          : comboItems.map((combo) => ({
-              combo_master_id: Number(combo.combo_master_id),
-              quantity: Number(combo.quantity),
-              comment: combo.comment || "",
-            }));
+      const { order_items, order_combo_items } =
+        buildCreateOrderPayloadFromCart(orderItems || []);
 
       const response = await axiosInstance.post(
         `${ENV.V2_COMMON_BASE}/user/add_to_existing_order`,
@@ -536,8 +528,8 @@ export const apiService = {
           user_id: userId.toString(),
           outlet_id: outletId.toString(),
           app_source: "user_app",
-          order_items: orderItemsPayload,
-          ...(comboItems.length > 0 ? { order_combo_items: comboItems } : {}),
+          order_items,
+          ...(order_combo_items.length > 0 ? { order_combo_items } : {}),
         }
       );
       return response.data?.detail || null;
@@ -563,23 +555,19 @@ export const apiService = {
         order_type: orderType || "dine-in",
         app_source: appSource,
         order_items: orderItems.map((item) => {
-          if (
-            item.combo_master_id != null &&
-            item.combo_master_id !== undefined &&
-            item.combo_master_id !== ""
-          ) {
-            return {
-              combo_master_id: String(item.combo_master_id),
-              quantity: Number(item.quantity),
-              comment: item.comment || "",
-              portion_name: item.portion_name || "",
-            };
+          if (isComboCartItem(item)) {
+            return formatComboOrderItem(item, {
+              includeComboId: true,
+              asString: true,
+            });
           }
+
+          const built = buildCreateOrderMenuPayload(item);
           return {
-            menu_id: item.menu_id.toString(),
-            quantity: Number(item.quantity),
-            comment: item.comment || "",
-            portion_name: item.portion_name || "",
+            menu_id: String(built.menu_id),
+            quantity: Number(built.quantity),
+            comment: built.comment || "",
+            portion_name: built.portion_name || "",
           };
         }),
       };

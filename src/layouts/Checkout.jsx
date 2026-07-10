@@ -16,8 +16,14 @@ import { useToastContext } from "../components/Toast/ToastContext";
 import { ENV } from "../config";
 import { getDisplayPortionLabel } from "../utils/portionLabel";
 import {
+  buildCreateOrderPayloadFromCart,
+  formatComboOrderItem,
+  isComboCartItem,
+} from "../utils/comboMenuItem";
+import {
   buildCreateOrderMenuPayload,
   buildOrderMenuPayload,
+  savePlacedOrderSnapshot,
 } from "../utils/orderMenuItem";
 
 const parseMoney = (value) => {
@@ -440,26 +446,8 @@ function CheckoutContent() {
       const accessToken = auth?.accessToken;
       const userId = auth?.userId;
 
-      const order_items = cartItems
-        .filter((item) => !item.isCombo)
-        .map((item) => buildCreateOrderMenuPayload(item));
-
-      const order_combo_items = cartItems
-        .filter((item) => item.isCombo && item.comboMasterId != null)
-        .map((item) => ({
-          combo_master_id: Number(item.comboMasterId),
-          quantity: item.quantity,
-          comment: item.comment || "",
-        }));
-
-      const finalOrderItems =
-        order_items.length > 0
-          ? order_items
-          : order_combo_items.map((combo) => ({
-              combo_master_id: combo.combo_master_id,
-              quantity: combo.quantity,
-              comment: combo.comment || "",
-            }));
+      const { order_items: finalOrderItems, order_combo_items } =
+        buildCreateOrderPayloadFromCart(cartItems);
 
       // Get order settings from localStorage
       const orderSettings = localStorage.getItem("orderSettings");
@@ -507,6 +495,7 @@ function CheckoutContent() {
 
       if (response.data?.order_id) {
         try {
+          savePlacedOrderSnapshot(response.data.order_id, cartItems);
           localStorage.setItem(
             "activeOrderId",
             String(response.data.order_id)
@@ -697,20 +686,10 @@ function CheckoutContent() {
       }
 
       const orderItems = cartItems.map((item) => {
-        if (item.isCombo && item.comboMasterId != null) {
-          return {
-            combo_master_id: item.comboMasterId,
-            quantity: item.quantity,
-            portion_name: item.portionName?.toLowerCase() || "default",
-            comment: item.comment || "",
-          };
+        if (isComboCartItem(item)) {
+          return formatComboOrderItem(item, { includeComboId: true, asString: true });
         }
-        return {
-          menu_id: item.menuId.toString(),
-          quantity: item.quantity,
-          portion_name: item.portionName?.toLowerCase() || "",
-          comment: item.comment || "",
-        };
+        return buildCreateOrderMenuPayload(item);
       });
 
       // Get order settings from localStorage
@@ -745,14 +724,8 @@ function CheckoutContent() {
       }
 
       const orderItems = cartItems.map((item) => {
-        if (item.isCombo && item.comboMasterId != null) {
-          return {
-            combo_master_id: item.comboMasterId,
-            quantity: item.quantity,
-            comment: item.comment || "",
-            portion_name: item.portionName,
-            portionName: item.portionName,
-          };
+        if (isComboCartItem(item)) {
+          return formatComboOrderItem(item, { includeComboId: true });
         }
         return buildCreateOrderMenuPayload(item);
       });

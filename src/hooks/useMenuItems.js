@@ -78,7 +78,7 @@ export const useMenuItems = () => {
         return {
           ...old,
           menus: old.menus.map(menu =>
-            menu.menuId === menuId
+            String(menu.menuId) === String(menuId)
               ? {
                 ...menu,
                 is_favourite: !isFavorite ? 1 : 0,
@@ -98,9 +98,18 @@ export const useMenuItems = () => {
       }
     },
     onSettled: (data, error, variables) => {
-      // Refetch after error or success
       const targetOutletId = variables?.outletId ?? outletId;
-      queryClient.invalidateQueries(['menuItems', targetOutletId]);
+      if (error) {
+        queryClient.invalidateQueries({ queryKey: ['menuItems', targetOutletId] });
+        return;
+      }
+
+      // Keep optimistic favourite state on menu cards; only refresh favourites list.
+      if (variables?.userId) {
+        queryClient.invalidateQueries({
+          queryKey: ['favorites', targetOutletId, variables.userId],
+        });
+      }
     }
   });
 

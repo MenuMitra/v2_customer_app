@@ -127,6 +127,9 @@ const VerticalMenuCard = ({
       }
 
       // Use the mutation instead of direct API call
+      // Optimistically sync parent UI (Home/search) before API completes.
+      onFavoriteUpdate(menuItem.menuId, !isFavoriteBoolean);
+
       toggleFavorite(
         {
           menuId: menuItem.menuId,
@@ -134,10 +137,8 @@ const VerticalMenuCard = ({
           userId: auth.userId
         },
         {
-          onSuccess: () => {
-            onFavoriteUpdate(menuItem.menuId, !isFavoriteBoolean);
-          },
           onError: (error) => {
+            onFavoriteUpdate(menuItem.menuId, isFavoriteBoolean);
             console.error("Error updating favorite status:", error);
             openModal("ERROR", {
               message: error.message || "Failed to update favorite status",

@@ -1,6 +1,17 @@
 import { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
+const isCrossOriginImage = (url) => {
+  if (!url || typeof url !== 'string') return true;
+
+  try {
+    const parsed = new URL(url, window.location.origin);
+    return parsed.origin !== window.location.origin;
+  } catch {
+    return true;
+  }
+};
+
 const LazyImage = ({
   src,
   alt,
@@ -17,36 +28,52 @@ const LazyImage = ({
   const observerRef = useRef(null);
   const [blurDataUrl, setBlurDataUrl] = useState(null);
 
-  // Generate low-quality placeholder
   useEffect(() => {
-    if (blur && src) {
-      createBlurPlaceholder(src);
+    setIsLoaded(false);
+    setError(false);
+    setBlurDataUrl(null);
+  }, [src]);
+
+  // Canvas blur only works for same-origin images; skip for CDN/API media URLs.
+  useEffect(() => {
+    if (!blur || !src || isCrossOriginImage(src)) {
+      setBlurDataUrl(null);
+      return;
     }
+
+    let cancelled = false;
+
+    const createBlurPlaceholder = async () => {
+      try {
+        const img = new Image();
+        img.src = src;
+
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+
+        if (cancelled) return;
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 10;
+        canvas.height = 10;
+        ctx.drawImage(img, 0, 0, 10, 10);
+        setBlurDataUrl(canvas.toDataURL('image/jpeg', 0.1));
+      } catch {
+        if (!cancelled) {
+          setBlurDataUrl(null);
+        }
+      }
+    };
+
+    createBlurPlaceholder();
+
+    return () => {
+      cancelled = true;
+    };
   }, [src, blur]);
-
-  const createBlurPlaceholder = async (imageSrc) => {
-    try {
-      // Create a tiny version of the image (e.g., 10px wide)
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = imageSrc;
-      
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = 10;
-      canvas.height = 10;
-      ctx.drawImage(img, 0, 0, 10, 10);
-      const blurredDataUrl = canvas.toDataURL('image/jpeg', 0.1);
-      setBlurDataUrl(blurredDataUrl);
-    } catch (err) {
-      console.error('Error creating blur placeholder:', err);
-    }
-  };
 
   useEffect(() => {
     observerRef.current = new IntersectionObserver(
@@ -82,6 +109,9 @@ const LazyImage = ({
     setIsLoaded(true);
   };
 
+  const imageSrc = error && fallbackSrc ? fallbackSrc : src;
+  const showBrokenPlaceholder = error && !fallbackSrc;
+
   return (
     <>
       <style>{`
@@ -103,12 +133,10 @@ const LazyImage = ({
         className={`lazy-image-wrapper relative overflow-hidden bg-[#f0f0f0] ${className}`}
         style={style}
       >
-        {/* Shimmer Effect */}
         {!isLoaded && (
           <div className="shimmer-effect absolute inset-0" />
         )}
 
-        {/* Blur Placeholder */}
         {blur && blurDataUrl && !isLoaded && (
           <img
             src={blurDataUrl}
@@ -119,13 +147,20 @@ const LazyImage = ({
           />
         )}
 
-        {/* Main Image */}
-        {isInView && (
+        {showBrokenPlaceholder && isInView && (
+          <div className="absolute inset-0 flex items-center justify-center bg-[#f8f9fa]">
+            <i className="fa-solid fa-utensils text-[#6c757d] text-4xl opacity-50" aria-hidden="true" />
+          </div>
+        )}
+
+        {isInView && !showBrokenPlaceholder && (
           <img
-            src={error ? fallbackSrc : src}
+            src={imageSrc}
             alt={alt}
             onLoad={handleImageLoad}
             onError={handleImageError}
+            loading="lazy"
+            decoding="async"
             className={`absolute inset-0 w-full h-full object-cover transition-all duration-300 ease-in-out will-change-[transform,opacity] ${
               isLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-110'
             }`}
@@ -139,7 +174,7 @@ const LazyImage = ({
 LazyImage.propTypes = {
   src: PropTypes.string.isRequired,
   alt: PropTypes.string.isRequired,
-  fallbackSrc: PropTypes.string.isRequired,
+  fallbackSrc: PropTypes.string,
   className: PropTypes.string,
   style: PropTypes.object,
   aspectRatio: PropTypes.string,

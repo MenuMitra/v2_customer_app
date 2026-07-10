@@ -6,6 +6,7 @@ import { useTheme } from "../../contexts/ThemeContext";
 import { useToast } from "../Toast/useToast";
 import { AUTH_STEPS } from "../../constants/auth";
 import PinInput from "./PinInput";
+import PhoneNumberInput from "./PhoneNumberInput";
 import { getDeviceInfo } from "../../utils/deviceInfo";
 import {
   accountSignup,
@@ -346,35 +347,14 @@ const AuthOffcanvas = () => {
           <label className="block mb-2 text-sm font-medium text-[var(--title)]">
             Phone Number
           </label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 text-sm text-[#222121ff] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">
-              +91
-            </span>
-            <input
-              type="tel"
-              className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
-              style={{
-                fontSize: "14px",
-                color: "#222121ff",
-                ...(shouldHighlightPhone
-                  ? {
-                      borderColor: "#66ccd4",
-                      backgroundColor: "rgba(102, 204, 212, 0.05)",
-                      boxShadow: "0 0 0 2px rgba(102, 204, 212, 0.3)",
-                      transition: "all 0.3s ease",
-                    }
-                  : {}),
-              }}
-              ref={phoneInputRef}
-              value={phoneNumber}
-              onChange={(e) => handlePhoneNumberChange(e.target.value)}
-              placeholder="Enter your phone number"
-              pattern="^[6-9][0-9]{9}$"
-              maxLength="10"
-              required
-              disabled={isLoading}
-            />
-          </div>
+          <PhoneNumberInput
+            inputRef={phoneInputRef}
+            value={phoneNumber}
+            onChange={handlePhoneNumberChange}
+            highlighted={shouldHighlightPhone}
+            disabled={isLoading}
+            id="login-phone-number"
+          />
           <small className="text-[#6c757d] text-xs">Enter 10 digit mobile number</small>
         </div>
         <button
@@ -466,35 +446,13 @@ const AuthOffcanvas = () => {
           <label className="block mb-2 text-sm font-medium text-[var(--title)]">
             Phone Number
           </label>
-          <div className="flex">
-            <span className="inline-flex items-center px-3 text-sm text-[#495057] bg-[#e9ecef] border border-r-0 border-[var(--border-color)] rounded-l-lg">
-              +91
-            </span>
-            <input
-              type="tel"
-              className="flex-1 px-3 py-2 border border-[var(--border-color)] rounded-r-lg outline-none focus:border-[var(--primary)] transition-colors"
-              style={{
-                fontSize: "16px",
-                fontWeight: "bold",
-                color: "#000000",
-                ...(shouldHighlightPhone
-                  ? {
-                      borderColor: "#66ccd4",
-                      backgroundColor: "rgba(102, 204, 212, 0.05)",
-                      boxShadow: "0 0 0 2px rgba(102, 204, 212, 0.3)",
-                      transition: "all 0.3s ease",
-                    }
-                  : {}),
-              }}
-              value={phoneNumber}
-              onChange={(e) => handlePhoneNumberChange(e.target.value)}
-              placeholder="Enter your phone number"
-              pattern="^[6-9][0-9]{9}$"
-              maxLength="10"
-              required
-              disabled={isLoading}
-            />
-          </div>
+          <PhoneNumberInput
+            value={phoneNumber}
+            onChange={handlePhoneNumberChange}
+            highlighted={shouldHighlightPhone}
+            disabled={isLoading}
+            id="signup-phone-number"
+          />
           <small className="text-[#6c757d] text-xs">Enter 10 digit mobile number</small>
         </div>
         <PinInput

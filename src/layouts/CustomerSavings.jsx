@@ -37,6 +37,8 @@ function CustomerSavingsContent() {
       .join(" ");
   };
 
+  const formatCurrency = (value) => Number(value || 0).toFixed(2);
+
   // Calculate effective totals considering special and coupon discounts
   const totalAmountSpent = Number(savingsData.total_amount_spent || 0);
   const totalSpecialDiscount = Number(savingsData.special_discount || 0);
@@ -54,15 +56,15 @@ function CustomerSavingsContent() {
               </h6>
               <div className="flex justify-between items-center mb-2">
                 <span className="font-light">Regular Discount</span>
-                <span className="text-xl">₹{savingsData.regular_discount}</span>
+                <span className="text-xl">₹{formatCurrency(savingsData.regular_discount)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-light">Special Discount</span>
-                <span className="text-xl">₹{savingsData.special_discount}</span>
+                <span className="text-xl">₹{formatCurrency(savingsData.special_discount)}</span>
               </div>
               <div className="flex justify-between items-center mt-2">
                 <span className="font-light">Coupon Discount</span>
-                <span className="text-xl">₹{totalCouponDiscount}</span>
+                <span className="text-xl">₹{formatCurrency(totalCouponDiscount)}</span>
               </div>
             </div>
           </div>
@@ -85,7 +87,7 @@ function CustomerSavingsContent() {
               <div className="bg-white rounded-lg h-full border border-[#E5E7EB] shadow-sm">
                 <div className="p-2 sm:p-3 flex flex-col justify-center items-center">
                   <div className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-[#212529] mb-1 text-center break-words max-w-full">
-                    ₹{totalAmountSpent}
+                    ₹{formatCurrency(totalAmountSpent)}
                   </div>
                   <div className="text-[#6B7280] text-xs text-center">
                     Amount spent on orders
@@ -131,26 +133,26 @@ function CustomerSavingsContent() {
                     const outletCoupon = Number(outlet.coupon_discount || 0);
                     const outletEffective = Math.max(0, outletAmount - outletSpecial - outletCoupon);
                     return (
-                      <span className="text-[#212529]">₹{outletEffective}</span>
+                      <span className="text-[#212529]">₹{formatCurrency(outletEffective)}</span>
                     );
                   })()}
                 </div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-[#A1A5B7]">Regular Discount</span>
                   <span className="text-[#027335]">
-                    ₹{outlet.regular_discount}
+                    ₹{formatCurrency(outlet.regular_discount)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-[#A1A5B7]">Special Discount</span>
                   <span className="text-[#027335]">
-                    ₹{outlet.special_discount}
+                    ₹{formatCurrency(outlet.special_discount)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center mb-3">
                   <span className="text-[#A1A5B7]">Coupon Discount</span>
                   <span className="text-[#027335]">
-                    ₹{Number(outlet.coupon_discount || 0)}
+                    ₹{formatCurrency(outlet.coupon_discount)}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
