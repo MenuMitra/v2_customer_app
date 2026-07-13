@@ -1,4 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  addFavoriteToCache,
+  buildFavoriteEntryFromMenuItem,
+  favoritesQueryKey,
+  invalidateFavoriteMenus,
+  removeFavoriteFromCache,
+} from '../utils/favorites';
 import { useOutlet } from '../contexts/OutletContext';
 import apiService from '../api/apiService';
 
@@ -64,15 +71,18 @@ export const useMenuItems = () => {
         return await apiService.favorites.add({ outletId: targetOutletId, userId, menuId });
       }
     },
-    onMutate: async ({ menuId, isFavorite, outletId: outletIdOverride }) => {
+    onMutate: async ({ menuId, isFavorite, userId, outletId: outletIdOverride }) => {
       const targetOutletId = outletIdOverride ?? outletId;
-      // Cancel any outgoing refetches for the target outlet
       await queryClient.cancelQueries({ queryKey: ['menuItems', targetOutletId] });
+      await queryClient.cancelQueries({
+        queryKey: favoritesQueryKey(targetOutletId, userId),
+      });
 
-      // Snapshot the previous value
       const previousData = queryClient.getQueryData(['menuItems', targetOutletId]);
+      const previousFavorites = queryClient.getQueryData(
+        favoritesQueryKey(targetOutletId, userId)
+      );
 
-      // Optimistically update the menu item (if the list for that outlet is in cache)
       queryClient.setQueryData(['menuItems', targetOutletId], (old) => {
         if (!old) return old;
         return {
@@ -89,25 +99,47 @@ export const useMenuItems = () => {
         };
       });
 
-      return { previousData, targetOutletId };
+      const menu = previousData?.menus?.find(
+        (item) => String(item.menuId) === String(menuId)
+      );
+
+      if (isFavorite) {
+        removeFavoriteFromCache(queryClient, {
+          outletId: targetOutletId,
+          userId,
+          menuId,
+        });
+      } else {
+        addFavoriteToCache(queryClient, {
+          outletId: targetOutletId,
+          userId,
+          entry: buildFavoriteEntryFromMenuItem(menu),
+        });
+      }
+
+      return { previousData, previousFavorites, targetOutletId, userId };
     },
     onError: (err, variables, context) => {
-      // Rollback on error
       if (context?.targetOutletId) {
         queryClient.setQueryData(['menuItems', context.targetOutletId], context.previousData);
+      }
+      if (context?.userId) {
+        queryClient.setQueryData(
+          favoritesQueryKey(context.targetOutletId, context.userId),
+          context.previousFavorites
+        );
       }
     },
     onSettled: (data, error, variables) => {
       const targetOutletId = variables?.outletId ?? outletId;
       if (error) {
         queryClient.invalidateQueries({ queryKey: ['menuItems', targetOutletId] });
-        return;
       }
 
-      // Keep optimistic favourite state on menu cards; only refresh favourites list.
       if (variables?.userId) {
-        queryClient.invalidateQueries({
-          queryKey: ['favorites', targetOutletId, variables.userId],
+        invalidateFavoriteMenus(queryClient, {
+          outletId: targetOutletId,
+          userId: variables.userId,
         });
       }
     }

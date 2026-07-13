@@ -1,11 +1,19 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
+import { useQueryClient } from "@tanstack/react-query";
 import { useModal } from "../contexts/ModalContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useOutlet } from "../contexts/OutletContext";
 import { useCart } from "../contexts/CartContext";
 import apiService from "../api/apiService";
 import { toggleComboFavorite } from "../utils/comboFavorites";
+import {
+  addFavoriteToCache,
+  buildComboFavoriteEntry,
+  buildFavoriteEntryFromMenuItem,
+  invalidateFavoriteMenus,
+  removeFavoriteFromCache,
+} from "../utils/favorites";
 
 // FoodTypeIcon component
 const FoodTypeIcon = ({ foodType }) => {
@@ -78,6 +86,7 @@ const HorizontalMenuCard = ({
   layout = "carousel",
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const queryClient = useQueryClient();
   const { openModal } = useModal();
   const { user, setShowAuthOffcanvas, getUserId } = useAuth();
   const { outletId } = useOutlet();
@@ -164,12 +173,33 @@ const HorizontalMenuCard = ({
           outletId: targetOutletId,
           comboMasterId,
         });
+        if (nextIsFavorite) {
+          addFavoriteToCache(queryClient, {
+            outletId: targetOutletId,
+            userId: resolvedUserId,
+            entry: buildComboFavoriteEntry({
+              combo: menuItem,
+              outletId: targetOutletId,
+            }),
+          });
+        } else {
+          removeFavoriteFromCache(queryClient, {
+            outletId: targetOutletId,
+            userId: resolvedUserId,
+            comboMasterId,
+            isCombo: true,
+          });
+        }
         onFavoriteUpdate(
           comboMasterId,
           nextIsFavorite,
           targetOutletId,
           true
         );
+        invalidateFavoriteMenus(queryClient, {
+          outletId: targetOutletId,
+          userId: resolvedUserId,
+        });
       } else {
         if (isFavoriteBoolean) {
           await apiService.favorites.remove({
@@ -177,13 +207,27 @@ const HorizontalMenuCard = ({
             userId: resolvedUserId,
             menuId: resolvedMenuId
           });
+          removeFavoriteFromCache(queryClient, {
+            outletId: targetOutletId,
+            userId: resolvedUserId,
+            menuId: resolvedMenuId,
+          });
         } else {
           await apiService.favorites.add({
             outletId: targetOutletId,
             userId: resolvedUserId,
             menuId: resolvedMenuId
           });
+          addFavoriteToCache(queryClient, {
+            outletId: targetOutletId,
+            userId: resolvedUserId,
+            entry: buildFavoriteEntryFromMenuItem(menuItem),
+          });
         }
+        invalidateFavoriteMenus(queryClient, {
+          outletId: targetOutletId,
+          userId: resolvedUserId,
+        });
         onFavoriteUpdate(resolvedMenuId, !isFavoriteBoolean, targetOutletId);
       }
     } catch (error) {

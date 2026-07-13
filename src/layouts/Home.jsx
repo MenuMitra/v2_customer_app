@@ -17,6 +17,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ENV } from "../config";
 import { comboToMenuItem, COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
 import { isComboFavorite } from "../utils/comboFavorites";
+import {
+  addFavoriteToCache,
+  buildComboFavoriteEntry,
+  collectFavoriteMenuIds,
+  favoritesQueryKey,
+  loadFavoriteMenus,
+  removeFavoriteFromCache,
+} from "../utils/favorites";
 
 function Home() {
   // Keep core hooks and context values
@@ -41,9 +49,9 @@ function Home() {
   const queryClient = useQueryClient();
   const userId = getUserId();
 
-  const { data: favoritesListData } = useQuery({
-    queryKey: ["favorites", outletId, userId],
-    queryFn: () => apiService.favorites.getList({ outletId, userId }),
+  const { data: favoriteMenus = [] } = useQuery({
+    queryKey: favoritesQueryKey(outletId, userId),
+    queryFn: () => loadFavoriteMenus({ outletId, userId }),
     enabled: !!userId && !!outletId,
   });
 
@@ -170,17 +178,9 @@ function Home() {
     setFavoriteMenuIds((prev) => {
       const next = new Set(prev);
 
-      if (favoritesListData && typeof favoritesListData === "object") {
-        Object.values(favoritesListData).forEach((menus) => {
-          if (!Array.isArray(menus)) return;
-          menus.forEach((menu) => {
-            const id = menu?.menu_id ?? menu?.menuId;
-            if (id != null && id !== "") {
-              next.add(String(id));
-            }
-          });
-        });
-      }
+      collectFavoriteMenuIds(favoriteMenus).forEach((id) => {
+        next.add(id);
+      });
 
       (menuItems || []).forEach((menu) => {
         if (menu.is_favourite === 1) {
@@ -190,16 +190,42 @@ function Home() {
 
       return next;
     });
-  }, [favoritesListData, menuItems]);
+  }, [favoriteMenus, menuItems]);
 
   const handleFavoriteClick = (
     menuId,
     nextIsFavorite,
-    _targetOutletId,
+    targetOutletId,
     isCombo = false
   ) => {
+    const resolvedOutletId = targetOutletId ?? outletId;
+
     if (isCombo) {
       setComboFavoriteRefresh((prev) => prev + 1);
+
+      if (!userId || !resolvedOutletId) return;
+
+      const combo = (combos || []).find(
+        (item) => Number(item.combo_master_id) === Number(menuId)
+      );
+
+      if (nextIsFavorite) {
+        addFavoriteToCache(queryClient, {
+          outletId: resolvedOutletId,
+          userId,
+          entry: buildComboFavoriteEntry({
+            combo,
+            outletId: resolvedOutletId,
+          }),
+        });
+      } else {
+        removeFavoriteFromCache(queryClient, {
+          outletId: resolvedOutletId,
+          userId,
+          comboMasterId: menuId,
+          isCombo: true,
+        });
+      }
       return;
     }
 

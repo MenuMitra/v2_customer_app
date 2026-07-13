@@ -8,6 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useOutlet } from "../contexts/OutletContext";
 import apiService from "../api/apiService";
 import { getComboFavoriteIds } from "../utils/comboFavorites";
+import { loadFavoriteMenus, favoritesQueryKey } from "../utils/favorites";
 
 function FavouriteContent() {
   const { getUserId } = useAuth();
@@ -16,70 +17,8 @@ function FavouriteContent() {
   const userId = getUserId();
 
   const { data: favoriteMenus = [], isLoading } = useQuery({
-    queryKey: ["favorites", outletId, userId],
-    queryFn: async () => {
-      if (!userId) return [];
-
-      const response = await apiService.favorites.getList({
-        outletId,
-        userId,
-      });
-
-      const allMenus = [];
-      if (response) {
-        Object.entries(response).forEach(([outletName, menus]) => {
-          if (Array.isArray(menus)) {
-            menus.forEach((menu) => {
-              allMenus.push({
-                ...menu,
-                outlet_name: outletName,
-              });
-            });
-          }
-        });
-      }
-
-      const comboIds = getComboFavoriteIds({ userId, outletId });
-      if (comboIds.length > 0) {
-        try {
-          const comboResponse = await apiService.common.getAllMenuListByCategory({
-            outletId,
-          });
-          const combos = comboResponse?.combos || [];
-          combos
-            .filter((combo) =>
-              comboIds.includes(Number(combo?.combo_master_id))
-            )
-            .forEach((combo) => {
-              allMenus.push({
-                menu_id: `combo_${combo.combo_master_id}`,
-                combo_master_id: combo.combo_master_id,
-                menu_name: combo.name,
-                menu_food_type: combo.combo_food_type,
-                category_name: "Combos",
-                outlet_id: combo.outlet_id ?? outletId,
-                outlet_name: "Combos",
-                price: Number(combo.price) || 0,
-                portions: [
-                  {
-                    portion_id: 0,
-                    portion_name: "Default",
-                    price: Number(combo.price) || 0,
-                    unit_value: 1,
-                    unit_type: "",
-                  },
-                ],
-                image: [],
-                is_combo: true,
-              });
-            });
-        } catch (error) {
-          console.error("Failed to load combo favorites:", error);
-        }
-      }
-
-      return allMenus;
-    },
+    queryKey: favoritesQueryKey(outletId, userId),
+    queryFn: () => loadFavoriteMenus({ outletId, userId }),
     enabled: !!userId && !!outletId,
   });
 
@@ -122,26 +61,26 @@ function FavouriteContent() {
     },
     onMutate: async ({ menuId, isCombo, comboMasterId }) => {
       await queryClient.cancelQueries({
-        queryKey: ["favorites", outletId, userId],
+        queryKey: favoritesQueryKey(outletId, userId),
       });
 
       queryClient.setQueryData(
-        ["favorites", outletId, userId],
-        (old) =>
-          old?.filter((menu) => {
+        favoritesQueryKey(outletId, userId),
+        (old) => {
+          const current = Array.isArray(old) ? old : [];
+          return current.filter((menu) => {
             if (isCombo) {
               return Number(menu.combo_master_id) !== Number(comboMasterId);
             }
             return menu.menu_id !== menuId;
-          }) || []
+          });
+        }
       );
 
       return {
-        previousFavorites: queryClient.getQueryData([
-          "favorites",
-          outletId,
-          userId,
-        ]),
+        previousFavorites: queryClient.getQueryData(
+          favoritesQueryKey(outletId, userId)
+        ),
       };
     },
   });
@@ -153,12 +92,11 @@ function FavouriteContent() {
     isCombo = false
   ) => {
     if (!isFavorite && !removeFavorite.isLoading) {
-      const currentFavorites = queryClient.getQueryData([
-        "favorites",
-        outletId,
-        userId,
-      ]);
-      const menuExists = currentFavorites?.some((menu) => {
+      const currentFavorites = queryClient.getQueryData(
+        favoritesQueryKey(outletId, userId)
+      );
+      const favorites = Array.isArray(currentFavorites) ? currentFavorites : [];
+      const menuExists = favorites.some((menu) => {
         if (isCombo) {
           return Number(menu.combo_master_id) === Number(menuId);
         }
@@ -177,7 +115,8 @@ function FavouriteContent() {
   };
 
   const sortedFavorites = useMemo(() => {
-    return [...favoriteMenus].sort((a, b) => {
+    const list = Array.isArray(favoriteMenus) ? favoriteMenus : [];
+    return [...list].sort((a, b) => {
       if (Number(a.outlet_id) === Number(outletId)) return -1;
       if (Number(b.outlet_id) === Number(outletId)) return 1;
       return (a.menu_name || "").localeCompare(b.menu_name || "");

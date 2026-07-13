@@ -336,9 +336,17 @@ export const apiService = {
       } catch (error) {
         // Backend may return 404/"item not found" when no favourites exist.
         // Treat this as an empty list so the page still renders.
-        const status = error?.response?.status;
-        const detail = String(error?.response?.data?.detail || "").toLowerCase();
-        if (status === 404 || detail.includes("item not found") || detail.includes("no favourite")) {
+        const status = error?.response?.status ?? error?.status;
+        const detail = String(
+          error?.response?.data?.detail ?? error?.detail ?? error?.message ?? ""
+        ).toLowerCase();
+        if (
+          status === 404 ||
+          detail.includes("not found") ||
+          detail.includes("item not found") ||
+          detail.includes("no favourite") ||
+          detail.includes("no favorite")
+        ) {
           return {};
         }
         throw error;

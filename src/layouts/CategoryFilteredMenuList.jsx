@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import VerticalMenuCard from '../components/VerticalMenuCard';
@@ -9,6 +9,11 @@ import { useAuth } from '../contexts/AuthContext';
 import apiService from '../api/apiService';
 import { comboToMenuItem, COMBO_CATEGORY_ID } from "../utils/comboMenuItem";
 import { isComboFavorite } from "../utils/comboFavorites";
+import {
+  addFavoriteToCache,
+  buildComboFavoriteEntry,
+  removeFavoriteFromCache,
+} from "../utils/favorites";
 
 const DEFAULT_IMAGE = '';
 
@@ -53,52 +58,37 @@ function CategoryFilteredMenuList() {
         (comboCategoryFromApi &&
             String(comboCategoryFromApi.menu_cat_id) === String(categoryId));
 
-    // Mutations for favorite functionality
-    const addToFavorites = useMutation({
-        mutationFn: (menuId) => apiService.favorites.add({
-            outletId,
-            userId,
-            menuId
-        }),
-        onSuccess: () => {
-            // Invalidate relevant queries to refetch data
-            queryClient.invalidateQueries(['menusByCategory', outletId, categoryId]);
-        }
-    });
-
-    const removeFromFavorites = useMutation({
-        mutationFn: (menuId) => apiService.favorites.remove({
-            outletId,
-            userId,
-            menuId
-        }),
-        onSuccess: () => {
-            // Invalidate relevant queries to refetch data
-            queryClient.invalidateQueries(['menusByCategory', outletId, categoryId]);
-        }
-    });
-
-    const handleFavoriteClick = async (isFavorite, menuId) => {
-        if (!userId) return; // Handle unauthenticated users
-
-        try {
-            if (isFavorite) {
-                await addToFavorites.mutateAsync(menuId);
-            } else {
-                await removeFromFavorites.mutateAsync(menuId);
-            }
-        } catch (err) {
-            console.error('Failed to update favorite status:', err);
-        }
-    };
-
     const [, setComboFavoriteRefresh] = React.useState(0);
-    const handleFavoriteUpdate = (menuId, newIsFavorite, _targetOutletId, isCombo = false) => {
-        if (isCombo) {
-            setComboFavoriteRefresh((prev) => prev + 1);
-            return;
+
+    const handleFavoriteUpdate = (menuId, newIsFavorite, targetOutletId, isCombo = false) => {
+        if (!isCombo) return;
+
+        setComboFavoriteRefresh((prev) => prev + 1);
+
+        if (!userId) return;
+
+        const resolvedOutletId = targetOutletId ?? outletId;
+        const combo = (data?.combos || []).find(
+            (item) => Number(item.combo_master_id) === Number(menuId)
+        );
+
+        if (newIsFavorite) {
+            addFavoriteToCache(queryClient, {
+                outletId: resolvedOutletId,
+                userId,
+                entry: buildComboFavoriteEntry({
+                    combo,
+                    outletId: resolvedOutletId,
+                }),
+            });
+        } else {
+            removeFavoriteFromCache(queryClient, {
+                outletId: resolvedOutletId,
+                userId,
+                comboMasterId: menuId,
+                isCombo: true,
+            });
         }
-        handleFavoriteClick(newIsFavorite, menuId);
     };
 
     const resolvedCategoryName =
