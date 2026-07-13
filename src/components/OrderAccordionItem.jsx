@@ -345,7 +345,7 @@ const OrderAccordionItem = ({
           <div className="flex items-center justify-between w-full">
             <div className="flex flex-col items-start min-h-[70px]">
               <div className="flex items-center gap-2 mb-0">
-                <h6 className="mb-0 text-base font-semibold">#{orderNumber}</h6>
+                <h6 className="mb-0 text-base font-semibold">{orderNumber}</h6>
                 {status === 'cooking' && (
                   <span className="font-bold text-[#999999] text-[13px] ml-1.5">
                     (COOKING)

@@ -383,9 +383,20 @@ function OrdersContent() {
       refetchOngoingOrders();
       refetchOrderHistory();
     }
+
+    // Safety net: if activeOrderCreatedAt is older than 10 minutes,
+    // clear the session regardless. The 90s cancel window means orders
+    // should never stay "active" this long after POS settlement.
+    if (activeOrderCreatedAt) {
+      const createdAt = Number(activeOrderCreatedAt);
+      if (Number.isFinite(createdAt) && Date.now() - createdAt > 10 * 60 * 1000) {
+        clearActiveOrderSession();
+      }
+    }
   }, [
     activeOrderDetailsData,
     activeOrderId,
+    activeOrderCreatedAt,
     completedOrderIds,
     refetchOngoingOrders,
     refetchOrderHistory,
@@ -402,6 +413,21 @@ function OrdersContent() {
     ) {
       return null;
     }
+
+    // Don't re-inject the order if the ongoing API has already dropped it
+    // and the order is old enough (more than 2 min) that this isn't just
+    // a normal API propagation delay.
+    if (ongoingOrdersData) {
+      const orderStillOngoing = (ongoingOrdersData.ongoing || []).some(
+        (o) => String(o.orderId) === String(details.order_id)
+      );
+      const createdAtMs = activeOrderCreatedAt ? Number(activeOrderCreatedAt) : 0;
+      const isOldOrder = Number.isFinite(createdAtMs) && Date.now() - createdAtMs > 2 * 60 * 1000;
+      if (!orderStillOngoing && isOldOrder) {
+        return null;
+      }
+    }
+
     return {
       ...details,
       id: details.order_number || String(details.order_id),
@@ -1061,7 +1087,7 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
                             );
                           })()}
                           <div className="ml-3">
-                            <h6 className="mb-0 font-semibold">Order #{order.orderNumber}</h6>
+                            <h6 className="mb-0 font-semibold">Order {order.orderNumber}</h6>
                             <span className="text-soft text-sm">
                               {order.itemCount} Items {order.status}
                             </span>

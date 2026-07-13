@@ -389,6 +389,7 @@ function CheckoutContent() {
       // Invalidate and refetch orders data
       queryClient.invalidateQueries({ queryKey: ['ongoingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['savings'] });
 
       addToast({
         message: "Items added to existing order successfully!",
@@ -422,6 +423,7 @@ function CheckoutContent() {
       // Invalidate and refetch orders data
       queryClient.invalidateQueries({ queryKey: ['ongoingOrders'] });
       queryClient.invalidateQueries({ queryKey: ['orderHistory'] });
+      queryClient.invalidateQueries({ queryKey: ['savings'] });
 
       addToast({
         message: `Order cancelled and new order #${data.order_number} created successfully!`,
@@ -508,6 +510,7 @@ function CheckoutContent() {
         }
         clearCart();
         localStorage.removeItem("cart");
+        queryClient.invalidateQueries({ queryKey: ['savings'] });
         window.scrollTo(0, 0);
         navigate(`/orders`);
         return true; // Indicate success
