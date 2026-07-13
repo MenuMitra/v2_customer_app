@@ -394,6 +394,7 @@ function CheckoutContent() {
         message: "Items added to existing order successfully!",
         type: "success",
       });
+      window.scrollTo(0, 0);
       navigate("/orders");
       handleModalClose();
     },
@@ -426,6 +427,7 @@ function CheckoutContent() {
         message: `Order cancelled and new order #${data.order_number} created successfully!`,
         type: "success",
       });
+      window.scrollTo(0, 0);
       navigate("/orders");
       handleModalClose();
     },
@@ -506,6 +508,7 @@ function CheckoutContent() {
         }
         clearCart();
         localStorage.removeItem("cart");
+        window.scrollTo(0, 0);
         navigate(`/orders`);
         return true; // Indicate success
       }

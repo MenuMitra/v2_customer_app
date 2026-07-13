@@ -46,15 +46,11 @@ html[data-has-test-env-banner="true"] {
   }
 }
 
-/* Header optimization - prevent reflow during scroll */
-header {
-  will-change: transform;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  perspective: 1000px;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
+/* Header optimization - prevent reflow during scroll.
+   NOTE: Do NOT apply transform to the <header> spacer element.
+   The .header-bar inside uses position:fixed, and a transform on the parent
+   creates a new containing block that breaks fixed positioning relative to
+   the viewport (the header scrolls away with the page instead of staying pinned). */
 
 /* Header bar - stable positioning to prevent flickering */
 .header-bar {
