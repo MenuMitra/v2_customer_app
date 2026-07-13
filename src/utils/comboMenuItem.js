@@ -36,7 +36,8 @@ export const isComboCartItem = (item) => {
 
 /**
  * Build combo payload for create/add order APIs.
- * Combo-only orders must send `combo_id` inside `order_items` (not `menu_id`).
+ * Combo items go in `order_combo_items` (with `combo_master_id`).
+ * The `order_items` array is for regular menu items only (with `menu_id`).
  */
 export const buildComboOrderPayload = (
   item,
@@ -96,10 +97,7 @@ export const buildCreateOrderPayloadFromCart = (cartItems = []) => {
     buildCreateOrderMenuPayload(item)
   );
   const order_combo_items = buildOrderComboItemsPayload(comboCartItems);
-  const order_items =
-    menuOrderItems.length > 0
-      ? menuOrderItems
-      : buildComboOrderItemsPayload(comboCartItems);
+  const order_items = menuOrderItems;
 
   return { order_items, order_combo_items };
 };

@@ -536,7 +536,7 @@ export const apiService = {
           user_id: userId.toString(),
           outlet_id: outletId.toString(),
           app_source: "user_app",
-          order_items,
+          ...(order_items.length > 0 ? { order_items } : {}),
           ...(order_combo_items.length > 0 ? { order_combo_items } : {}),
         }
       );

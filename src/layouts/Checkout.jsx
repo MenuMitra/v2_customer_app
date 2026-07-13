@@ -463,7 +463,7 @@ function CheckoutContent() {
         user_id: String(userId),
         section_id: String(sectionId),
         order_type: orderType || "dine-in", // Fallback to takeaway if no order type
-        order_items: finalOrderItems,
+        ...(finalOrderItems.length > 0 ? { order_items: finalOrderItems } : {}),
         order_combo_items,
         action: "create_order",
         app_source: "user_app",
