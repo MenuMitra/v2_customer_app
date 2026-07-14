@@ -59,6 +59,8 @@ function CancelOrderModal({
 
   if (!isOpen) return null;
 
+  const displayOrderNumber = String(orderNumber || "").replace(/^#+/, "").trim();
+
   const handleBackdropClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();
@@ -79,7 +81,7 @@ function CancelOrderModal({
         {/* Header */}
         <div className="flex justify-between items-center px-4 py-3 border-b border-gray-200 flex-shrink-0">
           <h6 className="text-lg font-semibold m-0">
-            Cancel Order {orderNumber ? `#${orderNumber}` : ''}
+            Cancel Order {displayOrderNumber}
           </h6>
           <button
             type="button"
@@ -138,7 +140,7 @@ function CancelOrderModal({
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center px-4 py-2.5 gap-3 border-t border-gray-200 flex-shrink-0">
+        <div className="flex justify-between items-center px-4 py-3 gap-3 border-t border-gray-200 flex-shrink-0">
           <button
             type="button"
             className="flex-1 bg-gray-100 text-gray-800 border-0 rounded-3xl py-2.5 px-4 font-medium hover:bg-gray-200 transition-colors"

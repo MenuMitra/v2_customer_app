@@ -13,6 +13,11 @@ import {
   getOrderMenuPortionLabel,
   normalizeOrderDetails,
 } from "../utils/orderMenuItem";
+import {
+  buildOrderPaymentBreakdown,
+  formatCouponLabel,
+  formatMoney,
+} from "../utils/couponDiscount";
 
 function OrderDetail() {
   const { orderId } = useParams();
@@ -224,10 +229,11 @@ function OrderDetail() {
     
     <!-- Coupon Discount -->
     ${order_details.coupon_details
-          ? `<span style="font-weight: bold;">Coupon Discount (${order_details.coupon_details.coupon_code
-          }):</span> <span style="color: red;">-₹${(
-            order_details.coupon_discount
-          ).toFixed(2)}</span></br>`
+          ? `<span style="font-weight: bold;">Coupon Discount (${formatCouponLabel(
+            order_details.coupon_details
+          )}):</span> <span style="color: red;">-₹${formatMoney(
+            buildOrderPaymentBreakdown(order_details).couponDiscount
+          )}</span></br>`
           : ""
         }
 
@@ -495,6 +501,8 @@ function OrderDetail() {
     );
   }
 
+  const paymentBreakdown = buildOrderPaymentBreakdown(orderDetails.order_details);
+
   return (
     <>
       <Header />
@@ -698,17 +706,13 @@ function OrderDetail() {
                     <div className="flex justify-between px-0 py-1 mb-0">
                       <span>
                         Coupon (
-                        {orderDetails.order_details.coupon_details.coupon_code})
-                        {orderDetails.order_details.coupon_details
-                          .discount_type === "amount"
-                          ? ` - Flat ₹${orderDetails.order_details.coupon_details.discount_value}`
-                          : ` - ${orderDetails.order_details.coupon_details.discount_value}% off`}
+                        {formatCouponLabel(
+                          orderDetails.order_details.coupon_details
+                        )}
+                        )
                       </span>
                       <strong className="text-[#e74c3c]">
-                        -₹
-                        {Number(
-                          orderDetails.order_details.coupon_discount
-                        ).toFixed(2)}
+                        -₹{formatMoney(paymentBreakdown.couponDiscount)}
                       </strong>
                     </div>
                     <div className="flex justify-between px-0 py-1 mb-0">
@@ -716,11 +720,7 @@ function OrderDetail() {
                         After Total Discount
                       </span>
                       <span className="font-medium">
-                        ₹
-                        {Number(
-                          orderDetails.order_details.coupon_details
-                            .total_bill_after_coupon
-                        ).toFixed(2)}
+                        ₹{formatMoney(paymentBreakdown.afterTotalDiscount)}
                       </span>
                     </div>
                   </>
@@ -762,46 +762,33 @@ function OrderDetail() {
                 <div className="flex justify-between px-0 py-1 mb-0">
                   <span className="font-bold">Subtotal</span>
                   <span className="font-bold">
-                    ₹
-                    {(
-                      Number(
-                        orderDetails.order_details.total_bill_amount || 0
-                      ) -
-                      Number(orderDetails.order_details.discount_amount || 0) -
-                      Number(orderDetails.order_details.coupon_discount || 0) -
-                      Number(orderDetails.order_details.special_discount || 0) +
-                      Number(orderDetails.order_details.charges || 0)
-                    ).toFixed(2)}
+                    ₹{formatMoney(paymentBreakdown.subtotal)}
                   </span>
                 </div>
-                {orderDetails.order_details.service_charges_amount > 0 && (
+                {paymentBreakdown.serviceAmount > 0 && (
                   <div className="flex justify-between px-0 py-1 mb-0">
                     <span>
                       Service Charges (
                       {orderDetails.order_details.service_charges_percent}%)
                     </span>
                     <strong className="text-[#22A45D]">
-                      +₹
-                      {Number(
-                        orderDetails.order_details.service_charges_amount
-                      ).toFixed(2)}
+                      +₹{formatMoney(paymentBreakdown.serviceAmount)}
                     </strong>
                   </div>
                 )}
-                {orderDetails.order_details.gst_amount > 0 && (
+                {paymentBreakdown.gstAmount > 0 && (
                   <div className="flex justify-between px-0 py-1 mb-0">
                     <span>GST ({orderDetails.order_details.gst_percent}%)</span>
                     <strong className="text-[#22A45D]">
-                      +₹
-                      {Number(orderDetails.order_details.gst_amount).toFixed(2)}
+                      +₹{formatMoney(paymentBreakdown.gstAmount)}
                     </strong>
                   </div>
                 )}
-                {orderDetails.order_details.tip > 0 && (
+                {paymentBreakdown.tip > 0 && (
                   <div className="flex justify-between px-0 py-1 mb-0">
                     <span>Tip</span>
                     <strong className="text-[#22A45D]">
-                      +₹{Number(orderDetails.order_details.tip).toFixed(2)}
+                      +₹{formatMoney(paymentBreakdown.tip)}
                     </strong>
                   </div>
                 )}
@@ -811,10 +798,7 @@ function OrderDetail() {
                 <div className="flex justify-between px-0 border-0">
                   <h6 className="mb-0 text-[var(--text-dark)] font-bold">Grand Total</h6>
                   <h6 className="mb-0 text-[var(--primary)] font-bold">
-                    ₹
-                    {Number(
-                      orderDetails.order_details.final_grand_total
-                    ).toFixed(2)}
+                    ₹{formatMoney(paymentBreakdown.grandTotal)}
                   </h6>
                 </div>
               </div>

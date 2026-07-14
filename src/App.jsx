@@ -66,9 +66,7 @@ function App() {
                         <AuthOffcanvas />
                         <SidebarProvider>
                           <Routes>
-                            <Route path="*" element={<Home />} />
                             <Route path="/all-outlets" element={<AllOutlets />} />
-                            
                             <Route path="/favourites" element={<Favourite />} />
                             <Route path="/checkout" element={<Checkout />} />
                             <Route path="/orders" element={<Orders />} />
@@ -95,6 +93,7 @@ function App() {
                             />
                             <Route path="/notfound" element={<OutletNotFound />} />
                             <Route path="/query-test" element={<QueryTestWrapper />} />
+                            <Route path="*" element={<Home />} />
                           </Routes>
                           <Sidebar />
                         </SidebarProvider>

@@ -43,6 +43,11 @@ export const isTerminalOrderStatus = (status) => {
   return TERMINAL_ORDER_STATUSES.has(normalized);
 };
 
+export const isCancelledOrder = (order) => {
+  const status = readOrderStatus(order);
+  return status === "cancelled" || status === "canceled";
+};
+
 export const isPaidOrSettledOrder = (order) => {
   if (!order) return false;
 
@@ -115,11 +120,27 @@ export const collectCompletedOrderIds = (orderHistoryData) => {
   return ids;
 };
 
+export const collectCancelledOrderIds = (orderHistoryData) => {
+  const ids = new Set();
+  if (!orderHistoryData) return ids;
+
+  const orders = orderHistoryData.orders || orderHistoryData;
+
+  collectIdsFromGroupedOrders(orders.cancelled, ids);
+  collectIdsFromGroupedOrders(orders.canceled, ids);
+
+  return ids;
+};
+
 export const shouldHideFromOngoingOrders = (
   order,
   completedOrderIds = new Set()
 ) => {
   if (!order) return true;
+
+  if (isCancelledOrder(order)) {
+    return true;
+  }
 
   if (isPaidOrSettledOrder(order)) {
     return true;

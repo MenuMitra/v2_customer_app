@@ -28,8 +28,8 @@ function Footer() {
   };
 
   return (
-    <div>
-      <div className="fixed bottom-0 left-0 w-full bg-white p-[15px] rounded-t-[10px] z-[999] shadow-[0_-10px_6px_-1px_rgba(0,0,0,0.1)] border-t border-[#E8EFF3]">
+    <div className="app-footer pointer-events-auto">
+      <div className="fixed bottom-0 left-0 w-full bg-white p-[15px] rounded-t-[10px] z-[1100] shadow-[0_-10px_6px_-1px_rgba(0,0,0,0.1)] border-t border-[#E8EFF3]">
         <div className="flex items-center max-w-[1000px] mx-auto px-0">
           <NavLink
             to={
@@ -38,7 +38,7 @@ function Footer() {
                 : "/"
             }
             className={({ isActive }) =>
-              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
+              `flex-1 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
                 ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
                 : "hover:text-[#027335]"
               }`
@@ -57,7 +57,7 @@ function Footer() {
             }}
             to="/favourites"
             className={({ isActive }) =>
-              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
+              `flex-1 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
                 ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
                 : "hover:text-[#027335]"
               }`
@@ -75,7 +75,7 @@ function Footer() {
             }}
             to="/checkout"
             className={({ isActive }) =>
-              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
+              `flex-1 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isActive
                 ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
                 : "hover:text-[#027335]"
               }`
@@ -101,7 +101,7 @@ function Footer() {
             }}
             to="/orders"
             className={() =>
-              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isOrderRoute()
+              `flex-1 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isOrderRoute()
                 ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
                 : "hover:text-[#027335]"
               }`
@@ -112,7 +112,7 @@ function Footer() {
           <NavLink
             to="/profile"
             className={() =>
-              `w-1/4 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isProfileRoute()
+              `flex-1 text-center text-[#293041] text-[18px] relative flex justify-center items-center py-0 transition-colors duration-200 ${isProfileRoute()
                 ? "text-[#027335] after:content-[''] after:absolute after:-bottom-[15px] after:left-1/2 after:w-[70px] after:h-[6px] after:bg-[#027335] after:rounded-t-[10px] after:-translate-x-1/2"
                 : "hover:text-[#027335]"
               }`

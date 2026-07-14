@@ -153,7 +153,11 @@ function Header() {
       <TestEnvironmentBanner />
       {/* Overlay always rendered, class toggled by isOpen */}
       <div
-        className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
+        className={`fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
+          isOpen
+            ? "opacity-100 visible pointer-events-auto"
+            : "opacity-0 invisible pointer-events-none"
+        }`}
         onClick={closeSidebar}
       ></div>
       {/* <Sidebar /> */}

@@ -13,7 +13,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useToast } from "../components/Toast/ToastContext";
 import {
   clearActiveOrderSession,
+  collectCancelledOrderIds,
   collectCompletedOrderIds,
+  isCancelledOrder,
   isPaidOrSettledOrder,
   isTerminalOrderStatus,
   shouldHideFromOngoingOrders,
@@ -143,7 +145,30 @@ function OrdersContent() {
         },
       });
 
-      const allMapped = response.map((order) => ({
+      const enrichedOrders = await Promise.all(
+        response.map(async (order) => {
+          try {
+            const details = await apiService.checkout.getOrderDetails({
+              orderId: order.order_id,
+              userId,
+            });
+            const liveStatus =
+              details?.order_details?.order_status ||
+              order.order_status ||
+              order.status;
+
+            return {
+              ...order,
+              order_status: liveStatus,
+              status: liveStatus,
+            };
+          } catch {
+            return order;
+          }
+        })
+      );
+
+      const allMapped = enrichedOrders.map((order) => ({
           ...order,
           id: order.order_number,
           orderId: order.order_id,
@@ -175,15 +200,22 @@ function OrdersContent() {
         }));
 
       const recentlySettled = allMapped.filter((order) => {
-        if (!isPaidOrSettledOrder(order)) return false;
+        if (!isPaidOrSettledOrder(order) || isCancelledOrder(order)) return false;
+        return !completedIds.has(String(order.orderId));
+      });
+
+      const recentlyCancelled = allMapped.filter((order) => {
+        if (!isCancelledOrder(order)) return false;
         return !completedIds.has(String(order.orderId));
       });
 
       const ongoing = allMapped.filter(
-        (order) => !shouldHideFromOngoingOrders(order, completedIds)
+        (order) =>
+          !shouldHideFromOngoingOrders(order, completedIds) &&
+          !isCancelledOrder(order)
       );
 
-      return { ongoing, recentlySettled };
+      return { ongoing, recentlySettled, recentlyCancelled };
     },
     enabled: !!userId && !!outletId,
     refetchInterval: 10000,
@@ -321,6 +353,11 @@ function OrdersContent() {
     [orderHistoryData]
   );
 
+  const cancelledOrderIds = useMemo(
+    () => collectCancelledOrderIds(orderHistoryData),
+    [orderHistoryData]
+  );
+
   const recentlySettledOrders = useMemo(() => {
     const fromOngoing = ongoingOrdersData?.recentlySettled || [];
     const details = activeOrderDetailsData?.order_details;
@@ -358,6 +395,51 @@ function OrdersContent() {
     return exists ? fromOngoing : [fromDetails, ...fromOngoing];
   }, [ongoingOrdersData, activeOrderDetailsData, completedOrderIds]);
 
+  const recentlyCancelledOrders = useMemo(() => {
+    const fromOngoing = ongoingOrdersData?.recentlyCancelled || [];
+    const details = activeOrderDetailsData?.order_details;
+
+    const withoutHistory = fromOngoing.filter(
+      (order) => !cancelledOrderIds.has(String(order.order_id || order.orderId))
+    );
+
+    if (!details || !isCancelledOrder(details)) {
+      return withoutHistory;
+    }
+
+    if (cancelledOrderIds.has(String(details.order_id))) {
+      return withoutHistory;
+    }
+
+    const fromDetails = {
+      order_id: details.order_id,
+      order_number: details.order_number,
+      order_status: details.order_status || "cancelled",
+      status: details.order_status || "cancelled",
+      payment_status: details.payment_status,
+      outlet_name: details.outlet_name,
+      order_type: details.order_type,
+      final_grand_total: details.final_grand_total,
+      time: details.time,
+      date: details.date,
+      datetime: details.datetime,
+      table_number: details.table_number,
+      section_name: details.section_name,
+      menu_count: details.menu_count,
+      combo_count: details.combo_count,
+    };
+
+    const exists = withoutHistory.some(
+      (order) => String(order.orderId) === String(details.order_id)
+    );
+
+    return exists ? withoutHistory : [fromDetails, ...withoutHistory];
+  }, [
+    ongoingOrdersData,
+    activeOrderDetailsData,
+    cancelledOrderIds,
+  ]);
+
   useEffect(() => {
     if (!activeOrderId) return;
 
@@ -370,7 +452,25 @@ function OrdersContent() {
       return;
     }
 
+    if (cancelledOrderIds.has(normalizedActiveId)) {
+      clearActiveOrderSession();
+      refetchOngoingOrders();
+      refetchOrderHistory();
+      return;
+    }
+
     const details = activeOrderDetailsData?.order_details;
+    if (
+      details &&
+      String(details.order_id) === normalizedActiveId &&
+      isCancelledOrder(details)
+    ) {
+      clearActiveOrderSession();
+      refetchOngoingOrders();
+      refetchOrderHistory();
+      return;
+    }
+
     if (
       details &&
       String(details.order_id) === normalizedActiveId &&
@@ -397,6 +497,7 @@ function OrdersContent() {
     activeOrderDetailsData,
     activeOrderId,
     activeOrderCreatedAt,
+    cancelledOrderIds,
     completedOrderIds,
     refetchOngoingOrders,
     refetchOrderHistory,
@@ -405,6 +506,7 @@ function OrdersContent() {
   const activeFallbackOrder = (() => {
     const details = activeOrderDetailsData?.order_details;
     if (!details) return null;
+    if (isCancelledOrder(details)) return null;
     if (
       shouldHideFromOngoingOrders(
         { ...details, order_details: details },
@@ -465,11 +567,18 @@ function OrdersContent() {
         String(order.order_id || order.orderId)
       )
     );
+    const cancelledIds = new Set(
+      recentlyCancelledOrders.map((order) =>
+        String(order.order_id || order.orderId)
+      )
+    );
 
     const list = (ongoingOrdersData?.ongoing || []).filter(
       (order) =>
         !shouldHideFromOngoingOrders(order, completedOrderIds) &&
-        !settledIds.has(String(order.orderId))
+        !settledIds.has(String(order.orderId)) &&
+        !cancelledIds.has(String(order.orderId)) &&
+        !isCancelledOrder(order)
     );
     if (!activeFallbackOrder) return list;
     const exists = list.some(
@@ -480,7 +589,9 @@ function OrdersContent() {
       .filter(
         (order) =>
           !shouldHideFromOngoingOrders(order, completedOrderIds) &&
-          !settledIds.has(String(order.orderId))
+          !settledIds.has(String(order.orderId)) &&
+          !cancelledIds.has(String(order.orderId)) &&
+          !isCancelledOrder(order)
       )
       .sort((a, b) => {
         const aNum = Number(a?.orderNumber ?? a?.orderId ?? 0);
@@ -631,6 +742,7 @@ function OrdersContent() {
           iconBgClass: "bg-success",
         };
       case "cancelled":
+      case "canceled":
         return {
           status: "Cancelled",
           iconColor: "#E74C3C",
@@ -719,6 +831,49 @@ function OrdersContent() {
       date: dateKey,
       orderCount: 1,
       orders: [completedOrder],
+    };
+    return target;
+  };
+
+  const mapToCancelledAccordionOrder = (order) => {
+    const mapped = mapToCompletedAccordionOrder({
+      ...order,
+      order_status: "cancelled",
+      status: "cancelled",
+    });
+
+    return {
+      ...mapped,
+      status: "Cancelled",
+      iconColor: "#E74C3C",
+      iconBgClass: "bg-danger",
+    };
+  };
+
+  const mergeCancelledOrder = (target, cancelledOrder) => {
+    const dateKey = formatOrderDateLabel(cancelledOrder);
+    if (target.cancelledByDate[dateKey]) {
+      const exists = target.cancelledByDate[dateKey].orders.some(
+        (existing) =>
+          String(existing.orderId) === String(cancelledOrder.orderId)
+      );
+      if (exists) return target;
+
+      const orders = [...target.cancelledByDate[dateKey].orders, cancelledOrder].sort(
+        (a, b) => parseInt(b.orderNumber) - parseInt(a.orderNumber)
+      );
+      target.cancelledByDate[dateKey] = {
+        ...target.cancelledByDate[dateKey],
+        orders,
+        orderCount: orders.length,
+      };
+      return target;
+    }
+
+    target.cancelledByDate[dateKey] = {
+      date: dateKey,
+      orderCount: 1,
+      orders: [cancelledOrder],
     };
     return target;
   };
@@ -829,6 +984,12 @@ function OrdersContent() {
       });
     }
 
+    if (orders.canceled) {
+      Object.entries(orders.canceled).forEach(([dateKey, orderList]) => {
+        processOrders(orderList, dateKey, true);
+      });
+    }
+
     return transformedOrders;
   };
 
@@ -840,21 +1001,32 @@ function OrdersContent() {
       cancelled: {},
     });
 
-    if (!recentlySettledOrders.length) {
-      return base;
+    let merged = base;
+
+    if (recentlySettledOrders.length) {
+      merged = {
+        ...merged,
+        completedByDate: { ...merged.completedByDate },
+      };
+
+      recentlySettledOrders.forEach((order) => {
+        mergeCompletedOrder(merged, mapToCompletedAccordionOrder(order));
+      });
     }
 
-    const merged = {
-      ...base,
-      completedByDate: { ...base.completedByDate },
-    };
+    if (recentlyCancelledOrders.length) {
+      merged = {
+        ...merged,
+        cancelledByDate: { ...merged.cancelledByDate },
+      };
 
-    recentlySettledOrders.forEach((order) => {
-      mergeCompletedOrder(merged, mapToCompletedAccordionOrder(order));
-    });
+      recentlyCancelledOrders.forEach((order) => {
+        mergeCancelledOrder(merged, mapToCancelledAccordionOrder(order));
+      });
+    }
 
     return merged;
-  }, [orderHistoryData, recentlySettledOrders]);
+  }, [orderHistoryData, recentlySettledOrders, recentlyCancelledOrders]);
 
   // Auto-expand date groups when data arrives so paid/cancelled lists are immediately visible.
   useEffect(() => {
@@ -974,9 +1146,14 @@ Object.values(pendingOrdersByDate).forEach(dateGroup => {
         note: reason
       });
 
+      if (String(selectedOrderId) === String(activeOrderId)) {
+        clearActiveOrderSession();
+      }
+
       await refetchOngoingOrders();
       await refetchOrderHistory();
       handleCloseCancelModal();
+      setActiveTab("cancelled");
       toast.show({
         type: "success",
         message: "Order cancelled successfully",

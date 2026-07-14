@@ -25,70 +25,15 @@ import {
   buildOrderMenuPayload,
   savePlacedOrderSnapshot,
 } from "../utils/orderMenuItem";
+import {
+  buildCouponDetailsFromVerifyResponse,
+  computeBillSummary,
+  formatMoney,
+} from "../utils/couponDiscount";
 
 const parseMoney = (value) => {
   const amount = Number(value);
   return Number.isFinite(amount) ? amount : 0;
-};
-
-const formatMoney = (value) => parseMoney(value).toFixed(2);
-
-const computeCouponDiscountAmount = (baseAmount, couponDetails) => {
-  if (!couponDetails) return 0;
-
-  const discountValue = parseMoney(couponDetails.value);
-  const discountType = String(couponDetails.type || "amount").toLowerCase();
-
-  if (discountType === "percentage" || discountType === "percent") {
-    return Math.min(baseAmount, (baseAmount * discountValue) / 100);
-  }
-
-  return Math.min(baseAmount, discountValue);
-};
-
-/** Single source of truth for checkout bill summary (includes coupon when applied). */
-const computeBillSummary = ({ checkoutDetails, cartTotal, couponStatus }) => {
-  const totalBill = checkoutDetails
-    ? parseMoney(checkoutDetails.total_bill_amount)
-    : parseMoney(cartTotal);
-  const discountAmount = checkoutDetails
-    ? parseMoney(checkoutDetails.discount_amount)
-    : 0;
-  const baseAfterOfferDiscount =
-    checkoutDetails?.total_bill_with_discount != null
-      ? parseMoney(checkoutDetails.total_bill_with_discount)
-      : Math.max(0, totalBill - discountAmount);
-  const serviceCharge = checkoutDetails
-    ? parseMoney(checkoutDetails.service_charges_amount)
-    : 0;
-  const gstAmount = checkoutDetails
-    ? parseMoney(checkoutDetails.gst_amount)
-    : 0;
-
-  const couponDiscountAmount = couponStatus?.success
-    ? computeCouponDiscountAmount(
-        baseAfterOfferDiscount,
-        couponStatus.couponDetails
-      )
-    : 0;
-
-  const totalAfterDiscount = Math.max(
-    0,
-    baseAfterOfferDiscount - couponDiscountAmount
-  );
-  const grandTotal = totalAfterDiscount + serviceCharge;
-  const payableAmount = grandTotal + gstAmount;
-
-  return {
-    totalBill,
-    discountAmount,
-    couponDiscountAmount,
-    totalAfterDiscount,
-    serviceCharge,
-    grandTotal,
-    gstAmount,
-    payableAmount,
-  };
 };
 
 const FooterSummary = function FooterSummary({ checkoutDetails }) {
@@ -474,6 +419,17 @@ function CheckoutContent() {
       // Add coupon code to payload if a valid coupon is applied
       if (couponStatus?.success && couponStatus?.couponDetails?.code) {
         payload.coupon = couponStatus.couponDetails.code;
+        payload.discount_type = couponStatus.couponDetails.type;
+        payload.discount_value = String(couponStatus.couponDetails.value);
+        if (couponStatus.couponDetails.appliedAmount != null) {
+          payload.coupon_discount = String(
+            couponStatus.couponDetails.appliedAmount
+          );
+        }
+        payload.total_bill_amount = String(
+          parseMoney(effectiveCheckoutDetails?.total_bill_amount) ||
+            getCartTotal()
+        );
       }
 
       // Add table_id only for dine-in orders
@@ -759,12 +715,21 @@ function CheckoutContent() {
     setCouponStatus(null);
     try {
       const accessToken = getAccessToken();
+      const billAmount =
+        parseMoney(effectiveCheckoutDetails?.total_bill_with_discount) ||
+        parseMoney(effectiveCheckoutDetails?.total_bill_amount) ||
+        parseMoney(getCartTotal());
       const response = await axios.post(
         `${ENV.V2_COMMON_BASE}/common/verify_coupon`,
         {
           coupon_code: couponCode,
-          app_source: "user_App",
+          app_source: "user_app",
           outlet_id: String(outletId),
+          total_bill_amount: String(billAmount),
+          ...(orderItems.length > 0 ? { order_items: orderItems } : {}),
+          ...(orderComboItems.length > 0
+            ? { order_combo_items: orderComboItems }
+            : {}),
         },
         {
           headers: {
@@ -777,19 +742,20 @@ function CheckoutContent() {
 
       if (response.data?.detail) {
         const { detail, discount_type, discount_value } = response.data;
+        const couponDetails = buildCouponDetailsFromVerifyResponse(
+          response.data,
+          billAmount
+        );
         const discountText =
-          discount_type === "amount"
+          discount_type === "amount" ||
+          String(discount_type || "").toLowerCase() === "flat"
             ? `₹${discount_value}`
             : `${discount_value}%`;
 
         setCouponStatus({
           success: true,
           message: `${detail} - You will get ${discountText} off!`,
-          couponDetails: {
-            code: response.data.coupon_code,
-            type: discount_type,
-            value: discount_value,
-          },
+          couponDetails,
         });
       } else {
         setCouponStatus({
@@ -1013,7 +979,9 @@ function CheckoutContent() {
                         const bill = computeBillSummary({
                           checkoutDetails: effectiveCheckoutDetails,
                           cartTotal: getCartTotal(),
-                          couponStatus,
+                          couponDetails: couponStatus?.success
+                            ? couponStatus.couponDetails
+                            : null,
                         });
 
                         return (
